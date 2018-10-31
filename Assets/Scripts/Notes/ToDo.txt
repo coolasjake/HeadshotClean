@@ -1,0 +1,85 @@
+
+Fix:
+'DONE' - Make 'Impacts' move accurate
+- Change Distance limitations in LaserMiner to be on the raycast in LookingEnemy instead.
+- When close to a moving enemy and invisible, the head will jiggle (probably caused by 'look around' rapidly turning on and off)
+- Switch gravity impact kill to effect 'shooteables' and use damage.
+- Bug where gravity is locked in half gravity (normal direction). Doesnt respond to any inputs, but is 'fixed' when the gravity meter runs out.
+- UnCrouching will cause you to crouch again if the next collision is an Impact, even if it is a long time after.
+- Figure out why phase breaks (probably a temporary object created by the player or an enemy eg alarm).
+
+- 'DONE' When Gravity is directly 'up', pressing the Gravity button while aiming at the surface you are standing on will cause Gravity to revert to normal.
+- 'DONE' When landing on a surface, sometimes the Gyroscope wont change to the new Gravity.
+- When using C to reset gravity, and hitting the ground at the same (or similar) time, gravity will change to down, but the player wont rotate.
+- Phase gauntlet 'Rooms' have extra walls that should be deleted.
+
+
+Features:
+'DONE' - Change 'Can see player when searching' to 'has expanded DetectionAngle when searching'. [The bots will now become aware of you if you are in front of them, and quickly turn to face you, but not instantly]
+'DONE' - Add 'Body detection', so that enemies go into searching mode when seeing a dead body.
+'DONE' - Make the bots look around when the player has been 'lost'.
+'DONE' - Add 'Sound', so nearby enemies are aware of gunshots.
+'DONE' - Create resource meters
+'DONE' - Attach meters to abilities
+'DONE' - Set up resource systems for abilities (and do basic balancing)
+'SORTOF' - Build quest system
+	'DONE' - Finish linking indicators and sub objectives
+	'DONE' - Create Objective class, with SO interaction
+	'DONE' - Create the Quest class, with a method for displaying them, and Objectives management
+	'DONE' - Finish the Quest Manager (basic functionality)
+	'DONE' - Create a (test) enemy that generates a quest to destroy it when spawned
+	'DONE' - Make a test 'reach this area' quest (maybe a racecourse?)
+	- Create UI to display quests
+- Create a quest log
+- 'DONE' Add 'power cells'
+- Add basic 'work' for the bots to do (patrol, laser ceiling/side of building, ...)
+- Make different enemies
+	- Flying???
+	- Tractor beam enemies
+	- Power-drain projectiles (sombra hack on huge sym orbs)
+	- Face Shields
+	- Hunters with better AI, 'sensors', weapons etc
+	- Guards with projectile weapons
+
+Improve:
+'DONE' - Make 'Alarm' happen at more natural times (eg if player is 'obvious', they are probably not hiding, so shoot instead of alarm).
+- Make second or third enemy sound alarm, like in Shadow of Mordor, as every 'individual enemy' shouldnt sound the alarm, just medium sized groups.
+- Test new gravity control scheme where pressing F makes the direction you are pointing 'Down', and holding F makes any surface your feet touch 'Level'.
+- Ability Failed SFX.
+- Investigate 'reverse quaternion'.
+
+
+
+JONNY DEADLINE:
+- Change current audio to use audio managers.
+- Add more SFX like different sounds for abilities and sounds for failed abilities.
+- Finish AT LEAST one phase section/puzzle.
+- 
+
+- Finish tutorial
+- Make small open-world area decent
+
+
+FINISH THE GAME STEPS:
+- Create different walls
+	- 'DONE' Gravity-safe, phase-proof, window, spike, visor, normal.
+	- 'DONE' Grill (can teleport through, and sortof see through)
+	- 'DONE' Let enemies see through windows.
+	- 'DONE' Die when hitting a spike.
+- Create Guantlets
+	- 'DONE' Stealth 'NEEDS IMPROVEMENT'
+	- Gravity
+	- Phase
+	- Teleport
+- Create more enemies (that look different)
+- Create transition
+
+IMPORTANT FIXES:
+- Balance gun + abilities (i.e. phase should kill you faster, regen rates)
+- Phase is always accurate AND can detect when only inside an enemy.
+- Enemies do the 'random fire' if the player goes round a corner (should only happen when invisible).
+
+
+REMEMBER REMEMBER:
+- Without deep knowledge of quaternians, gravity MUST be changed with the LookRotation, down is forwards method.
+-- Rotating to face, then about x-axis, then turning back performs the same job as LookRotation, but less accurately. Dont use it.

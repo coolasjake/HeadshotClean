@@ -1,0 +1,19 @@
+LAYERS:
+0 Default				= Every object that doesn't fit into one of the other layers
+8 Player				= Layer that the player is normally on (ie when not phasing etc)
+9 GhostPlayer			= Player when they ARE phasing
+10 Ground				= Layer that the player cannot phase through
+11 Windows				= Objects that are physical, but do not block rays (player/enemy shots, detection)
+12 Enemy				= Enemy colliers
+13 GunUI				= Only holds the gun (or POV elements such as arms) for the culling mask on the second camera
+14 DontPhase			= Children of the player GameObject which should NOT change layers when phasing (ie phase trigger checker)
+15 NoPlayerCollisions	= Used for enemy bodies. Attacks (should) also go through these
+16 Grating				= Can teleport and shoot through. Enemies CAN also see and shoot through. (bars, wire etc).
+17 OpaqueGrating		= Can teleport and shoot through. Enemies CANNOT see through, but can accidentally shoot through (railings, floor etc in stealth areas).
+18 PlayerOnlyTrigger	= Triggers that only collide with the player.
+
+MASKS:
+Player Shots 			= 0, 10, 11
+(Normal) Enemy Shots	= 0, 8, 10, 11
+Phase Collision Checks	= 0, 11, 12, 16, 17
+Enemy Vision			= 0, 8, 9, 10, 11, 17
