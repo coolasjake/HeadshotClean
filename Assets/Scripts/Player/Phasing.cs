@@ -44,9 +44,11 @@ public class Phasing : PlayerAbility {
 	private float TapDelayTime;
 	private AudioSource SFXPlayer;
 	private int PhaseMask;
+	private bool Intersecting;
 
 	public float FailsafeCapsuleRadius = 0.5f;
 	public InputMode Mode = InputMode.Tap;
+	public bool AutoUnphase = true;
 	public float TapDelay = 0.2f;
 	public float MaxPhaseTime = 3f;
 	public float XRayDistance = 20f;
@@ -116,7 +118,7 @@ public class Phasing : PlayerAbility {
 		}
 
 
-		bool Intersecting = false;
+		Intersecting = false;
 		if (CheckBodyIntersections ())
 			Intersecting = true;
 		else if (UnphaseQueued)
@@ -155,8 +157,10 @@ public class Phasing : PlayerAbility {
 				if (TapDelayTime <= 0) {
 					TapDelayTime = -1;
 					if (CurrentlyPhasing && !Intersecting) {
-						//Debug.Log ("Trying to stop");
-						StopPhasing ();
+						if (Intersecting)
+							UnphaseQueued = true;
+						else
+							StopPhasing ();
 					}
 				}
 			}
@@ -202,10 +206,10 @@ public class Phasing : PlayerAbility {
 				if (Child.gameObject.layer == 8)
 					Child.gameObject.layer = 9;
 			}
-			ShadowEffect.enabled = true;
 			if (CurrentlyPhasing)
 				return;
 			CurrentlyPhasing = true;
+			ShadowEffect.enabled = true;
 			foreach (ElectricalComponent VisibleComponent in FindObjectsOfType<ElectricalComponent>()) {
 				if (Vector3.Distance (VisibleComponent.transform.position, transform.position) < XRayDistance)
 					OriginalMaterials.Add (new ChangedObject (VisibleComponent, Silhoutte));
@@ -217,6 +221,8 @@ public class Phasing : PlayerAbility {
 	}
 
 	private void StopPhasing () {
+		if (Intersecting)
+			return;
 		BaseEnemy IntersectingEnemy = CheckEnemyIntersections ();
 		Debug.Log (IntersectingEnemy);
 		if (IntersectingEnemy != null) {

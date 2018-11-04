@@ -31,7 +31,7 @@ public class Gun : PlayerAbility {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetMouseButtonDown (0) && !Disabled)
+		if (Input.GetButton ("Fire") && !Disabled)
 			WannaShoot = true;
 		if (Input.GetKeyDown (KeyCode.Tab))
 			Laser = !Laser;

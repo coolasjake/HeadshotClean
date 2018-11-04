@@ -99,10 +99,7 @@ public class Gravity : PlayerAbility {
 				else if (Type != GravityType.Normal) {
 					ResetGravity (1f);
 				}
-			} else if (Input.GetButton ("GravityReset"))
-				//Provide a tiny slowing force when [C] is HELD.
-				Stabilize ();
-			else if (Input.GetButtonDown ("GravityNormal"))
+			} else if (Input.GetButtonDown ("GravityNormal"))
 				//Run the change gravity function when [F] is pressed.
 				ContextualGravityShift ();
 			else if (Input.GetButton ("GravityNormal")) {
@@ -111,10 +108,13 @@ public class Gravity : PlayerAbility {
 				GravityMagnitude += Input.mouseScrollDelta.y;
 				GravityDirection = OriginalDirectionNorm.normalized * GravityMagnitude;
 				Debug.Log ("Gravity changed from " + OldMag + " to " + GravityMagnitude);
-			}
+			} else if (Input.GetButton ("Crouch") && !PM.Grounded)
+				//Provide a tiny slowing force when [Ctrl] is HELD.
+				Stabilize ();
 
 			//Lock on to the surface the player collided with, if gravity isn't locked, the surface isn't an enemy, and if the 'modifier key' (SHIFT) is not held.
 			if (PM.CheckForWallAlignment) {
+				Debug.Log ("Got message from Movement");
 				PM.CheckForWallAlignment = false;
 
 				//If Gravity is unaligned and shift is not being held AND
@@ -123,16 +123,19 @@ public class Gravity : PlayerAbility {
 				if (Type == GravityType.Unaligned && !Input.GetButton ("AlignModifier") && (
 					(Vector3.Distance(TargetWall.point, transform.position) < 2 || Vector3.Distance(TargetWall.point, ShiftPosition) < 3) ||
 					(Vector3.Distance(ShiftPosition, transform.position) > Vector3.Distance(TargetWall.point, transform.position)))) {
+
+					Debug.Log ("Conditions met, aligning gravity");
 					Type = GravityType.Aligned;
-					bool PointingAtLevelGround = ((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
-					ShiftGravityDirection (1, TargetWall.normal * -1, PointingAtLevelGround);
+					//bool PointingAtLevelGround = ((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
+					ShiftGravityDirection (1, TargetWall.normal * -1);
+
 				}
 			}
 		}
 
 		//Update the scale and rotation of the 'Gyroscope'.
-		UIGyroscope.transform.rotation = Quaternion.LookRotation(GravityDirection);
-		UIGyroscope.transform.localScale = new Vector3 (1, 1, GravityDirection.magnitude / NormalGravityMagnitude);
+		//UIGyroscope.transform.rotation = Quaternion.LookRotation(GravityDirection);
+		//UIGyroscope.transform.localScale = new Vector3 (1, 1, GravityDirection.magnitude / NormalGravityMagnitude);
 
 		//Apply the gravity force (so long as normal gravity isn't enabled).
 		if (Type != GravityType.Normal)
@@ -217,19 +220,19 @@ public class Gravity : PlayerAbility {
 	private void ContextualGravityShift () {
 		if (Physics.Raycast (PM.MainCamera.transform.position, PM.MainCamera.transform.forward, out TargetWall)) {
 			//Debug.Log ("Current: " + Physics.gravity.normalized + ", New: " + (TargetWall.normal * -1) + "Sum: " + (Physics.gravity.normalized - TargetWall.normal * -1).magnitude);
-			bool PointingAtLevelGround = false;//((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
+			//bool PointingAtLevelGround = false;//((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
 			RaycastHit Hit;
 			//Align if pointing to a wall 2 * AutoLockDistance away, or half the distance away if the modifier is held (SHIFT).
 			if (TargetWall.distance < AutoLockDistance * 2 && !Input.GetButton ("AlignModifier") && Physics.Raycast (transform.position, TargetWall.normal * -1, out Hit)) {
 				if (Hit.distance < AutoLockDistance && (Hit.normal - TargetWall.normal).magnitude < 0.1f) {
 					Type = GravityType.Aligned;
-					ShiftGravityDirection (1, TargetWall.normal * -1, PointingAtLevelGround);
+					ShiftGravityDirection (1, TargetWall.normal * -1);
 					return;
 				}
 			}
 			//Otherwise shift to the direction the player is pointing.
 			Type = GravityType.Unaligned;
-			ShiftGravityDirection (1, PM.MainCamera.transform.forward, PointingAtLevelGround);
+			ShiftGravityDirection (1, PM.MainCamera.transform.forward);
 		}
 	}
 
@@ -245,14 +248,11 @@ public class Gravity : PlayerAbility {
 	}
 
 	/// <summary> Shift gravity in either the direction of the camera, or the direction of a surface normal (based on the align key; default shift), and apply the given GravityMultiplier to the force. </summary>
-	private void ShiftGravityDirection (float GravityMultiplier, Vector3 Direction, bool PointingAtLevelGround) {
+	private void ShiftGravityDirection (float GravityMultiplier, Vector3 Direction) {
 		Vector3 NewGravity = Direction * NormalGravityMagnitude * GravityMultiplier;
 
 		if ((NewGravity - Physics.gravity).magnitude < 0.1f) {
 			//If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
-			ResetGravity (GravityMultiplier);
-		} else if (PointingAtLevelGround) {
-			//If the player is pointing at level ground which is close enough (given through bool), set gravity to normal.
 			ResetGravity (GravityMultiplier);
 		} else if (Resource > MinToUse && (GravityDirection - NewGravity).magnitude > 0.1f) {
 			//If resource is high enough, and the new gravity is not the same as the current one (with 10% leeway), set the gravity to it.
@@ -265,6 +265,13 @@ public class Gravity : PlayerAbility {
 			if (Type == GravityType.Normal)
 				Type = GravityType.Aligned;
 		}
+
+		/*
+		else if (PointingAtLevelGround) {
+			//If the player is pointing at level ground which is close enough (given through bool), set gravity to normal.
+			ResetGravity (GravityMultiplier);
+		} 
+		*/
 
 		//SnapRotation ();
 		IntuitiveSnapRotation ();

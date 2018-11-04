@@ -266,7 +266,7 @@ public class Movement : Shooteable {
 		}
 
 		//CROUCHING
-		if (Grounded && Input.GetKey(KeyCode.LeftControl)) {
+		if (Grounded && Input.GetButton("Crouch")) {
 			if (!Crouching)
 				Crouch ();
 		} else if (Crouching)
