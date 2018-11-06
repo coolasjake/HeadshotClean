@@ -6,13 +6,17 @@ Fix:
 - Switch gravity impact kill to effect 'shooteables' and use damage.
 - Bug where gravity is locked in half gravity (normal direction). Doesnt respond to any inputs, but is 'fixed' when the gravity meter runs out.
 - UnCrouching will cause you to crouch again if the next collision is an Impact, even if it is a long time after.
-- Figure out why phase breaks (probably a temporary object created by the player or an enemy eg alarm).
+'DONE' - Figure out why phase breaks (probably a temporary object created by the player or an enemy eg alarm).
 
-- 'DONE' When Gravity is directly 'up', pressing the Gravity button while aiming at the surface you are standing on will cause Gravity to revert to normal.
-- 'DONE' When landing on a surface, sometimes the Gyroscope wont change to the new Gravity.
+'DONE' - When Gravity is directly 'up', pressing the Gravity button while aiming at the surface you are standing on will cause Gravity to revert to normal.
+'DONE' - When landing on a surface, sometimes the Gyroscope wont change to the new Gravity.
 - When using C to reset gravity, and hitting the ground at the same (or similar) time, gravity will change to down, but the player wont rotate.
+- When very close to a wall but aiming at the furthest point of it from the player, gravity sometimes (~50%) stays down while the player rotates.
 - Phase gauntlet 'Rooms' have extra walls that should be deleted.
+'DONE' - Complete shedule enemy: all systems have been created but something is stopping it from working. POSSIBLY - schedule is using local positions, and the Agent cant find a path, so resets to current position.
 
+Important/Easy:
+- Add a visual demonstrating (more clearly) the strength of gravity, so that custom gravity is intuitive.
 
 Features:
 'DONE' - Change 'Can see player when searching' to 'has expanded DetectionAngle when searching'. [The bots will now become aware of you if you are in front of them, and quickly turn to face you, but not instantly]
@@ -83,3 +87,13 @@ IMPORTANT FIXES:
 REMEMBER REMEMBER:
 - Without deep knowledge of quaternians, gravity MUST be changed with the LookRotation, down is forwards method.
 -- Rotating to face, then about x-axis, then turning back performs the same job as LookRotation, but less accurately. Dont use it.
+
+
+
+5/11:
+- Dropped floor in gravity trial
+- Made most of shedule enemy + schedule (not working, see 'Fix:')
+
+6/11:
+- Finished Schedule Enemy
+- Added patrol and schedule enemies to castle (could use some normal laser miners)

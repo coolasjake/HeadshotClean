@@ -107,14 +107,14 @@ public class Gravity : PlayerAbility {
 				float OldMag = GravityDirection.magnitude;
 				GravityMagnitude += Input.mouseScrollDelta.y;
 				GravityDirection = OriginalDirectionNorm.normalized * GravityMagnitude;
-				Debug.Log ("Gravity changed from " + OldMag + " to " + GravityMagnitude);
+				//Debug.Log ("Gravity changed from " + OldMag + " to " + GravityMagnitude);
 			} else if (Input.GetButton ("Crouch") && !PM.Grounded)
 				//Provide a tiny slowing force when [Ctrl] is HELD.
 				Stabilize ();
 
 			//Lock on to the surface the player collided with, if gravity isn't locked, the surface isn't an enemy, and if the 'modifier key' (SHIFT) is not held.
 			if (PM.CheckForWallAlignment) {
-				Debug.Log ("Got message from Movement");
+				//Debug.Log ("Got message from Movement");
 				PM.CheckForWallAlignment = false;
 
 				//If Gravity is unaligned and shift is not being held AND
@@ -124,7 +124,7 @@ public class Gravity : PlayerAbility {
 					(Vector3.Distance(TargetWall.point, transform.position) < 2 || Vector3.Distance(TargetWall.point, ShiftPosition) < 3) ||
 					(Vector3.Distance(ShiftPosition, transform.position) > Vector3.Distance(TargetWall.point, transform.position)))) {
 
-					Debug.Log ("Conditions met, aligning gravity");
+					//Debug.Log ("Conditions met, aligning gravity");
 					Type = GravityType.Aligned;
 					//bool PointingAtLevelGround = ((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
 					ShiftGravityDirection (1, TargetWall.normal * -1);

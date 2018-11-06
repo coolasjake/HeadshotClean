@@ -224,7 +224,7 @@ public class Phasing : PlayerAbility {
 		if (Intersecting)
 			return;
 		BaseEnemy IntersectingEnemy = CheckEnemyIntersections ();
-		Debug.Log (IntersectingEnemy);
+		//Debug.Log (IntersectingEnemy);
 		if (IntersectingEnemy != null) {
 			IntersectingEnemy.Kill ();
 			//return collided enemy
