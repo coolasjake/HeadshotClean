@@ -28,6 +28,11 @@ public class DetectionIndicator : MonoBehaviour {
 			return;
 		}
 
+		if (!Target.gameObject.activeInHierarchy) {
+			transform.position = new Vector3 (0, 0, -100);
+			return;
+		}
+
 		if (EnemyScript.State == AIState.Working && EnemyScript.DetectionProgress > 0) {
 			transform.localScale = new Vector3 (1, EnemyScript.DetectionProgress, 1);
 			ImageReference.color = Color.green;
@@ -47,34 +52,6 @@ public class DetectionIndicator : MonoBehaviour {
 			ImageReference.enabled = false;
 			return;
 		}
-		/*
-		if ("fart" == "FART") {
-			if (EnemyScript.DetectionProgress >= 2) {
-				transform.localScale = new Vector3 (1, 1, 1);
-				ImageReference.color = Color.red;
-			} else if (EnemyScript.DetectionProgress >= 1) {
-				transform.localScale = new Vector3 (1, 1, 1);
-				ImageReference.color = Color.yellow;
-			} else {
-				transform.localScale = new Vector3 (1, EnemyScript.DetectionProgress, 1);
-				ImageReference.color = Color.green;
-			}
-		} else {
-			ImageReference.enabled = false;
-			return;
-		}
-		if (EnemyScript.DetectionProgress > 0 && EnemyScript.DetectionProgress < LookingEnemy.MinimumDetectionTime) {
-			//TextObject.text = "(-) " + (EnemyScript.DetectionProgress) / LookingEnemy.MinimumDetectionTime;
-			transform.localScale = new Vector3(1, (EnemyScript.DetectionProgress) / LookingEnemy.MinimumDetectionTime, 1);
-			ImageReference.color = Color.yellow;
-		} else if (Time.time < EnemyScript.LastSawPlayer + LookingEnemy.ForgetTime) {
-			transform.localScale = new Vector3 (1, (EnemyScript.LastSawPlayer - Time.time + LookingEnemy.ForgetTime) / LookingEnemy.ForgetTime, 1);
-			ImageReference.color = Color.red;
-		} else {
-			ImageReference.enabled = false;
-			return;
-		}
-		*/
 
 		Vector3 wantedPos = Camera.main.WorldToScreenPoint (Target.position + new Vector3(0, 2, 0));
 		transform.position = wantedPos;

@@ -18,8 +18,8 @@ public class CrazyEnemy : LaserMiner {
 		FP = GetComponentInChildren<FiringPoint> ();
 		FiringDelayTimer = Time.time + Random.Range (2f, 20f);
 
-		GameObject DI = Instantiate (Resources.Load<GameObject> ("Prefabs/DetectionIndicator"), FindObjectOfType<Canvas> ().transform);
-		DI.GetComponent<DetectionIndicator> ().Target = transform;
+		//GameObject DI = Instantiate (Resources.Load<GameObject> ("Prefabs/DetectionIndicator"), FindObjectOfType<Canvas> ().transform);
+		//DI.GetComponent<DetectionIndicator> ().Target = transform;
 	}
 	
 	// Update is called once per frame

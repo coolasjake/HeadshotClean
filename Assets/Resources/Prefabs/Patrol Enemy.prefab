@@ -592,7 +592,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1442991055266586}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.5, y: 1, z: -25}
+  m_LocalPosition: {x: -48.87, y: -31.765, z: -15.493}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4125206410972954}
@@ -1518,8 +1518,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   efxSource: {fileID: 82844105739318198}
-  lowPitchRange: 0.95
-  highPitchRange: 1.05
+  DefaultLowPitchRange: 0.95
+  DefaultHighPitchRange: 1.05
   SoundLibrary:
   - name: Fire
     sound: {fileID: 8300000, guid: 8e5adb3004157f24385e3de1f02cc1ce, type: 3}
@@ -1541,20 +1541,22 @@ MonoBehaviour:
   State: 5
   DetectionProgress: 0
   RefreshRate: 0.2
-  StartChargingDelay: 3
-  ChargeTime: 3
-  FireCooldown: 10
+  StartChargingDelay: 2
+  ChargeTime: 2
+  FireCooldown: 5
   FireDuration: 2
-  AlarmDuration: 2
+  AlarmDuration: 1
   MinSearchDuration: 5
   MaxSearchDuration: 30
   DPS: 50
   PauseBetweenPoints: 1
   PauseDuration: 3
   PatrolPoints:
-  - {x: 45, y: -51.6, z: -25}
-  - {x: 45, y: -51.6, z: 0.5}
-  PausePoints: 0101
+  - {x: -78.58, y: -31.765, z: -15.493}
+  - {x: -76.13, y: -31.765, z: -15.493}
+  - {x: -46, y: -31.765, z: -15.493}
+  - {x: -48.87, y: -31.765, z: -15.493}
+  PausePoints: 00010001
 --- !u!114 &114877099925872092
 MonoBehaviour:
   m_ObjectHideFlags: 1

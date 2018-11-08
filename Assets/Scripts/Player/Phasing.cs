@@ -200,7 +200,7 @@ public class Phasing : PlayerAbility {
 		if (Resource > MinToUse) {
 			if (Mode == InputMode.Tap)
 				TapDelayTime = TapDelay;
-			PM.DisableAbilities (this);
+			//PM.DisableAbilities (this);
 			gameObject.layer = 9;
 			foreach (Transform Child in GetComponentsInChildren<Transform>()) {
 				if (Child.gameObject.layer == 8)
@@ -230,7 +230,7 @@ public class Phasing : PlayerAbility {
 			//return collided enemy
 		}
 
-		PM.EnableAbilities ();
+		//PM.EnableAbilities ();
 		CurrentlyPhasing = false;
 		//PhaseResource = MaxPhaseTime;
 		UnphaseQueued = false;

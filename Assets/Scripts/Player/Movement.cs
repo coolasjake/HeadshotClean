@@ -165,6 +165,8 @@ public class Movement : Shooteable {
 		//	MainCamera.GetComponent<AudioSource> ().enabled = false;
 
 		//transform.position = PlayerStartPosition;
+
+		Resources.Load<GameObject> ("Prefabs/DeadBody");
 	}
 
 	void Update () {

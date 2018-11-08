@@ -14,6 +14,7 @@ Fix:
 - When very close to a wall but aiming at the furthest point of it from the player, gravity sometimes (~50%) stays down while the player rotates.
 - Phase gauntlet 'Rooms' have extra walls that should be deleted.
 'DONE' - Complete shedule enemy: all systems have been created but something is stopping it from working. POSSIBLY - schedule is using local positions, and the Agent cant find a path, so resets to current position.
+- Rework stopping/friction so that the player can change gravity while standing, and float into the air, rather than stick to the ground. (change to [V = 0; if (V > 0.1 && V < 1.5*Spd && grounded && no input)])
 
 Important/Easy:
 - Add a visual demonstrating (more clearly) the strength of gravity, so that custom gravity is intuitive.
@@ -52,18 +53,6 @@ Improve:
 - Ability Failed SFX.
 - Investigate 'reverse quaternion'.
 
-
-
-JONNY DEADLINE:
-- Change current audio to use audio managers.
-- Add more SFX like different sounds for abilities and sounds for failed abilities.
-- Finish AT LEAST one phase section/puzzle.
-- 
-
-- Finish tutorial
-- Make small open-world area decent
-
-
 FINISH THE GAME STEPS:
 - Create different walls
 	- 'DONE' Gravity-safe, phase-proof, window, spike, visor, normal.
@@ -87,6 +76,7 @@ IMPORTANT FIXES:
 REMEMBER REMEMBER:
 - Without deep knowledge of quaternians, gravity MUST be changed with the LookRotation, down is forwards method.
 -- Rotating to face, then about x-axis, then turning back performs the same job as LookRotation, but less accurately. Dont use it.
+- Changed gravity reset to use IntuitiveSnapRotation, and changed IntuitiveSnapRotation to include LookRotation...Forward. May have had a good reason for the difference but unlikely.
 
 
 
@@ -97,3 +87,9 @@ REMEMBER REMEMBER:
 6/11:
 - Finished Schedule Enemy
 - Added patrol and schedule enemies to castle (could use some normal laser miners)
+
+7/11:
+- Improved gravity UI
+- Added variable gravity (working well)
+- Added enemies to castle
+- Started basement + gun

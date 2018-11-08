@@ -19,23 +19,19 @@ public class Gravity : PlayerAbility {
 
 	/// <summary> Represents the amount of force that should be added to the player (or object) per second, when gravity was set by the normal of a surface. </summary>
 	private Vector3 GravityDirection;
-	private Vector3 OriginalDirectionNorm;
-	private float GravityMagnitude;
-	private Vector3 ShiftPosition;
-	private RaycastHit TargetWall;
-	public GravityType Type = GravityType.Normal;
+	private Vector3 OriginalDirection;				//Original direction, so that the gravity magnitude can be changed by VariableGravity to a negative (and not lose its sign straight after).
+	private float GravityMagnitude;					//Unsigned magnitude of gravity, also to enable VariableGravity to work.
+	private Vector3 ShiftPosition;					//The position from which unaligned gravity was set, so that collisions before reaching the target don't align gravity too early.
+	private RaycastHit TargetWall;					//The raycast hit of an unaligned gravity shift, used to find the normal to align to later, and the distance to it /\.
+	public GravityType Type = GravityType.Normal;	//The current status of gravity, see GravityType for detail.
 
-	private Vector3 TargetFacing;
-	private bool NeedToRotate = false;
-	private bool RotatePlayer = false;
-	private bool RotateCamera = false;
-	private Quaternion DesiredCameraRot = new Quaternion ();
 	private float AngleOldToNew = 0;
 	private float FinishRotationTimer;
 	/// <summary> The magnitude that gravity will be set to if it is changed. Used to have a 'custom gravity force' with a flexible number.</summary>
 	private float PersonalScale = 0;
 	public Vector3 StableSway;
 	private ResourceMeter Meter;
+	private BarDisplay DragonMeter;
 	private AudioSource SFXPlayer;
 
 	private Transform RemoteGravityTarget;
@@ -67,12 +63,22 @@ public class Gravity : PlayerAbility {
 	[Range(0.1f, 2f)]
 	public float RotationTime = 1;
 
+	private Vector3 ChangeGravity {
+		set {
+			GravityDirection = value;
+			OriginalDirection = GravityDirection;
+			UIGyroscope.Down = GravityDirection;
+			DragonMeter.ChangeValue (GravityMagnitude/(NormalGravityMagnitude * 2));
+		}
+	}
+
 	// Use this for initialization
 	void Start () {
 		MaxResource = 50;
 		RegenRate = 10;
 		MinToUse = 10;
 		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [2];
+		DragonMeter = FindObjectOfType<Canvas> ().GetComponentInChildren<BarDisplay> ();
 
 		RB = GetComponent<Rigidbody> ();
 		PM = GetComponent<Movement> ();
@@ -80,7 +86,9 @@ public class Gravity : PlayerAbility {
 		UIGyroscope = GetComponentInChildren<GravityRep> ();
 		UINormalGravity = GetComponentsInChildren<GravityRep> ()[1];
 		UINormalGravity.Down = -Vector3.up * NormalGravityMagnitude;
-		GravityDirection = Physics.gravity;
+		//GravityDirection = Physics.gravity;
+		GravityMagnitude = Physics.gravity.magnitude;
+		ChangeGravity = Physics.gravity;
 		ResetGravity (1);
 	}
 
@@ -102,15 +110,17 @@ public class Gravity : PlayerAbility {
 			} else if (Input.GetButtonDown ("GravityNormal"))
 				//Run the change gravity function when [F] is pressed.
 				ContextualGravityShift ();
-			else if (Input.GetButton ("GravityNormal")) {
-				//if (Input.mouseScrollDelta != 0)
-				float OldMag = GravityDirection.magnitude;
-				GravityMagnitude += Input.mouseScrollDelta.y;
-				GravityDirection = OriginalDirectionNorm.normalized * GravityMagnitude;
-				//Debug.Log ("Gravity changed from " + OldMag + " to " + GravityMagnitude);
-			} else if (Input.GetButton ("Crouch") && !PM.Grounded)
+			else if (Input.GetButton ("Crouch") && !PM.Grounded)
 				//Provide a tiny slowing force when [Ctrl] is HELD.
 				Stabilize ();
+			else if (Input.GetButton ("AlignModifier"))
+				VariableGravity ();
+
+			/*
+			else if (Input.GetButton ("GravityNormal")) {
+				VariableGravity ();
+			}
+			*/
 
 			//Lock on to the surface the player collided with, if gravity isn't locked, the surface isn't an enemy, and if the 'modifier key' (SHIFT) is not held.
 			if (PM.CheckForWallAlignment) {
@@ -122,20 +132,14 @@ public class Gravity : PlayerAbility {
 				//The distance from the starting point is greater than the original distance from the starting point.
 				if (Type == GravityType.Unaligned && !Input.GetButton ("AlignModifier") && (
 					(Vector3.Distance(TargetWall.point, transform.position) < 2 || Vector3.Distance(TargetWall.point, ShiftPosition) < 3) ||
-					(Vector3.Distance(ShiftPosition, transform.position) > Vector3.Distance(TargetWall.point, transform.position)))) {
-
-					//Debug.Log ("Conditions met, aligning gravity");
+					(Vector3.Distance(ShiftPosition, transform.position) > Vector3.Distance(TargetWall.point, transform.position))))
+				{
 					Type = GravityType.Aligned;
 					//bool PointingAtLevelGround = ((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
-					ShiftGravityDirection (1, TargetWall.normal * -1);
-
+					ShiftGravityDirection (1, TargetWall.normal * -1, false);
 				}
 			}
 		}
-
-		//Update the scale and rotation of the 'Gyroscope'.
-		//UIGyroscope.transform.rotation = Quaternion.LookRotation(GravityDirection);
-		//UIGyroscope.transform.localScale = new Vector3 (1, 1, GravityDirection.magnitude / NormalGravityMagnitude);
 
 		//Apply the gravity force (so long as normal gravity isn't enabled).
 		if (Type != GravityType.Normal)
@@ -162,7 +166,25 @@ public class Gravity : PlayerAbility {
 		Meter.ChangeValue (Resource / MaxResource);
 	}
 
-	/// <summary> Brings the player towards zero velocity, then simulates a smooth swaying to feel more natural. </summary>
+	private void VariableGravity () {
+		GravityMagnitude += Input.mouseScrollDelta.y;
+
+		if (GravityMagnitude > NormalGravityMagnitude * 2)
+			GravityMagnitude = NormalGravityMagnitude * 2;
+		else if (GravityMagnitude < -(NormalGravityMagnitude * 2))
+			GravityMagnitude = -(NormalGravityMagnitude * 2);
+
+		GravityDirection = OriginalDirection.normalized * GravityMagnitude;
+		//UIGyroscope.Down = GravityDirection;
+		DragonMeter.ChangeValue (GravityMagnitude/(NormalGravityMagnitude * 2));
+
+		if (Type == GravityType.Normal && (GravityDirection - Physics.gravity).magnitude > 0.1f) {
+			Type = GravityType.Aligned;
+			RB.useGravity = false;
+		}
+	}
+
+	/// <summary> Brings the player towards zero velocity, but not below 0.1, so it doesnt feel unnatural. </summary>
 	private void Stabilize () {
 		if (Resource > 0) {
 			Resource -= StabilizingRPS * Time.deltaTime;
@@ -170,76 +192,52 @@ public class Gravity : PlayerAbility {
 				//RB.velocity = RB.velocity.normalized * (RB.velocity.magnitude - (RB.velocity.magnitude * Time.deltaTime));
 				RB.velocity = RB.velocity.normalized * (RB.velocity.magnitude - (StabilizationForce * Time.deltaTime));
 		}
-		//else {
-		//	if ((RB.velocity - StableSway).magnitude < 0.1f)
-		//		StableSway = Random.insideUnitSphere * 0.5f;
-		//	RB.velocity = Vector3.MoveTowards (RB.velocity, StableSway, 1f * Time.deltaTime);
-		//}
 	}
 
-	/// <summary> Rotate the players body so that their feet are pointing towards the direction of gravity, and try to rotate the camera so that it is pointing in the same direction as before, but only by changing the x-axis angle. </summary>
-	private void SnapRotation () {
-
-		Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
-
-		//Rotate the players 'body'.
-		transform.rotation = Quaternion.LookRotation (GravityDirection, GetComponentInChildren<GravityReference>().transform.right);
-		//transform.rotation = Quaternion.LookRotation (DirectionalGravity, GetComponentInChildren<GravityReference>().transform.forward);
-		Quaternion NewRot = new Quaternion ();
-		NewRot.eulerAngles = new Vector3 (transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
-		transform.localRotation = NewRot;
-
-		//Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
-		AngleOldToNew = Quaternion.Angle(CameraPreRotation, PM.MainCamera.transform.rotation);
-		PM.CameraAngle += AngleOldToNew;
-
-		PM.MainCamera.transform.rotation = CameraPreRotation;
-	}
-
+	/// <summary> Change the rotation of the players body so that the 'feet' are pointing 'down' relative to the current gravity direction, and keep the facing (body-y / camera-x rot) as close to the original as manageable.
+	/// NOTE: (accuracy is usually impossible since the position of the camera moves, and players focus is often different from their aim). </summary>
 	private void IntuitiveSnapRotation () {
 
 		Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
-
 		Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
 
 		//Rotate the players 'body'.
 		transform.rotation = Quaternion.LookRotation (GravityDirection, GetComponentInChildren<GravityReference>().transform.right);
-		//transform.rotation = Quaternion.LookRotation (DirectionalGravity, GetComponentInChildren<GravityReference>().transform.forward);
+		transform.rotation = Quaternion.LookRotation (GravityDirection, GetComponentInChildren<GravityReference>().transform.forward);
 		Quaternion NewRot = new Quaternion ();
 		NewRot.eulerAngles = new Vector3 (transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
 		transform.localRotation = NewRot;
 
 		//Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
-		//AngleOldToNew = Quaternion.Angle(CameraPreRotation, PM.MainCamera.transform.rotation);
 		float Signed = Vector3.SignedAngle (OriginalFacing, PM.MainCamera.transform.forward, transform.right);
 		PM.CameraAngle -= Signed;
-
 		PM.MainCamera.transform.rotation = CameraPreRotation;
 	}
 
+	/// <summary> Check if the target of the shift is within autolock distance, then call the gravity shift with the relevant values. </summary>
 	private void ContextualGravityShift () {
 		if (Physics.Raycast (PM.MainCamera.transform.position, PM.MainCamera.transform.forward, out TargetWall)) {
-			//Debug.Log ("Current: " + Physics.gravity.normalized + ", New: " + (TargetWall.normal * -1) + "Sum: " + (Physics.gravity.normalized - TargetWall.normal * -1).magnitude);
-			//bool PointingAtLevelGround = false;//((Physics.gravity.normalized - TargetWall.normal * -1).magnitude < 0.1f);
 			RaycastHit Hit;
 			//Align if pointing to a wall 2 * AutoLockDistance away, or half the distance away if the modifier is held (SHIFT).
 			if (TargetWall.distance < AutoLockDistance * 2 && !Input.GetButton ("AlignModifier") && Physics.Raycast (transform.position, TargetWall.normal * -1, out Hit)) {
 				if (Hit.distance < AutoLockDistance && (Hit.normal - TargetWall.normal).magnitude < 0.1f) {
 					Type = GravityType.Aligned;
-					ShiftGravityDirection (1, TargetWall.normal * -1);
+					ShiftGravityDirection (1, TargetWall.normal * -1, true);
 					return;
 				}
 			}
-			//Otherwise shift to the direction the player is pointing.
-			Type = GravityType.Unaligned;
-			ShiftGravityDirection (1, PM.MainCamera.transform.forward);
 		}
+		//Otherwise shift to the direction the player is pointing.
+		Type = GravityType.Unaligned;
+		ShiftGravityDirection (1, PM.MainCamera.transform.forward, true);
 	}
 
+	/// <summary> Set gravity to down, but with a tiny magnitude, to create the effect of Zero-Gravity. </summary>
 	private void NoGravity () {
 		RB.useGravity = false;
-		GravityDirection = Physics.gravity.normalized * 0.01f;
-		UIGyroscope.Down = GravityDirection;
+		//GravityDirection = Physics.gravity.normalized * 0.01f;
+		GravityMagnitude = Physics.gravity.magnitude * 0.01f;
+		ChangeGravity = Physics.gravity.normalized * 0.01f;
 		Type = GravityType.Aligned;
 
 		IntuitiveSnapRotation ();
@@ -247,33 +245,26 @@ public class Gravity : PlayerAbility {
 		//SFXPlayer.Play ();
 	}
 
-	/// <summary> Shift gravity in either the direction of the camera, or the direction of a surface normal (based on the align key; default shift), and apply the given GravityMultiplier to the force. </summary>
-	private void ShiftGravityDirection (float GravityMultiplier, Vector3 Direction) {
+	/// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force. Checks for repeat shifts and shifts setting gravity back to normal, and doesn't use resource for them. </summary>
+	private void ShiftGravityDirection (float GravityMultiplier, Vector3 Direction, bool UseResource) {
 		Vector3 NewGravity = Direction * NormalGravityMagnitude * GravityMultiplier;
 
 		if ((NewGravity - Physics.gravity).magnitude < 0.1f) {
 			//If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
 			ResetGravity (GravityMultiplier);
-		} else if (Resource > MinToUse && (GravityDirection - NewGravity).magnitude > 0.1f) {
+		} else if ((Resource > MinToUse || !UseResource) && (GravityDirection - NewGravity).magnitude > 0.1f) {
 			//If resource is high enough, and the new gravity is not the same as the current one (with 10% leeway), set the gravity to it.
-			Resource -= ResourcePerUse;
+			if (UseResource)
+				Resource -= ResourcePerUse;
 			RB.useGravity = false;
-			GravityDirection = NewGravity;
-			OriginalDirectionNorm = NewGravity.normalized;
+			//GravityDirection = NewGravity;
 			GravityMagnitude = NewGravity.magnitude;
-			UIGyroscope.Down = GravityDirection;
+			ChangeGravity = NewGravity;
+			OriginalDirection = NewGravity.normalized;
 			if (Type == GravityType.Normal)
 				Type = GravityType.Aligned;
 		}
 
-		/*
-		else if (PointingAtLevelGround) {
-			//If the player is pointing at level ground which is close enough (given through bool), set gravity to normal.
-			ResetGravity (GravityMultiplier);
-		} 
-		*/
-
-		//SnapRotation ();
 		IntuitiveSnapRotation ();
 		PM.CheckForWallAlignment = false;
 		SFXPlayer.Play ();
@@ -296,22 +287,24 @@ public class Gravity : PlayerAbility {
 			if (Resource > MinToUse) {
 				Resource -= ResourcePerUse;
 				Type = GravityType.Aligned;
-				GravityDirection = Physics.gravity * GravityMultiplier;
+				GravityMagnitude = (Physics.gravity * GravityMultiplier).magnitude;
+				ChangeGravity = Physics.gravity * GravityMultiplier;
 			} else {
 				//Play ability failed SFX
 			}
 		} else {
 			Type = GravityType.Normal;
 			RB.useGravity = true;
-			GravityDirection = Physics.gravity;
+			GravityMagnitude = Physics.gravity.magnitude;
+			ChangeGravity = Physics.gravity;
 		}
-
-		UIGyroscope.Down = GravityDirection;
+		
 		PM.CheckForWallAlignment = false;
 
 		//Reset player rotation.
-
 		if (Rotate) {
+			IntuitiveSnapRotation ();
+			/*
 			Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
 			Vector3 OriginalFacing = PM.MainCamera.transform.forward;
 
@@ -323,11 +316,10 @@ public class Gravity : PlayerAbility {
 			transform.localRotation = NewRot;
 
 			//Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
-			//AngleOldToNew = Quaternion.Angle(CameraPreRotation, PM.MainCamera.transform.rotation);
 			float Signed = Vector3.SignedAngle (OriginalFacing, PM.MainCamera.transform.forward, transform.right);
 			PM.CameraAngle -= Signed;
-			//PM.CameraAngle -= AngleOldToNew;
 			PM.CameraSpin = PM.MainCamera.transform.localRotation.eulerAngles.y;
+			*/
 		}
 	}
 
@@ -335,15 +327,4 @@ public class Gravity : PlayerAbility {
 	public void ToggleGravitySHIFTSetting () {
 		ShiftAligns = !ShiftAligns;
 	}
-
-	//Lock on to the surface the player collided with, if gravity isn't locked, the surface isn't an enemy, and if the 'modifier key' (SHIFT) is not held.
-	/* void OnCollisionEnter (Collision col) {
-		if (Type == GravityType.Unaligned && !Input.GetButton ("AlignModifier")) {
-			BaseEnemy EnemyCollision = col.gameObject.GetComponentInParent<BaseEnemy> ();
-			if (!EnemyCollision) {
-				Type = GravityType.Aligned;
-				ShiftGravityDirection (1, TargetWall.normal * -1);
-			}
-		}
-	}*/
 }

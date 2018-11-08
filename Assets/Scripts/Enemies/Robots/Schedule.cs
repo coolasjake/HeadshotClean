@@ -34,7 +34,6 @@ public class Schedule : MonoBehaviour {
 
 	/// <summary> Called when an enemy reaches one of the points (by the enemy). Is the main trigger for rotations. </summary>
 	public void ReachedPoint () {
-		Debug.Log ("Reached Point Recieved");
 		EmployeesPausing += 1;
 		if (EmployeesPausing >= Employees.Count)
 			Rotation ();
@@ -46,7 +45,6 @@ public class Schedule : MonoBehaviour {
 
 	/// <summary> Gives each 'employee' the next point in the patrol loop, based on where they are in the list. </summary>
 	private void Rotation () {
-		Debug.Log ("Starting Rotation");
 		int EmployeeNumber = 0;
 		foreach (ScheduleEnemy Employee in Employees) {
 			int NextPoint = Mathf.FloorToInt ((EmployeeNumber * PatrolPoints.Count) / Employees.Count) + 1;
@@ -66,7 +64,6 @@ public class Schedule : MonoBehaviour {
 	public Vector3 GetFirstPoint (ScheduleEnemy Enemy) {
 		Employees.Add (Enemy);
 		LastShiftCompletionTime = Time.time;
-		Debug.Log ("Employee " + Employees.Count + " Added");
 		return PatrolPoints [(Employees.Count - 1) % PatrolPoints.Count];
 	}
 
@@ -74,16 +71,13 @@ public class Schedule : MonoBehaviour {
 		while (RunTimelinessCheck) {
 			if (EmployeeIsPausing) {
 				if (Time.time > LastShiftCompletionTime + MaxPauseTime) {
-					Debug.Log ("Called From Pause:");
 					Rotation ();
 				}
 			} else {
 				if (Time.time > LastShiftCompletionTime + MaxShiftLength) {
-					Debug.Log ("Called From Shift:");
 					Rotation ();
 				}
 			}
-			Debug.Log ("Waiting");
 			yield return new WaitForSeconds (1f);
 		}
 	}

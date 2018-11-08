@@ -17,7 +17,6 @@ public class ScheduleEnemy : LaserMiner {
 		Vector3 FirstPoint = Boss.GetFirstPoint (this);
 		UpdateDestination (FirstPoint);
 		transform.position = FirstPoint;
-		Debug.Log ("First Point: " + FirstPoint);
 	}
 	
 	// Update is called once per frame
@@ -30,7 +29,6 @@ public class ScheduleEnemy : LaserMiner {
 
 		if (State == AIState.Working) {
 			if (!Pausing && (Vector3.Distance (AgentComponent.destination, transform.position) < 1.5f)) {
-				Debug.Log ("Pos: " + transform.position + " | Dest: " + AgentComponent.destination + " | Dist: " + Vector3.Distance (AgentComponent.destination, transform.position));
 				Pausing = true;
 				DisableAgentMovement ();
 				Boss.ReachedPoint ();
@@ -68,7 +66,6 @@ public class ScheduleEnemy : LaserMiner {
 
 	/// <summary> Used by the Schedule to give this enemy the next point in the patrol loop. </summary>
 	public void GiveNextPoint (Vector3 Point) {
-		Debug.Log ("Recieved Point: " + Point);
 		ReEnableAgentMovement ();
 		AgentComponent.destination = Point;
 		Pausing = false;
