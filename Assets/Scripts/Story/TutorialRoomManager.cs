@@ -37,8 +37,8 @@ public class TutorialRoomManager : MonoBehaviour {
 		*/
 		NextDoor += 1;
 
-		if (NextDoor == 4)
-			FindObjectOfType <ModuleController> ().AcivateAllModules ();
+		//if (NextDoor == 4)
+		//	FindObjectOfType <ModuleController> ().AcivateAllModules ();
 	}
 
 
