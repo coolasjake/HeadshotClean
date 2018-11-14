@@ -11,9 +11,13 @@ public class ModuleController : MonoBehaviour {
 	private PlayerAbility teleport;
 
 	public bool Tutorial = true;
+	public bool DebugMode = false;
 
 	// Use this for initialization
 	void Start () {
+		if (DebugMode)
+			return;
+
 		gun = GetComponentInChildren<Gun> ();
 		phase = GetComponentInChildren<Phasing> ();
 		gravity = GetComponentInChildren<Gravity> ();
@@ -36,6 +40,8 @@ public class ModuleController : MonoBehaviour {
 	}
 
 	public void DeactivateModule (AbilityModules Module) {
+		if (DebugMode)
+			return;
 		//Debug.Log ("Deactivating " + Module.ToString ());
 		if (Module == AbilityModules.Gun) {
 			gun.Disabled = true;
@@ -51,6 +57,8 @@ public class ModuleController : MonoBehaviour {
 	}
 
 	public void ActivateModule (AbilityModules Module) {
+		if (DebugMode)
+			return;
 		//Debug.Log ("Activating " + Module.ToString ());
 		if (Module == AbilityModules.Gun) {
 			gun.Disabled = false;
@@ -66,6 +74,8 @@ public class ModuleController : MonoBehaviour {
 	}
 
 	public void ToggleModule (AbilityModules Module) {
+		if (DebugMode)
+			return;
 		//Debug.Log ("Activating " + Module.ToString ());
 		if (Module == AbilityModules.Gun) {
 			gun.Disabled = !gun.Disabled;
@@ -84,6 +94,8 @@ public class ModuleController : MonoBehaviour {
 	}
 
 	public void AcivateAllModules () {
+		if (DebugMode)
+			return;
 		gun.Disabled = false;
 		gun.RevealGun ();
 		phase.Disabled = false;
@@ -106,5 +118,6 @@ public enum AbilityModules {
 	Stealth,
 	Gravity,
 	Phase,
-	Teleport
+	Teleport,
+	None
 }

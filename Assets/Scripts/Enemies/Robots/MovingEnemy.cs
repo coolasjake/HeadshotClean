@@ -26,7 +26,7 @@ public abstract class MovingEnemy : LookingEnemy {
 	/// <summary>
 	/// The refresh rate for pathfinding.
 	/// </summary>
-	public float RefreshRate = 0.2f;
+	public static float RefreshRate = 1f;
 
 
 	// Use this for initialization

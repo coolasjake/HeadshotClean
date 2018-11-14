@@ -8,6 +8,8 @@ public class Schedule : MonoBehaviour {
 	//Employee - enemy which is associated with this schedule.
 	//Rotation - when ALL the employees are given the next destination in the patrol loop, based on the one they had previously. 
 
+	public bool UseChildTransformsForPoints = false;
+
 	/// <summary> The points of the 'group patrol'. Must be in order, but can start anywhere on the loop. </summary>
 	public List<Vector3> PatrolPoints = new List<Vector3>();
 	/// <summary> The current rotation, used to find the next point for each enemy. </summary>
@@ -30,6 +32,17 @@ public class Schedule : MonoBehaviour {
 	void Start () {
 		//Call 'check for max pause/shift' coroutine
 		StartCoroutine ("CheckOnSchedule");
+
+		if (UseChildTransformsForPoints) {
+			Transform[] Children = transform.GetComponentsInChildren<Transform>();
+			//Debug.Log (Children.Length + " children");
+			if (Children.Length > 1) {
+				PatrolPoints.Clear ();
+				for (int i = 1; i < Children.Length; ++i) {
+					PatrolPoints.Add (Children [i].position);
+				}
+			}
+		}
 	}
 
 	/// <summary> Called when an enemy reaches one of the points (by the enemy). Is the main trigger for rotations. </summary>

@@ -16,7 +16,7 @@ public class TutorialRoomManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		
+		Everything.SetActive (false);
 	}
 	
 	// Update is called once per frame

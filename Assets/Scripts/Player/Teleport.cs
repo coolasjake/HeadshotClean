@@ -22,7 +22,7 @@ public class Teleport : PlayerAbility {
 	// Use this for initialization
 	void Start () {
 		PM = GetComponent<Movement> ();
-		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [3];
+		//Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [3];
 	}
 	
 	// Update is called once per frame
@@ -58,6 +58,6 @@ public class Teleport : PlayerAbility {
 		if (!ChoosingPosition && Resource < MaxResource)
 			Resource += RegenRate * Time.deltaTime;
 
-		Meter.ChangeValue (Resource / MaxResource);
+		//Meter.ChangeValue (Resource / MaxResource);
 	}
 }

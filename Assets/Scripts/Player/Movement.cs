@@ -27,7 +27,7 @@ public class Movement : Shooteable {
 	[System.NonSerialized]
 	public Camera MainCamera;
 	public Camera DeathCamera;
-	private Rigidbody RB;
+	protected Rigidbody RB;
 	private Transform Body;
 	private TriggerChecker GroundedTrigger;
 	private Canvas C;
@@ -360,6 +360,8 @@ public class Movement : Shooteable {
 		ImpactLastFrame = false;
 	}
 
+	//THIS IS ALL DEBUG CODE
+	/*
 	void FixedUpdate () {
 		FUVelocityDelta = RB.velocity.magnitude - FUVelocityLastFrame;
 		FUVelocityLastFrame = RB.velocity.magnitude;
@@ -371,6 +373,7 @@ public class Movement : Shooteable {
 			FULargestDeltaThisSecond = 0;
 		}
 	}
+	*/
 
 	public void Crouch () {
 		Crouching = true;
