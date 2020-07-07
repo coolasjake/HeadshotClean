@@ -131,11 +131,23 @@ public class Gun : PlayerAbility {
 		WannaShoot = false;
 	}
 
-	public void HideGun () {
+    public override void Disable()
+    {
+        base.Disable();
+        HideGun();
+    }
+
+    public override void Enable()
+    {
+        base.Enable();
+        RevealGun();
+    }
+
+    private void HideGun () {
 		GunModel.gameObject.SetActive (false);
 	}
 
-	public void RevealGun () {
+	private void RevealGun () {
 		GunModel.gameObject.SetActive (true);
 	}
 

@@ -9,14 +9,14 @@ public class TutorialRoomManager : MonoBehaviour {
 	public Door PhaseDoor;
 	public Door TeleportDoor;
 
-	public GameObject Everything;
+	public GameObject Overworld;
 	public GameObject Tutorial;
 
 	private int NextDoor = 0;
 
 	// Use this for initialization
 	void Start () {
-		Everything.SetActive (false);
+        Overworld.SetActive (false);
 	}
 	
 	// Update is called once per frame
@@ -45,7 +45,7 @@ public class TutorialRoomManager : MonoBehaviour {
 	void OnTriggerEnter (Collider col) {
 		Movement Player = col.gameObject.GetComponentInParent<Movement> ();
 		if (Player) {
-			Everything.SetActive (true);
+            Overworld.SetActive (true);
 			Tutorial.SetActive (false);
 		}
 	}

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class JumpPad : MonoBehaviour {
 
+    public float Height = 11f;
 	public float JumpSpeed = 15f;
 
 	public List<Transform> EffectRings = new List<Transform>();
@@ -33,7 +34,8 @@ public class JumpPad : MonoBehaviour {
 	void OnTriggerEnter (Collider col) {
 		Movement Player = col.gameObject.GetComponentInParent<Movement> ();
 		if (Player) {
-			Player.GetComponent<Rigidbody> ().velocity = transform.up * JumpSpeed;
+            JumpSpeed = Mathf.Sqrt(2 * Physics.gravity.magnitude * Height);
+            Player.GetComponent<Rigidbody> ().velocity = transform.up * JumpSpeed;
 		}
 	}
 }

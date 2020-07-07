@@ -25,13 +25,12 @@ public class ModuleController : MonoBehaviour {
 		teleport = GetComponentInChildren<Teleport> ();
 
 		if (Tutorial) {
-			gun.Disabled = true;
-			gun.HideGun ();
-			phase.Disabled = true;
-			gravity.Disabled = true;
-			stealth.Disabled = true;
-			teleport.Disabled = true;
-		}
+            gun.Disable();
+			phase.Disable();
+            gravity.Disable();
+            stealth.Disable();
+            teleport.Disable();
+        }
 	}
 	
 	// Update is called once per frame
@@ -42,75 +41,52 @@ public class ModuleController : MonoBehaviour {
 	public void DeactivateModule (AbilityModules Module) {
 		if (DebugMode)
 			return;
-		//Debug.Log ("Deactivating " + Module.ToString ());
-		if (Module == AbilityModules.Gun) {
-			gun.Disabled = true;
-			gun.HideGun ();
-		} else if (Module == AbilityModules.Phase)
-			phase.Disabled = true;
-		else if (Module == AbilityModules.Gravity)
-			gravity.Disabled = true;
-		else if (Module == AbilityModules.Stealth)
-			stealth.Disabled = true;
-		else if (Module == AbilityModules.Teleport)
-			teleport.Disabled = true;
-	}
+        //Debug.Log ("Deactivating " + Module.ToString ());
+        if (Module == AbilityModules.Gun)
+            gun.Disable();
+        else if (Module == AbilityModules.Phase)
+            phase.Disable();
+        else if (Module == AbilityModules.Gravity)
+            gravity.Disable();
+        else if (Module == AbilityModules.Stealth)
+            stealth.Disable();
+        else if (Module == AbilityModules.Teleport)
+            teleport.Disable();
+    }
 
 	public void ActivateModule (AbilityModules Module) {
 		if (DebugMode)
 			return;
 		//Debug.Log ("Activating " + Module.ToString ());
-		if (Module == AbilityModules.Gun) {
-			gun.Disabled = false;
-			gun.RevealGun ();
-		} else if (Module == AbilityModules.Phase)
-			phase.Disabled = false;
-		else if (Module == AbilityModules.Gravity)
-			gravity.Disabled = false;
-		else if (Module == AbilityModules.Stealth)
-			stealth.Disabled = false;
-		else if (Module == AbilityModules.Teleport)
-			teleport.Disabled = false;
-	}
-
-	public void ToggleModule (AbilityModules Module) {
-		if (DebugMode)
-			return;
-		//Debug.Log ("Activating " + Module.ToString ());
-		if (Module == AbilityModules.Gun) {
-			gun.Disabled = !gun.Disabled;
-			if (gun.Disabled)
-				gun.HideGun ();
-			else
-				gun.RevealGun ();
-		} else if (Module == AbilityModules.Phase)
-			phase.Disabled = !phase.Disabled;
-		else if (Module == AbilityModules.Gravity)
-			gravity.Disabled = !gravity.Disabled;
-		else if (Module == AbilityModules.Stealth)
-			stealth.Disabled = !stealth.Disabled;
-		else if (Module == AbilityModules.Teleport)
-			teleport.Disabled = !teleport.Disabled;
-	}
+		if (Module == AbilityModules.Gun)
+            gun.Enable();
+        else if (Module == AbilityModules.Phase)
+			phase.Enable();
+        else if (Module == AbilityModules.Gravity)
+			gravity.Enable();
+        else if (Module == AbilityModules.Stealth)
+			stealth.Enable();
+        else if (Module == AbilityModules.Teleport)
+			teleport.Enable();
+    }
 
 	public void AcivateAllModules () {
 		if (DebugMode)
 			return;
-		gun.Disabled = false;
-		gun.RevealGun ();
-		phase.Disabled = false;
-		gravity.Disabled = false;
-		stealth.Disabled = false;
-		teleport.Disabled = false;
+		gun.Enable();
+		phase.Enable();
+        gravity.Enable();
+        stealth.Enable();
+        teleport.Enable();
 
-		/*
+        /*
 		ActivateModule (PowerCellModules.Gun);
 		ActivateModule (PowerCellModules.Phase);
 		ActivateModule (PowerCellModules.Gravity);
 		ActivateModule (PowerCellModules.Stealth);
 		ActivateModule (PowerCellModules.Teleport);
 		*/
-	}
+    }
 }
 
 public enum AbilityModules {

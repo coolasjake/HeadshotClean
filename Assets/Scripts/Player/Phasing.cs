@@ -52,29 +52,18 @@ public class Phasing : PlayerAbility {
 	public float TapDelay = 0.2f;
 	public float MaxPhaseTime = 3f;
 	public float XRayDistance = 20f;
+	[Range (0, 1)]
+	public float PhasedObjectOpacity = 0.5f;
 	public Material Silhoutte;
+	public Material TestPhaseChangeMat;
 	public List<ChangedObject> OriginalMaterials = new List<ChangedObject>();
+	public List<Material> PhaseTransparentMats = new List<Material> ();
 
 	// Use this for initialization
 	void Start () {
 		PM = GetComponent<Movement> ();
 
 		PhaseMask = 1 << 0 | 1 << 11 | 1 << 16 | 1 << 17;
-
-		/*
-		GameObject Child = new GameObject ();
-		Child.transform.SetParent (transform);
-		Child.transform.localPosition = Vector3.zero;
-		Child.transform.localRotation = new Quaternion ();
-		Child.name = "TC: Phase Failsafe";
-		Child.layer = 14;
-		CapsuleCollider CC = Child.AddComponent<CapsuleCollider> ();
-		CC.direction = 2;
-		CC.radius = FailsafeCapsuleRadius * 0.99f;
-		CC.height = PM.PlayerSphereSize * 0.99f;
-		CC.isTrigger = true;
-		FailSafe = Child.AddComponent<PhaseFailsafe> ();
-		*/
 
 		C = FindObjectOfType<Canvas> ();
 		ShadowEffect = C.GetComponentInChildren<Image> ();
@@ -109,12 +98,33 @@ public class Phasing : PlayerAbility {
 		if (CurrentlyPhasing) {
 			Resource -= Time.deltaTime;
 			if (CameraCheck.Triggered) {
-				PhaseCamera.enabled = true;
-			} else
-				PhaseCamera.enabled = false;
+				Color C = ShadowEffect.color;
+				C.a = 1;
+				ShadowEffect.color = C;
+			} else {
+				Color C = ShadowEffect.color;
+				C.a = 0.5f;
+				ShadowEffect.color = C;
+			}
 		} else {
 			if (Resource < MaxResource)
 				Resource += RegenRate * Time.deltaTime;
+		}
+
+		if (CurrentlyPhasing) {
+			Resource -= Time.deltaTime;
+			//PhaseCamera.enabled = true;
+		} else {
+			if (Resource < MaxResource)
+				Resource += RegenRate * Time.deltaTime;
+			//PhaseCamera.enabled = false;
+		}
+
+
+		if (Input.GetKey (KeyCode.T)) {
+			Color C = TestPhaseChangeMat.color;
+			C.a = 0.5f;
+			TestPhaseChangeMat.color = C;
 		}
 
 
@@ -210,10 +220,10 @@ public class Phasing : PlayerAbility {
 				return;
 			CurrentlyPhasing = true;
 			ShadowEffect.enabled = true;
-			foreach (ElectricalComponent VisibleComponent in FindObjectsOfType<ElectricalComponent>()) {
-				if (Vector3.Distance (VisibleComponent.transform.position, transform.position) < XRayDistance)
-					OriginalMaterials.Add (new ChangedObject (VisibleComponent, Silhoutte));
-			}
+			Color C = ShadowEffect.color;
+			C.a = 0.5f;
+			ShadowEffect.color = C;
+			PhaseCamera.enabled = true;
 			SFXPlayer.Play ();
 		} else {
 			//Play 'Ability failed' sound effect.
@@ -232,7 +242,6 @@ public class Phasing : PlayerAbility {
 
 		//PM.EnableAbilities ();
 		CurrentlyPhasing = false;
-		//PhaseResource = MaxPhaseTime;
 		UnphaseQueued = false;
 		gameObject.layer = 8;
 		foreach (Transform Child in GetComponentsInChildren<Transform>()) {
@@ -241,8 +250,6 @@ public class Phasing : PlayerAbility {
 		}
 		ShadowEffect.enabled = false;
 		PhaseCamera.enabled = false;
-		foreach (ChangedObject CO in OriginalMaterials)
-			CO.Reset ();
 		OriginalMaterials = new List<ChangedObject> ();
 	}
 }

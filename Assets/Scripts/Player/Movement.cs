@@ -65,7 +65,7 @@ public class Movement : Shooteable {
 	public bool ImpactLastFrame = false;
 	[System.NonSerialized]
 	public float VelocityOfImpact = 0;
-	[System.NonSerialized]
+	//[System.NonSerialized]
 	public float CameraAngle = 0;
 	[System.NonSerialized]
 	public float CameraSpin = 0;
@@ -84,7 +84,7 @@ public class Movement : Shooteable {
 	public bool DisableMusic = false;
 	public bool DisableDeath = false;
 	/// <summary> The min and max angles the camera can face when looking up or down. </summary>
-	public float Clamp = 45;
+	public float Clamp = 89;
 	/// <summary> The number of degrees per second the camera will be rotated so that it is not outside the clamp angle. </summary>
 	public float ClampAdjustmentSpeed = 5;
 	/// <summary> The in game sensitivity multiplier (for settings). </summary>
@@ -184,28 +184,13 @@ public class Movement : Shooteable {
 		else {
 			AchievementTracker.InAir = true;
 			OnSoftWall = false;
-		}
+        }
 
-		//PAUSING + CURSOR LOCK
-		if (Input.GetKeyDown (KeyCode.BackQuote) || Input.GetKeyDown (KeyCode.Escape)) {
-			Paused = !Paused;
-			if (Paused) {
-				if (!Input.GetKeyDown (KeyCode.BackQuote)) {
-					Menu.SetActive (true);
-					AchievementTracker.UpdateAchievements ();
-				}
-				Cursor.lockState = CursorLockMode.None;
-				Cursor.visible = true;
-				Time.timeScale = 0;
-			} else {
-				Menu.SetActive (false);
-				Cursor.lockState = CursorLockMode.Locked;
-				Cursor.visible = false;
-				Time.timeScale = 1;
-			}
-		}
+        //PAUSING + CURSOR LOCK
+        if (Input.GetKeyDown(KeyCode.BackQuote) || Input.GetKeyDown(KeyCode.Escape))
+            Pause();
 
-		if (Paused)
+        if (Paused)
 			return;
 
 
@@ -214,22 +199,33 @@ public class Movement : Shooteable {
 		float rotationX = -Input.GetAxis ("Mouse X") * Sensitivity;
 		transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
 
-		//Rotate camera
-		if (CameraAngle > 180)
+		//CAMERA X-ROTATION
+        //Clamp the angle to a range of -180 to 180 for easier maths.
+		if (CameraAngle > 180 || CameraAngle < -180)
 			CameraAngle = ClampAngleTo180 (CameraAngle);
 
-		bool CameraWasWithinClamp = (CameraAngle <= 90) && (CameraAngle >= -90);
+        //Check if the camera was within the clamps before input (in case it was changed, eg by Gravity)
+		bool CameraWasWithinClamp = (CameraAngle <= Clamp) && (CameraAngle >= -Clamp);
+        //Apply the mouse input.
 		CameraAngle -= Input.GetAxis ("Mouse Y") * Sensitivity;
-		if (CameraAngle > 90 || CameraAngle < -90) {
-			if (CameraWasWithinClamp)
-				CameraAngle = Mathf.Clamp (CameraAngle, -90, 90);
-			else {
-				if (CameraAngle > 90)
+        //Clamp the angle.
+        CameraAngle = Mathf.Clamp(CameraAngle, -Clamp, Clamp);
+        /*
+        Old rotation code. Caused neck-break bug. Probably is useless.
+        //Check if the angle is now outside the clamp range.
+        if (CameraAngle > Clamp || CameraAngle < -Clamp) {
+            //If the camera used to be in the range (was changed with input), simply clamp the angle.
+            CameraWasWithinClamp = true;
+            if (CameraWasWithinClamp)
+				CameraAngle = Mathf.Clamp (CameraAngle, -Clamp, Clamp);
+			else { //If the angle was changed externally (usually extremely), and it is outside the clamp, change it to be inside the clamp slowly.
+				if (CameraAngle > Clamp)
 					CameraAngle -= ClampAdjustmentSpeed * Time.deltaTime;
-				if (CameraAngle < -90)
+				if (CameraAngle < -Clamp)
 					CameraAngle += ClampAdjustmentSpeed * Time.deltaTime;
 			}
 		}
+        */
 		
 		Quaternion NewRot = new Quaternion ();
 		NewRot.eulerAngles = new Vector3 (CameraAngle, MainCamera.transform.localRotation.y, 0);
@@ -360,8 +356,8 @@ public class Movement : Shooteable {
 		ImpactLastFrame = false;
 	}
 
-	//THIS IS ALL DEBUG CODE
-	/*
+    //THIS IS ALL DEBUG CODE
+    /*
 	void FixedUpdate () {
 		FUVelocityDelta = RB.velocity.magnitude - FUVelocityLastFrame;
 		FUVelocityLastFrame = RB.velocity.magnitude;
@@ -374,6 +370,28 @@ public class Movement : Shooteable {
 		}
 	}
 	*/
+
+    public void Pause() {
+        Paused = !Paused;
+        if (Paused)
+        {
+            if (!Input.GetKeyDown(KeyCode.BackQuote))
+            {
+                Menu.SetActive(true);
+                AchievementTracker.UpdateAchievements();
+            }
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Time.timeScale = 0;
+        }
+        else
+        {
+            Menu.SetActive(false);
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Time.timeScale = 1;
+        }
+    }
 
 	public void Crouch () {
 		Crouching = true;
@@ -417,18 +435,22 @@ public class Movement : Shooteable {
 		}
 	}
 
+    /// <summary> Disables all abilities except the specified one. OBSOLETE. </summary>
 	public void DisableAbilities (PlayerAbility NotMe) {
 		foreach (PlayerAbility Ability in GetComponentsInChildren<PlayerAbility>()) {
-			if (Ability != NotMe)
-				Ability.Disabled = true;
+            if (Ability != NotMe)
+                Ability.Disable();
 		}
 	}
 
+    /// <summary> Enables all abilities on the player. OBSOLETE. </summary>
 	public void EnableAbilities () {
 		foreach (PlayerAbility Ability in GetComponentsInChildren<PlayerAbility>()) {
-			Ability.Disabled = false;
+			Ability.Enable();
 		}
 	}
+
+    //MENU FUNCTIONS:
 
 	public void SetPhaseMode (Dropdown Option) {
 		if (Option.value == 0)

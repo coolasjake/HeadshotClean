@@ -23,13 +23,11 @@ public class AbilityModifier : MonoBehaviour {
 			Player.DeactivateModule (Ability);
 		else if (Mode == ModOptions.Enable)
 			Player.ActivateModule (Ability);
-		else
-			Player.ToggleModule (Ability);
 	}
 }
 
 public enum ModOptions {
 	Disable,
 	Enable,
-	Toggle
+    DoNothing
 }
