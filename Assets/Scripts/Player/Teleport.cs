@@ -28,8 +28,8 @@ public class Teleport : PlayerAbility {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetMouseButtonDown (1) && Resource > MinToUse && !Disabled) {
-			//When the button is pressed, Create the object representing the teleport position, and initialise values
-			Resource -= 1f;
+            //When the button is pressed, Create the object representing the teleport position, and initialise values
+            ConsumeResource(1f);
 			ChoosingPosition = true;
 			Distance = MinimumDistance;
 			PointRep = Instantiate (PointRepPrefab, PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * Distance), new Quaternion ());
@@ -40,7 +40,7 @@ public class Teleport : PlayerAbility {
 				PM.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * (Hit.distance - PM.PlayerSphereSize));
 			else
 				PM.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * Distance);
-			Resource -= Distance / 300;
+            ConsumeResource(Distance / 300);
 			Destroy (PointRep);
 			ChoosingPosition = false;
 		} else if (Input.GetMouseButton (1) && ChoosingPosition && !Disabled) {
@@ -55,8 +55,8 @@ public class Teleport : PlayerAbility {
 				PointRep.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * Distance);
 		}
 
-		if (!ChoosingPosition && Resource < MaxResource)
-			Resource += RegenRate * Time.deltaTime;
+        if (!ChoosingPosition && Resource < MaxResource)
+            RegenerateResource();
 
 		//Meter.ChangeValue (Resource / MaxResource);
 	}

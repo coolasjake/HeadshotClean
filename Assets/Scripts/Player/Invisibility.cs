@@ -30,14 +30,17 @@ public class Invisibility : PlayerAbility {
 			}
 		}
 
-		if (PM.Invisible) {
-			Resource -= Time.deltaTime;
-			if (Resource <= 0) {
-				PM.Invisible = false;
-				ScreenEffect.enabled = false;
-			}
-		} else if (Resource < MaxResource)
-			Resource += RegenRate * Time.deltaTime;
+        if (PM.Invisible)
+        {
+            ConsumeResource(Time.deltaTime);
+            if (Resource <= 0)
+            {
+                PM.Invisible = false;
+                ScreenEffect.enabled = false;
+            }
+        }
+        else if (Resource < MaxResource)
+            RegenerateResource();
 
 		Meter.ChangeValue (Resource / MaxResource);
 	}

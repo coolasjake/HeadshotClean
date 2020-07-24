@@ -60,7 +60,7 @@ public class Gravity : PlayerAbility {
 	// Use this for initialization
 	void Start () {
 		MaxResource = 50;
-		RegenRate = 10;
+		RegenPerSecond = 10;
 		MinToUse = 10;
 		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [2];
 
@@ -173,7 +173,7 @@ public class Gravity : PlayerAbility {
 
 		//Drain or regenerate the resource.
 		if (Type == GravityType.Normal && Resource < MaxResource && PM.Grounded)
-			Resource += RegenRate * Time.deltaTime;
+			Resource += RegenPerSecond * Time.deltaTime;
 		else if (Type != GravityType.Normal) {
 			Resource -= Time.deltaTime;
 			if (Resource <= 0)
@@ -326,7 +326,7 @@ public class Gravity : PlayerAbility {
 	//Regenerate resource when resting on or against a SoftWall.
 	void OnCollisionStay (Collision col) {
 		if (col.transform.GetComponentInParent<SoftWall> () && Resource < MaxResource) {
-			Resource += Time.deltaTime + (Time.deltaTime * RegenRate);
+			Resource += Time.deltaTime + (Time.deltaTime * RegenPerSecond);
 		}
 	}
 }

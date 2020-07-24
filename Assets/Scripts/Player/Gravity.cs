@@ -76,7 +76,7 @@ public class Gravity : PlayerAbility {
 	// Use this for initialization
 	void Start () {
 		MaxResource = 50;
-		RegenRate = 10;
+		RegenPerSecond = 10;
 		MinToUse = 10;
 		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [2];
 		DragonMeter = FindObjectOfType<Canvas> ().GetComponentInChildren<BarDisplay> ();
@@ -150,17 +150,16 @@ public class Gravity : PlayerAbility {
 		//Remove resource if an impact has occured (impacts are a collision where the impulse is above a threshold).
 		//The maximum reduction (Resource + 20) creates the delay after a strong collision while the resource value is in the negatives.
 		if (PM.ImpactLastFrame)
-			Resource -= Mathf.Clamp(PM.VelocityOfImpact * ImpactDamageMag, 0, Resource + 20);
+			ConsumeResourceGreedy(PM.VelocityOfImpact * ImpactDamageMag, -20);
 		
 		//Drain or regenerate the resource.
-		if (Resource < MaxResource && (PM.OnSoftWall || (Type == GravityType.Normal && PM.Grounded))) {
+		if ((PM.OnSoftWall || (Type == GravityType.Normal && PM.Grounded))) {
 			if (PM.OnSoftWall)
-				Resource += RegenRate * Time.deltaTime * 2;
-			else
-				Resource += RegenRate * Time.deltaTime;
-		} else if (Type != GravityType.Normal) {
-			Resource -= Time.deltaTime;
-			if (Resource <= 0)
+                RegenerateResource(2);
+            else
+                RegenerateResource();
+        } else if (Type != GravityType.Normal) {
+            if (!ConsumeResource(Time.deltaTime))
 				ResetGravity (1);
 		}
 
@@ -189,7 +188,7 @@ public class Gravity : PlayerAbility {
 	/// <summary> Brings the player towards zero velocity, but not below 0.1, so it doesnt feel unnatural. </summary>
 	private void Stabilize () {
 		if (Resource > 0) {
-			Resource -= StabilizingRPS * Time.deltaTime;
+            ConsumeResource(StabilizingRPS * Time.deltaTime);
 			if (RB.velocity.magnitude > 0.1f)
 				//RB.velocity = RB.velocity.normalized * (RB.velocity.magnitude - (RB.velocity.magnitude * Time.deltaTime));
 				RB.velocity = RB.velocity.normalized * (RB.velocity.magnitude - (StabilizationForce * Time.deltaTime));
@@ -234,17 +233,17 @@ public class Gravity : PlayerAbility {
 		if ((NewGravity - Physics.gravity).magnitude < 0.1f) {
 			//If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
 			ResetGravity (GravityMultiplier);
-		} else if ((Resource > MinToUse || !UseResource) && (GravityDirection - NewGravity).magnitude > 0.1f) {
-			//If resource is high enough, and the new gravity is not the same as the current one (with 10% leeway), set the gravity to it.
-			if (UseResource)
-				Resource -= ResourcePerUse;
-			RB.useGravity = false;
-			//GravityDirection = NewGravity;
-			CurrentGravityMagnitude = NewGravity.magnitude;
-			ChangeGravity = NewGravity;
-			OriginalDirection = NewGravity.normalized;
-			if (Type == GravityType.Normal)
-				Type = GravityType.Aligned;
+		} else if ((GravityDirection - NewGravity).magnitude > 0.1f) {
+            //If resource is high enough, and the new gravity is not the same as the current one (with 10% leeway), set the gravity to it.
+            if (StartConsumeResource(ResourcePerUse))
+            {
+                RB.useGravity = false;
+                CurrentGravityMagnitude = NewGravity.magnitude;
+                ChangeGravity = NewGravity;
+                OriginalDirection = NewGravity.normalized;
+                if (Type == GravityType.Normal)
+                    Type = GravityType.Aligned;
+            }
 		}
 
 		IntuitiveSnapRotation ();
@@ -272,9 +271,8 @@ public class Gravity : PlayerAbility {
 		}
 			
 		//Reset Gravity.
-		if (GravityMultiplier != 1) {
-			if (Resource > MinToUse) {
-				Resource -= ResourcePerUse;
+		if (GravityMultiplier != 1) {//Normal gravity but different magnitude.
+			if (StartConsumeResource(ResourcePerUse)) {
 				Type = GravityType.Aligned;
 				CurrentGravityMagnitude = (Physics.gravity * GravityMultiplier).magnitude;
 				ChangeGravity = Physics.gravity * GravityMultiplier;

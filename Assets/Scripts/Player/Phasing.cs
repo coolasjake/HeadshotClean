@@ -96,7 +96,7 @@ public class Phasing : PlayerAbility {
 	// Update is called once per frame
 	void Update () {
 		if (CurrentlyPhasing) {
-			Resource -= Time.deltaTime;
+            ConsumeResource(Time.deltaTime);
 			if (CameraCheck.Triggered) {
 				Color C = ShadowEffect.color;
 				C.a = 1;
@@ -107,17 +107,8 @@ public class Phasing : PlayerAbility {
 				ShadowEffect.color = C;
 			}
 		} else {
-			if (Resource < MaxResource)
-				Resource += RegenRate * Time.deltaTime;
-		}
-
-		if (CurrentlyPhasing) {
-			Resource -= Time.deltaTime;
-			//PhaseCamera.enabled = true;
-		} else {
-			if (Resource < MaxResource)
-				Resource += RegenRate * Time.deltaTime;
-			//PhaseCamera.enabled = false;
+            if (Resource < MaxResource)
+                RegenerateResource();
 		}
 
 
@@ -174,11 +165,15 @@ public class Phasing : PlayerAbility {
 					}
 				}
 			}
-		}
+        }
 
-		if (Resource <= 0) {
+        if (CurrentlyPhasing)
+            ConsumeResource(Time.deltaTime);
+        else
+            RegenerateResource();
+
+        if (Resource <= 0) {
 			if (!CheckBodyIntersections ())
-			//if (!FailSafe.InsideSomething)
 				StopPhasing ();
 			else
 				PM.Hit (Time.deltaTime);
