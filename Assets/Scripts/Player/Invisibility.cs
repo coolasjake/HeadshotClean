@@ -13,7 +13,9 @@ public class Invisibility : PlayerAbility {
 	// Use this for initialization
 	void Start () {
 		PM = GetComponent<Movement> ();
-		ScreenEffect = FindObjectOfType<Canvas> ().GetComponentsInChildren<Image> () [3];
+
+        GameObject InvisibilityUI = UIManager.stat.LoadOrGetUI("Gravity");
+        ScreenEffect = InvisibilityUI.GetComponentInChildren<Image> ();
 		ScreenEffect.enabled = PM.Invisible;
 		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [1];
 	}

@@ -4,18 +4,19 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class Movement : Shooteable {
+public class Movement : Shootable {
 
 	//--->Debug
+    [Header("Debug")]
 	public string DebugString = "Default";
-	public Vector2 PlaneVelocity = new Vector2 ();
-	public float VerticalVelocity = 0;
-	public float FUVelocityDelta;
+    public Vector2 PlaneVelocity = new Vector2 ();
+    public float VerticalVelocity = 0;
+    public float FUVelocityDelta;
 	private float FUVelocityLastFrame;
-	public float FULargestDeltaLastSecond;
+    public float FULargestDeltaLastSecond;
 	private float FULargestDeltaThisSecond;
 	private float FULastUpdate;
-	public float LateralVelocityBeforeFriction;
+    public float LateralVelocityBeforeFriction;
 
 	//--->Singleton
 	public static Movement ThePlayer;
@@ -23,14 +24,15 @@ public class Movement : Shooteable {
 	//--->Static
 	public static Vector3 PlayerStartPosition = new Vector3(7, 5, 95);
 
-	//--->Stored references
-	[System.NonSerialized]
+    //--->Stored references
+    [System.NonSerialized]
 	public Camera MainCamera;
-	public Camera DeathCamera;
+    [Header("References")]
+    public Camera DeathCamera;
 	protected Rigidbody RB;
 	private Transform Body;
 	private TriggerChecker GroundedTrigger;
-	private Canvas C;
+	//private Canvas C;
 	private GameObject Menu;
 	//private AudioSource SFXPlayer;
 	private AudioManager SFXPlayer;
@@ -56,32 +58,37 @@ public class Movement : Shooteable {
 	//-->That SHOULDN'T be in the inspector, AKA Public non-serialized values
 	[System.NonSerialized]
 	public bool Grounded = false;
-	[System.NonSerialized]
+    [System.NonSerialized]
+    public float LastGrounded = -1;
+    [System.NonSerialized]
 	public bool DisableMovement = false;
 	[System.NonSerialized]
-	public bool DisableMouseInput = false;	//Disables the movement of the camera, so that the Gravity script can move it smoothly.
-	public Vector3 AIFollowPoint;
+	public bool DisableMouseInput = false;  //Disables the movement of the camera, so that the Gravity script can move it smoothly.
+    [System.NonSerialized]
+    public Vector3 AIFollowPoint;
 	[System.NonSerialized]
 	public bool ImpactLastFrame = false;
 	[System.NonSerialized]
 	public float VelocityOfImpact = 0;
-	//[System.NonSerialized]
+	[System.NonSerialized]
 	public float CameraAngle = 0;
 	[System.NonSerialized]
 	public float CameraSpin = 0;
 	[System.NonSerialized]
 	public bool Invisible = false;
-	//[System.NonSerialized]
+	[System.NonSerialized]
 	public bool OnSoftWall = false;
+    /// <summary> Used by Gravity script. Becomes true when the player collides with a wall. </summary>
 	[System.NonSerialized]
 	public bool CheckForWallAlignment = false;
 	[System.NonSerialized]
 	public Collision LastCollision;
 
 
-	//Public values (for adjustment)
-	//------------------------------
-	public bool DisableMusic = false;
+    //Public values (for adjustment)
+    //------------------------------
+    [Header("Settings")]
+    public bool DisableMusic = false;
 	public bool DisableDeath = false;
 	/// <summary> The min and max angles the camera can face when looking up or down. </summary>
 	public float Clamp = 89;
@@ -121,7 +128,7 @@ public class Movement : Shooteable {
 
 
 	void Awake () {
-		ThePlayer = this;
+		ThePlayer = this; //Initialize singleton so that AI and (some) abilities can reference this script.
 	}
 
 	void Start () {
@@ -130,10 +137,12 @@ public class Movement : Shooteable {
 		EnemyCounter.UpdateScoreboard ();
 
 		MainCamera = GetComponentInChildren<Camera> ();
-		C = FindObjectOfType<Canvas> ();
-		Menu = FindObjectOfType<Menu> ().gameObject;
+		//C = FindObjectOfType<Canvas> ();
+        GameObject MenuUI = UIManager.stat.LoadOrGetUI("Menu");
+        GameObject GameUI = UIManager.stat.LoadOrGetUI("Shooter");
+        Menu = MenuUI.GetComponentInChildren<Menu>().gameObject;
 		Menu.SetActive (false);
-		HealthBar = C.GetComponentInChildren<Slider> ();
+		HealthBar = GameUI.GetComponentInChildren<Slider> ();
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 		Time.timeScale = 1;
@@ -146,10 +155,8 @@ public class Movement : Shooteable {
 		AudioListener.volume = 0.5f;
 		DisplayVolume ();
 
-
-
+        
 		//Grounded Trigger for jumping.
-		//GroundedTrigger = GetComponentInChildren<TriggerChecker> ();
 		if (GroundedTrigger == null) {
 			var GO = Instantiate (new GameObject (), transform);
 			GO.name = "TC: Grounded Check";
@@ -179,11 +186,15 @@ public class Movement : Shooteable {
 
 		//TELL ACHIEVEMENT TRACKER WHEN GROUNDED
 		Grounded = GroundedTrigger.Triggered;
-		if (Grounded)
-			AchievementTracker.TouchedTheGround ();
-		else {
-			AchievementTracker.InAir = true;
-			OnSoftWall = false;
+        if (Grounded)
+        {
+            LastGrounded = Time.time;
+            AchievementTracker.TouchedTheGround();
+        }
+        else
+        {
+            AchievementTracker.InAir = true;
+            OnSoftWall = false;
         }
 
         //PAUSING + CURSOR LOCK

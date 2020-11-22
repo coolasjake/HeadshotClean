@@ -2,6 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Destructible : Shooteable {
+public class Destructible : Shootable {
 	
 }

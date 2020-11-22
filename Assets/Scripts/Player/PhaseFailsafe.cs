@@ -6,15 +6,15 @@ public class PhaseFailsafe : MonoBehaviour {
 
 	public bool InsideSomething = false;
 	public bool InsideEnemy = false;
-	public Shooteable Enemy;
-	public Shooteable LatestEnemy;
+	public Shootable Enemy;
+	public Shootable LatestEnemy;
 
 	public int NumberOfStructureCollisions = 0;
 	public int NumberOfShooteableCollisions = 0;
-	public List<Shooteable> IntersectingShooteables = new List<Shooteable> ();
+	public List<Shootable> IntersectingShooteables = new List<Shootable> ();
 	public List<GameObject> IntersectingStructures = new List<GameObject> ();
 
-	public void ExplodedEnemy (Shooteable EnemyThatExploded) {
+	public void ExplodedEnemy (Shootable EnemyThatExploded) {
 		IntersectingShooteables.Remove (EnemyThatExploded);
 		NumberOfShooteableCollisions -= 1;
 		CalculateState ();
@@ -45,7 +45,7 @@ public class PhaseFailsafe : MonoBehaviour {
 		if (col.isTrigger)
 			return;
 		//Debug.Log ("Phase Collided With: " + col.gameObject.name + ", on Layer: " + col.gameObject.layer);
-		Shooteable EnemyComponent = col.gameObject.GetComponentInParent<Shooteable> ();
+		Shootable EnemyComponent = col.gameObject.GetComponentInParent<Shootable> ();
 		if (EnemyComponent) {
 			NumberOfShooteableCollisions += 1;
 			InsideEnemy = true;
@@ -61,8 +61,8 @@ public class PhaseFailsafe : MonoBehaviour {
 	void OnTriggerExit (Collider col) {
 		if (col.isTrigger)
 			return;
-		if (col.gameObject.GetComponentInParent<Shooteable> ()) {
-			if (IntersectingShooteables.Remove (col.gameObject.GetComponentInParent<Shooteable> ()))
+		if (col.gameObject.GetComponentInParent<Shootable> ()) {
+			if (IntersectingShooteables.Remove (col.gameObject.GetComponentInParent<Shootable> ()))
 				NumberOfShooteableCollisions -= 1;
 		} else if (col.gameObject.layer != 10) {
 			if (IntersectingStructures.Remove (col.gameObject))

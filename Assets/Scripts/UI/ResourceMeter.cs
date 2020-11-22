@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class ResourceMeter : MonoBehaviour {
 
-	private Image Fill;
+	public Image Fill;
 	public float MaxFill = 0.25f;
 
 	// Use this for initialization

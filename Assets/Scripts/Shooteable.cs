@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Shooteable : DistinctObject {
+public abstract class Shootable : DistinctObject {
 
-	//[System.NonSerialized]
-	public float Health = 3;
+
+    [Header("Shootable")]
+    public float Health = 3;
 	public float MaxHealth = 3;
 
 	public virtual void Hit (float Damage) {

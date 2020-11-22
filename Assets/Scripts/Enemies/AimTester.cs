@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AimTester : Shooteable {
+public class AimTester : Shootable {
 
 	public int TimeSinceHit = 0;
 	public float FullyCooled = 255;

@@ -62,4 +62,19 @@ public class PatrolEnemy : LaserMiner {
 			return PatrolPoints.Count - 1;
 		return Index - 1;
 	}
+
+    private void OnDrawGizmosSelected()
+    {
+        if (PatrolPoints == null || PatrolPoints.Count == 0)
+            return;
+
+        Gizmos.color = Color.green;
+        for (int i = 0; i < PatrolPoints.Count - 1; ++i)
+        {
+            Gizmos.DrawLine(PatrolPoints[i], PatrolPoints[i + 1]);
+            Gizmos.DrawWireSphere(PatrolPoints[i], 0.2f);
+        }
+        Gizmos.DrawLine(PatrolPoints[PatrolPoints.Count - 1], PatrolPoints[0]);
+        Gizmos.DrawWireSphere(PatrolPoints[PatrolPoints.Count - 1], 0.2f);
+    }
 }

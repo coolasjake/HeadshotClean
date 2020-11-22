@@ -23,7 +23,8 @@ public class AchievementTracker : MonoBehaviour {
 	}
 
 	public static void UpdateAchievements () {
-		FindObjectOfType<AchievementTracker> ().GetComponent<Text> ().text =
+        GameObject AchievementUI = UIManager.stat.LoadOrGetUI("AchievementsDebug");
+        AchievementUI.GetComponentInChildren<AchievementTracker> ().GetComponent<Text> ().text =
 			GunKills + " Gun Kills\n" +
 			AirKills + " Air Kills\n" +
 			AirKillStreak + " Air Kill Streak\n" +

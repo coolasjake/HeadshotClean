@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ReactionTester : Shooteable {
+public class ReactionTester : Shootable {
 
 	public bool PartOfGroup = false;
 

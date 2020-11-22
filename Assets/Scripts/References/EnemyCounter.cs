@@ -19,7 +19,8 @@ public class EnemyCounter : MonoBehaviour {
 			WR = "\nWhite Robot Found!";
 		else
 			WR = "\nWhite Robot Not Found";
-		FindObjectOfType<EnemyCounter> ().GetComponent<Text> ().text =
+
+        UIManager.stat.LoadOrGetUI("AchievementsDebug").GetComponentInChildren<EnemyCounter> ().GetComponent<Text> ().text =
 			"Enemies Killed: " + BasicEnemiesKilled + "/" + MaxBasicEnemies +
 			"\nFollowing Enemies Killed: " + FollowingEnemiesKilled + "/" + MaxFollowingEnemies +
 			"\nNumber That Were Only Curious: " + CuriousEnemiesKilled +

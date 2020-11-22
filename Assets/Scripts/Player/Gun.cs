@@ -64,7 +64,7 @@ public class Gun : PlayerAbility {
 
 			if (Physics.Raycast (transform.position, transform.forward, out Hit, 600, RaycastShootingMask)) {
 				//Debug.DrawRay (transform.position, transform.forward, Color.red, 2f);
-				Shooteable SH = Hit.transform.GetComponent<Shooteable> ();
+				Shootable SH = Hit.transform.GetComponent<Shootable> ();
 				if (SH) {
 					SH.Hit (35f);
 				} else {
@@ -110,7 +110,7 @@ public class Gun : PlayerAbility {
 				LineObject.GetComponent<LineRenderer>().SetPosition (1, LinePoint);
 				LineObject.GetComponent<BulletTrail> ().DestroyTime = RecoilTime;
 
-				Shooteable SH = Hit.collider.GetComponentInParent<Shooteable> ();
+				Shootable SH = Hit.collider.GetComponentInParent<Shootable> ();
 				if (SH) {
 					SH.Hit (35f);
 				} else {

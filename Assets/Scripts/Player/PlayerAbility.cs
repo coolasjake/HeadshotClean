@@ -6,6 +6,7 @@ public abstract class PlayerAbility : MonoBehaviour {
 	protected bool Disabled = false;
 
 	private float _resource = 0;
+    [Header("Generic Ability Properties")]
     [Range(1, 1000000)]
 	public float MaxResource = 3;
 	public float RegenPerSecond = 0.5f;
@@ -41,14 +42,14 @@ public abstract class PlayerAbility : MonoBehaviour {
         _resource = Mathf.Min(Resource, MaxResource);
     }
 
-    /// <summary> Perform a 'tick' of resource regeneration (using RegenPerSecond), capping at MaxResource. </summary>
+    /// <summary> Perform a 'tick' of resource regeneration (using RegenPerSecond and deltaTime), capping at MaxResource. </summary>
     public void RegenerateResource()
     {
         _resource += RegenPerSecond * Time.deltaTime;
         _resource = Mathf.Min(_resource, MaxResource);
     }
 
-    /// <summary> Perform a 'tick' of resource regeneration (using RegenPerSecond), multiplied by the value, and capping at MaxResource. </summary>
+    /// <summary> Perform a 'tick' of resource regeneration (using RegenPerSecond and deltaTime), multiplied by the value, and capping at MaxResource. </summary>
     public void RegenerateResource(float multiplier)
     {
         _resource += RegenPerSecond * Time.deltaTime * multiplier;
@@ -58,6 +59,9 @@ public abstract class PlayerAbility : MonoBehaviour {
     /// <summary> Checks if resource is above MinToUse, returning false if not, and reducing by given value if true. </summary>
     public virtual bool StartConsumeResource(float value)
     {
+        if (!UseResource)
+            return true;
+
         if (_resource < MinToUse)
             return false;
         _resource -= value;
@@ -67,6 +71,9 @@ public abstract class PlayerAbility : MonoBehaviour {
     /// <summary> Reduce resource by the given value, returning false if resource is ALREADY zero. </summary>
     public virtual bool ConsumeResource(float value)
     {
+        if (!UseResource)
+            return true;
+
         if (Resource <= 0)
             return false;
         _resource -= value;
@@ -76,6 +83,9 @@ public abstract class PlayerAbility : MonoBehaviour {
     /// <summary> Reduce resource by the given value, down to a minimum defined by the second parameter. </summary>
     public virtual void ConsumeResourceGreedy(float value, float minDebt)
     {
+        if (!UseResource)
+            return;
+
         _resource -= value;
         _resource = Mathf.Max(_resource, minDebt);
     }

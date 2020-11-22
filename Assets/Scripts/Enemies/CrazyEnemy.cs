@@ -81,7 +81,7 @@ public class CrazyEnemy : LaserMiner {
 				FP.EffectLine.SetPosition (1, LinePoint);//new Vector3(0, -Vector3.Distance(FP.transform.position, Hit.point), 0));
 				//FP.ParticleEffect.transform.localScale = new Vector3(0, Vector3.Distance(FP.transform.position, Hit.point), 0);
 
-				Shooteable SH = Hit.collider.GetComponentInParent<Shooteable> ();
+				Shootable SH = Hit.collider.GetComponentInParent<Shootable> ();
 				if (SH)
 					SH.Hit(DPS * Time.deltaTime);
 				else if (Time.timeScale > 0)

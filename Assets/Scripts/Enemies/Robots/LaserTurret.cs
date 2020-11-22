@@ -151,7 +151,7 @@ public class LaserTurret : LaserMiner {
 				Vector3 LinePoint = FP.EffectLine.transform.InverseTransformPoint (Hit.point);
 				FP.EffectLine.SetPosition (1, LinePoint);
 
-				Shooteable SH = Hit.collider.GetComponentInParent<Shooteable> ();
+				Shootable SH = Hit.collider.GetComponentInParent<Shootable> ();
 				if (SH)
 					SH.Hit(DPS * Time.deltaTime);
 				else if (Time.timeScale > 0)

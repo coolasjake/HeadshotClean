@@ -12,7 +12,7 @@ public enum AIState {
 	Working
 }
 
-public class BaseEnemy : Shooteable {
+public class BaseEnemy : Shootable {
 
 	private static float AwakenChance = 0.1f;
 	private static float TurretChance = 0.4f;

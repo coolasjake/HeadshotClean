@@ -31,11 +31,11 @@ public class Phasing : PlayerAbility {
 
 	//private PhaseFailsafe FailSafe;
 	private Canvas C;
-	private Image ShadowEffect;
+    private Image ShadowEffect;
 	private Movement PM;
-	private Image IntersectWarning;
-	private Image RobotIntersectWarning;
-	private ResourceMeter Meter;
+    private Image IntersectWarning;
+    private Image RobotIntersectWarning;
+    private ResourceMeter Meter;
 	private Camera PhaseCamera;
 	private TriggerChecker CameraCheck;
 	//private float PhaseResource = 3f;
@@ -65,11 +65,12 @@ public class Phasing : PlayerAbility {
 
 		PhaseMask = 1 << 0 | 1 << 11 | 1 << 16 | 1 << 17;
 
-		C = FindObjectOfType<Canvas> ();
-		ShadowEffect = C.GetComponentInChildren<Image> ();
-		IntersectWarning = C.GetComponentsInChildren<Image> () [1];
-		RobotIntersectWarning = C.GetComponentsInChildren<Image> () [2];
-		Meter = C.GetComponentInChildren<ResourceMeter> ();
+		//C = FindObjectOfType<Canvas> ();
+        GameObject phaseUI = UIManager.stat.LoadOrGetUI("Phase");
+		ShadowEffect = phaseUI.GetComponentInChildren<Image> ();
+		IntersectWarning = phaseUI.GetComponentsInChildren<Image> () [1];
+		RobotIntersectWarning = phaseUI.GetComponentsInChildren<Image> () [2];
+		Meter = phaseUI.GetComponentInChildren<ResourceMeter> ();
 		RobotIntersectWarning.enabled = false;
 		PhaseCamera = GetComponentsInChildren<Camera> () [2];
 		PhaseCamera.enabled = false;

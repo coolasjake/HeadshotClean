@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ButtonTarget : Shooteable {
+public class ButtonTarget : Shootable {
 
 	public ButtonCommands Command = ButtonCommands.Restart;
 

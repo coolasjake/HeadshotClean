@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TrackingTester : Shooteable {
+public class TrackingTester : Shootable {
 
 	public int Leniency = 3;
 	public int Points = 0;
