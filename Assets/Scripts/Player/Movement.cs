@@ -206,9 +206,6 @@ public class Movement : Shootable {
 
 
 		//CAMERA CONTROL
-		//Rotate player
-		float rotationX = -Input.GetAxis ("Mouse X") * Sensitivity;
-		transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
 
 		//CAMERA X-ROTATION
         //Clamp the angle to a range of -180 to 180 for easier maths.
@@ -242,12 +239,18 @@ public class Movement : Shootable {
 		NewRot.eulerAngles = new Vector3 (CameraAngle, MainCamera.transform.localRotation.y, 0);
 		MainCamera.transform.localRotation = NewRot;
 
+        //Rotate player
+        float rotationX = -Input.GetAxis("Mouse X") * Sensitivity;
+        if (CameraAngle.Outside(-90, 90))
+            rotationX *= -1;
+        transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
 
-		//--------------------------MOVEMENT PHYSICS + INPUTS--------------------------//
 
-		//STICK TO GROUND CODE
-		//If the player is within a tiny distance to the ground, move them to be exactly touching it.
-		/*
+        //--------------------------MOVEMENT PHYSICS + INPUTS--------------------------//
+
+        //STICK TO GROUND CODE
+        //If the player is within a tiny distance to the ground, move them to be exactly touching it.
+        /*
 		float Margin = 0.1f;
 		RaycastHit Hit;
 		if (Physics.Raycast (transform.position, transform.forward, out Hit)) {
@@ -258,8 +261,8 @@ public class Movement : Shootable {
 		*/
 
 
-		//INPUT
-		Vector3 desiredDirection = new Vector3 ();
+        //INPUT
+        Vector3 desiredDirection = new Vector3 ();
 		desiredDirection += transform.up * Input.GetAxis ("Vertical");
 		desiredDirection += transform.right * Input.GetAxis ("Horizontal");
 

@@ -1,10 +1,10 @@
-﻿/*
+﻿
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum GravityType {
+public enum ArchiveGravityType {
 	Normal,
 	Point,
 	Direction,
@@ -12,7 +12,7 @@ public enum GravityType {
 }
 
 [RequireComponent(typeof(Movement))]
-public class Gravity : PlayerAbility {
+public class GravityArchive : PlayerAbility {
 
 	private Rigidbody RB;
 	private Movement PM;
@@ -20,7 +20,7 @@ public class Gravity : PlayerAbility {
 	//----Old System Variables----
 	//----Used with the old system of figuring out the possible gravity directions based on the 'target wall', and THEN choosing.----
 	/// <summary> Represents the amount of force that should be added to the player (or object) per second, when gravity was set by the normal of a surface. </summary>
-	private Vector3 DirectionalGravity;
+	private Vector3 DirectionalGravity = Physics.gravity;
 	/// <summary> Represents the amount of force that should be added to the player (or object) per second, when gravity was set by a point in space, usually on the surface of an object. </summary>
 	private Vector3 PointGravity;
 	private RaycastHit TargetWall;
@@ -43,10 +43,12 @@ public class Gravity : PlayerAbility {
 	private Transform RemoteGravityTarget;
 	private bool UsingRemoteGravity = false;
 
-	public bool AllowRemoteGravity = true;
+    private float Resource = 10000;
+
+    public bool AllowRemoteGravity = true;
 	public bool UseUnfinishedInputs = false;
 	public bool ShiftAligns = false;
-	public GravityType Type = GravityType.Normal;
+	public ArchiveGravityType Type = ArchiveGravityType.Normal;
 	public float GravityMagnitude = 9.8f;
 	public float GsPerSecondHeld = 2;
 	public float DegreesPerSecond = 180;
@@ -62,10 +64,10 @@ public class Gravity : PlayerAbility {
 		MaxResource = 50;
 		RegenPerSecond = 10;
 		MinToUse = 10;
-		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [2];
+		//Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [2];
 
 		RB = GetComponent<Rigidbody> ();
-		PM = GetComponent<Movement> ();
+        PM = Movement.ThePlayer;
 		SFXPlayer = GetComponentsInChildren<AudioSource> ()[1];
 		DirectionalGravity = Physics.gravity;
 		ResetGravity (1);
@@ -118,7 +120,7 @@ public class Gravity : PlayerAbility {
 				if (Input.GetButtonDown("GravityReset")) {
 					if (Input.GetButton("AlignModifier"))
 						ResetGravity (0.5f);
-					else if (Type != GravityType.Normal) {
+					else if (Type != ArchiveGravityType.Normal) {
 						ResetGravity (1f);
 					}
 				} else if (Input.GetButtonDown("GravityDouble")) {
@@ -142,7 +144,7 @@ public class Gravity : PlayerAbility {
 		GetComponentInChildren<GravityRep> ().transform.localScale = new Vector3 (1, 1, DirectionalGravity.magnitude / GravityMagnitude);
 
 		//Apply the gravity force (so long as normal gravity isn't enabled).
-		if (Type != GravityType.Normal) {
+		if (Type != ArchiveGravityType.Normal) {
 			RB.velocity += DirectionalGravity * Time.deltaTime;
 		}
 
@@ -168,20 +170,20 @@ public class Gravity : PlayerAbility {
 
 
 		//Remove resource if an impact has occured (impacts are a collision with impulse above a threshold).
-		if (PM.ImpactLastFrame)
-			Resource -= Mathf.Clamp(PM.VelocityOfImpact * 2, 0, Resource + 20);
+		//if (PM.CheckForWallAlignment)
+		//	Resource -= Mathf.Clamp(PM.VelocityOfImpact * 2, 0, Resource + 20);
 
 		//Drain or regenerate the resource.
-		if (Type == GravityType.Normal && Resource < MaxResource && PM.Grounded)
+		if (Type == ArchiveGravityType.Normal && Resource < MaxResource && PM.Grounded)
 			Resource += RegenPerSecond * Time.deltaTime;
-		else if (Type != GravityType.Normal) {
+		else if (Type != ArchiveGravityType.Normal) {
 			Resource -= Time.deltaTime;
 			if (Resource <= 0)
 				ResetGravity (1);
 		}
 
 		//Update the visual rep of the meter.
-		Meter.ChangeValue (Resource / MaxResource);
+		//Meter.ChangeValue (Resource / MaxResource);
 	}
 
 	/// <summary> Rotate the players body so that their feet are pointing towards the direction of gravity, and try to rotate the camera so that it is pointing in the same direction as before, but only by changing the x-axis angle. </summary>
@@ -213,18 +215,18 @@ public class Gravity : PlayerAbility {
 			if (!Unlocked ^ ShiftAligns) {
 				//FACE - Shift is OFF.
 				//Set Gravity to align with the FACE the player is looking at.
-				Type = GravityType.Direction;
+				Type = ArchiveGravityType.Direction;
 				DirectionalGravity = TargetWall.normal * GravityMagnitude * GravityMultiplier * -1;
 			} else {
 				//POINT - Shift is ON.
 				//Set Gravity to face the POINT the player is looking at.
-				Type = GravityType.Point;
+				Type = ArchiveGravityType.Point;
 				DirectionalGravity = PM.MainCamera.transform.forward * GravityMagnitude * GravityMultiplier;
 			}
 			RB.useGravity = false;
 
 			if ((DirectionalGravity - Physics.gravity).magnitude < 0.1f) {
-				Type = GravityType.Normal;
+				Type = ArchiveGravityType.Normal;
 				RB.useGravity = true;
 				DirectionalGravity = Physics.gravity;
 			}
@@ -241,7 +243,7 @@ public class Gravity : PlayerAbility {
 	/// <summary> Shift gravity based on the keys currently being pressed (space/ctrl = up/down). CURRENTLY NOT IN USE</summary>
 	private void SetGravitySpecial(float GravityMultiplier) {
 
-		Type = GravityType.Locked;
+		Type = ArchiveGravityType.Locked;
 		RB.useGravity = false;
 		Vector3 DirectionFromInputs = new Vector3 ();;
 
@@ -280,14 +282,14 @@ public class Gravity : PlayerAbility {
 			if (Resource > MinToUse) {
 				Resource -= 5;
 					
-				Type = GravityType.Locked;
+				Type = ArchiveGravityType.Locked;
 				DirectionalGravity = Physics.gravity * GravityMultiplier;
 			} else {
 				//Play ability failed SFX
 			}
 		} else {
 			
-			Type = GravityType.Normal;
+			Type = ArchiveGravityType.Normal;
 			RB.useGravity = true;
 			DirectionalGravity = Physics.gravity;
 		}
@@ -330,4 +332,5 @@ public class Gravity : PlayerAbility {
 		}
 	}
 }
+/*
 */

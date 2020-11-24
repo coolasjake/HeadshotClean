@@ -31,6 +31,10 @@ public class Gravity : PlayerAbility {
     private float personalScale = 0;
     /// <summary> Saves the magnitude of gravity before a jump-hover activation, so it can be returned on release. </summary>
     private float magBeforeDoubleJump = 0;
+    /// <summary> The clamp value set in Movement. Clamp is disabled while in mid air. </summary>
+    private float groundedClamp = 89;
+    /// <summary> Speed at which the clamp returns to normal when grounded, in degrees per second. </summary>
+    private float clampReturnRate = 2;
 
     [Header("Debug Properties")]
     /// <summary> The current status of gravity, see GravityType declaration above for detail. </summary>
@@ -127,6 +131,7 @@ public class Gravity : PlayerAbility {
 		}
 
         CustomGravityTick();
+        FreeLookInAir();
         ResourceChangeOnCollision();
         PassiveResourceChange();
 
@@ -160,7 +165,8 @@ public class Gravity : PlayerAbility {
         else if (Input.GetButton("GravityReset"))
         {
             //Reset gravity to normal when [C] is released, or half normal when [SHIFT] is also held.
-            NoGravityFreeLook();
+            CustomIntuitiveSnapRotation(-PM.MainCamera.transform.up);
+            //NoGravityFreeLook();
         }
         else if (Input.GetButtonDown("GravityNormal"))
         {
@@ -215,6 +221,16 @@ public class Gravity : PlayerAbility {
         //Apply the gravity force (so long as normal gravity isn't enabled).
         if (type != GravityType.Normal)
             RB.velocity += customGravity * Time.deltaTime;
+    }
+
+    private void FreeLookInAir()
+    {
+        if (!PM.Grounded)
+        {
+            PM.Clamp = 360;
+        }
+        else
+            PM.Clamp = Mathf.Lerp(PM.Clamp, groundedClamp, clampReturnRate * Time.deltaTime);
     }
 
     /// <summary> Consume resource when the player has a collision with great enough force. </summary>
@@ -486,13 +502,30 @@ public class Gravity : PlayerAbility {
     /// NOTE: (accuracy is usually impossible since the position of the camera moves, and players focus is often different from their aim). </summary>
     private void IntuitiveSnapRotation()
     {
-
         Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
         Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
 
         //Rotate the players 'body'.
         transform.rotation = Quaternion.LookRotation(customGravity, GetComponentInChildren<GravityReference>().transform.right);
         transform.rotation = Quaternion.LookRotation(customGravity, GetComponentInChildren<GravityReference>().transform.forward);
+        Quaternion NewRot = new Quaternion();
+        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
+        transform.localRotation = NewRot;
+
+        //Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
+        float Signed = Vector3.SignedAngle(OriginalFacing, PM.MainCamera.transform.forward, transform.right);
+        PM.CameraAngle -= Signed;
+        PM.MainCamera.transform.rotation = CameraPreRotation;
+    }
+
+    private void CustomIntuitiveSnapRotation(Vector3 direction)
+    {
+        Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
+        Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
+
+        //Rotate the players 'body'.
+        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.right);
+        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.forward);
         Quaternion NewRot = new Quaternion();
         NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
         transform.localRotation = NewRot;
