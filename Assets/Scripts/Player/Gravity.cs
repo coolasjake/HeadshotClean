@@ -165,8 +165,8 @@ public class Gravity : PlayerAbility {
         else if (Input.GetButton("GravityReset"))
         {
             //Reset gravity to normal when [C] is released, or half normal when [SHIFT] is also held.
-            CustomIntuitiveSnapRotation(-PM.MainCamera.transform.up);
-            //NoGravityFreeLook();
+            //CustomIntuitiveSnapRotation(-PM.MainCamera.transform.up);
+            NoGravityFreeLook();
         }
         else if (Input.GetButtonDown("GravityNormal"))
         {
@@ -174,10 +174,12 @@ public class Gravity : PlayerAbility {
             ContextualGravityShift();
             magBeforeDoubleJump = 0;
         }
-        else if (Input.GetButton("Crouch") && !PM.Grounded)
+
+        if (Input.GetButton("Crouch") && !PM.Grounded)
             //Provide a tiny slowing force when [Ctrl] is HELD.
             Stabilize();
-        else if (Time.time > PM.LastGrounded + 0.1f && Input.GetButtonDown("Jump"))
+
+        if (Time.time > PM.LastGrounded + 0.1f && Input.GetButtonDown("Jump"))
         {
             magBeforeDoubleJump = customGravity.magnitude / normalGravityMagnitude;
             ShiftGravityMagnitude(0.001f);
@@ -188,8 +190,11 @@ public class Gravity : PlayerAbility {
                 ShiftGravityMagnitude(magBeforeDoubleJump);
             magBeforeDoubleJump = 0;
         }
-        else if (Input.GetButton("AlignModifier"))
-            VariableGravity();
+
+
+
+        //if (Input.GetButton("AlignModifier"))
+        //    VariableGravity();
     }
 
     /// <summary> When the player has collided with a wall, check if the circumstances are right to align with it. </summary>
@@ -312,6 +317,14 @@ public class Gravity : PlayerAbility {
 			RB.useGravity = false;
 		}
 	}
+
+    /// <summary> When a modifier key is held (shift), and player is in the air, convert movement into 'bursts' of non-rotating gravity. </summary>
+    private void GravityBurst()
+    {
+        //Check horizontal/vertical input.
+        //Update a 'bursts' vector3 with the new desired burst.
+        //Apply the current burst to the players gravity (or as a 'seperate' force?)
+    }
 
 	/// <summary> Brings the player towards zero velocity, but not below 0.1, so it doesnt feel unnatural. </summary>
 	private void Stabilize () {

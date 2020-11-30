@@ -28,6 +28,7 @@ public class Movement : Shootable {
     [System.NonSerialized]
 	public Camera MainCamera;
     [Header("References")]
+    public Transform CameraOrHolder;
     public Camera DeathCamera;
 	protected Rigidbody RB;
 	private Transform Body;
@@ -36,7 +37,7 @@ public class Movement : Shootable {
 	private GameObject Menu;
 	//private AudioSource SFXPlayer;
 	private AudioManager SFXPlayer;
-	private ParticleSystem ImpactEffect;
+	public ParticleSystem ImpactEffect;
 	private Slider HealthBar;
 
 	//--->Private values
@@ -137,7 +138,9 @@ public class Movement : Shootable {
 		EnemyCounter.UpdateScoreboard ();
 
 		MainCamera = GetComponentInChildren<Camera> ();
-		//C = FindObjectOfType<Canvas> ();
+        if (CameraOrHolder == null)
+            CameraOrHolder = MainCamera.transform;
+        //C = FindObjectOfType<Canvas> ();
         GameObject MenuUI = UIManager.stat.LoadOrGetUI("Menu");
         GameObject GameUI = UIManager.stat.LoadOrGetUI("Shooter");
         Menu = MenuUI.GetComponentInChildren<Menu>().gameObject;
@@ -151,7 +154,8 @@ public class Movement : Shootable {
 		Body = GetComponentInChildren<CapsuleCollider> ().transform;
 		AlteredMaxSpeed = MaxSpeed;
 		SFXPlayer = GetComponent<AudioManager> ();
-		ImpactEffect = GetComponentInChildren<ParticleSystem> ();
+        if (ImpactEffect == null)
+		    ImpactEffect = GetComponentInChildren<ParticleSystem> ();
 		AudioListener.volume = 0.5f;
 		DisplayVolume ();
 
@@ -178,14 +182,36 @@ public class Movement : Shootable {
 
 	void Update () {
 
-		//SET FOLLOW POINT
-		RaycastHit ClosestDownwardSurface;
-		if (Physics.Raycast (transform.position, -Vector3.up, out ClosestDownwardSurface)) {
-			AIFollowPoint = ClosestDownwardSurface.point;
-		}
+        UpdFollowPoint();
 
-		//TELL ACHIEVEMENT TRACKER WHEN GROUNDED
-		Grounded = GroundedTrigger.Triggered;
+        UpdAchievements();
+
+        //PAUSING + CURSOR LOCK
+        if (Input.GetKeyDown(KeyCode.BackQuote) || Input.GetKeyDown(KeyCode.Escape))
+            Pause();
+
+        if (Paused)
+            return;
+
+        UpdCamera();
+
+        UpdMove();
+	}
+
+    private void UpdFollowPoint()
+    {
+        //SET FOLLOW POINT
+        RaycastHit ClosestDownwardSurface;
+        if (Physics.Raycast(transform.position, -Vector3.up, out ClosestDownwardSurface))
+        {
+            AIFollowPoint = ClosestDownwardSurface.point;
+        }
+    }
+
+    private void UpdAchievements()
+    {
+        //TELL ACHIEVEMENT TRACKER WHEN GROUNDED
+        Grounded = GroundedTrigger.Triggered;
         if (Grounded)
         {
             LastGrounded = Time.time;
@@ -196,194 +222,166 @@ public class Movement : Shootable {
             AchievementTracker.InAir = true;
             OnSoftWall = false;
         }
+    }
 
-        //PAUSING + CURSOR LOCK
-        if (Input.GetKeyDown(KeyCode.BackQuote) || Input.GetKeyDown(KeyCode.Escape))
-            Pause();
+    private void UpdCamera()
+    {
+        //CAMERA CONTROL
 
-        if (Paused)
-			return;
-
-
-		//CAMERA CONTROL
-
-		//CAMERA X-ROTATION
+        //CAMERA X-ROTATION
         //Clamp the angle to a range of -180 to 180 for easier maths.
-		if (CameraAngle > 180 || CameraAngle < -180)
-			CameraAngle = ClampAngleTo180 (CameraAngle);
+        if (CameraAngle > 180 || CameraAngle < -180)
+            CameraAngle = ClampAngleTo180(CameraAngle);
 
         //Check if the camera was within the clamps before input (in case it was changed, eg by Gravity)
-		bool CameraWasWithinClamp = (CameraAngle <= Clamp) && (CameraAngle >= -Clamp);
+        bool CameraWasWithinClamp = (CameraAngle <= Clamp) && (CameraAngle >= -Clamp);
         //Apply the mouse input.
-		CameraAngle -= Input.GetAxis ("Mouse Y") * Sensitivity;
+        CameraAngle -= Input.GetAxis("Mouse Y") * Sensitivity;
         //Clamp the angle.
         CameraAngle = Mathf.Clamp(CameraAngle, -Clamp, Clamp);
-        /*
-        Old rotation code. Caused neck-break bug. Probably is useless.
-        //Check if the angle is now outside the clamp range.
-        if (CameraAngle > Clamp || CameraAngle < -Clamp) {
-            //If the camera used to be in the range (was changed with input), simply clamp the angle.
-            CameraWasWithinClamp = true;
-            if (CameraWasWithinClamp)
-				CameraAngle = Mathf.Clamp (CameraAngle, -Clamp, Clamp);
-			else { //If the angle was changed externally (usually extremely), and it is outside the clamp, change it to be inside the clamp slowly.
-				if (CameraAngle > Clamp)
-					CameraAngle -= ClampAdjustmentSpeed * Time.deltaTime;
-				if (CameraAngle < -Clamp)
-					CameraAngle += ClampAdjustmentSpeed * Time.deltaTime;
-			}
-		}
-        */
-		
-		Quaternion NewRot = new Quaternion ();
-		NewRot.eulerAngles = new Vector3 (CameraAngle, MainCamera.transform.localRotation.y, 0);
-		MainCamera.transform.localRotation = NewRot;
+
+        Quaternion NewRot = new Quaternion();
+        NewRot.eulerAngles = new Vector3(CameraAngle, CameraOrHolder.localRotation.y, 0);
+        CameraOrHolder.localRotation = NewRot;
 
         //Rotate player
         float rotationX = -Input.GetAxis("Mouse X") * Sensitivity;
         if (CameraAngle.Outside(-90, 90))
             rotationX *= -1;
         transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
+    }
 
+    private void UpdCrouch()
+    {
+        //CROUCHING
+        if (Grounded && Input.GetButton("Crouch"))
+        {
+            if (!Crouching)
+                Crouch();
+        }
+        else if (Crouching)
+            UnCrouch();
+    }
 
+    private void UpdMove()
+    {
         //--------------------------MOVEMENT PHYSICS + INPUTS--------------------------//
-
-        //STICK TO GROUND CODE
-        //If the player is within a tiny distance to the ground, move them to be exactly touching it.
-        /*
-		float Margin = 0.1f;
-		RaycastHit Hit;
-		if (Physics.Raycast (transform.position, transform.forward, out Hit)) {
-			if (Hit.distance > PlayerSphereSize && Hit.distance < PlayerSphereSize + Margin)
-				transform.position = transform.position + (transform.forward * (Hit.distance - PlayerSphereSize));
-				//Debug.Log ("Magnetize");
-		}
-		*/
-
-
         //INPUT
-        Vector3 desiredDirection = new Vector3 ();
-		desiredDirection += transform.up * Input.GetAxis ("Vertical");
-		desiredDirection += transform.right * Input.GetAxis ("Horizontal");
+        Vector3 desiredDirection = new Vector3();
+        desiredDirection += transform.up * Input.GetAxis("Vertical");
+        desiredDirection += transform.right * Input.GetAxis("Horizontal");
 
-		desiredDirection.Normalize ();
+        desiredDirection.Normalize();
 
-		if (Input.GetButtonDown("Jump")) {
-			if (Grounded && OnSomething) {
-				Grounded = false;
-				OnSomething = false;
-				WantToJump = Time.time;
-				SFXPlayer.PlaySound ("Jump");
-			}
-		}
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (Grounded && OnSomething)
+            {
+                Grounded = false;
+                OnSomething = false;
+                WantToJump = Time.time;
+                SFXPlayer.PlaySound("Jump");
+            }
+        }
 
-		//CROUCHING
-		if (Grounded && Input.GetButton("Crouch")) {
-			if (!Crouching)
-				Crouch ();
-		} else if (Crouching)
-			UnCrouch ();
+        UpdCrouch();
 
-		//Factor crouching and being in the air into the max speed;
-		AlteredMaxSpeed = MaxSpeed;
-		if (Crouching)
-			AlteredMaxSpeed *= 0.8f;
-		if (!Grounded)
-			AlteredMaxSpeed *= 0.5f;
+        //Factor crouching and being in the air into the max speed;
+        AlteredMaxSpeed = MaxSpeed;
+        if (Crouching)
+            AlteredMaxSpeed *= 0.8f;
+        if (!Grounded)
+            AlteredMaxSpeed *= 0.5f;
 
-		Vector3 newVelocity;
-		if (Grounded && OnSomething) {
-			newVelocity = RB.velocity + (desiredDirection * Acceleration * Time.deltaTime);
-		} else
-			newVelocity = RB.velocity + (desiredDirection * Acceleration * AirControlFactor * Time.deltaTime);
+        Vector3 newVelocity;
+        if (Grounded && OnSomething)
+        {
+            newVelocity = RB.velocity + (desiredDirection * Acceleration * Time.deltaTime);
+        }
+        else
+            newVelocity = RB.velocity + (desiredDirection * Acceleration * AirControlFactor * Time.deltaTime);
 
-		Vector3 TransformedOldVelocity = transform.InverseTransformVector (RB.velocity);
-		Vector3 TransformedNewVelocity = transform.InverseTransformVector (newVelocity);
+        Vector3 TransformedOldVelocity = transform.InverseTransformVector(RB.velocity);
+        Vector3 TransformedNewVelocity = transform.InverseTransformVector(newVelocity);
 
-		//If the local non-vertical (lateral) velocity of the player is above the max speed, do not allow any increases in speed due to input.
-		Vector3 LateralVelocityOld = new Vector3 (TransformedOldVelocity.x, TransformedOldVelocity.y, 0);
-		Vector3 LateralVelocityNew = new Vector3 (TransformedNewVelocity.x, TransformedNewVelocity.y, 0);
-		if (LateralVelocityNew.magnitude > AlteredMaxSpeed) {
-			//If the new movement would speed up the player.
-			if (LateralVelocityNew.magnitude > LateralVelocityOld.magnitude) {
-				//If the player was not at max speed yet, set them to the max speed, otherwise revert to the old speed (but with direction changes).
-				if (LateralVelocityOld.magnitude < AlteredMaxSpeed)
-					LateralVelocityNew = LateralVelocityNew.normalized * AlteredMaxSpeed;
-				else
-					LateralVelocityNew = LateralVelocityNew.normalized * LateralVelocityOld.magnitude;
-			}
+        //If the local non-vertical (lateral) velocity of the player is above the max speed, do not allow any increases in speed due to input.
+        Vector3 LateralVelocityOld = new Vector3(TransformedOldVelocity.x, TransformedOldVelocity.y, 0);
+        Vector3 LateralVelocityNew = new Vector3(TransformedNewVelocity.x, TransformedNewVelocity.y, 0);
+        if (LateralVelocityNew.magnitude > AlteredMaxSpeed)
+        {
+            //If the new movement would speed up the player.
+            if (LateralVelocityNew.magnitude > LateralVelocityOld.magnitude)
+            {
+                //If the player was not at max speed yet, set them to the max speed, otherwise revert to the old speed (but with direction changes).
+                if (LateralVelocityOld.magnitude < AlteredMaxSpeed)
+                    LateralVelocityNew = LateralVelocityNew.normalized * AlteredMaxSpeed;
+                else
+                    LateralVelocityNew = LateralVelocityNew.normalized * LateralVelocityOld.magnitude;
+            }
 
-			//FRICTION
-			//If the new lateral velocity is still greater than the max speed, reduce it by the relevant amount until it is AT the max speed.
-			if (LateralVelocityNew.magnitude > MaxSpeed) {
-				if (Grounded)
-					LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max (MaxSpeed, LateralVelocityNew.magnitude - FrictionForce);
-				//else
-				//	LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max (MaxSpeed, LateralVelocityNew.magnitude - (FrictionForce * AirControlFactor));
-			}
+            //FRICTION
+            //If the new lateral velocity is still greater than the max speed, reduce it by the relevant amount until it is AT the max speed.
+            if (LateralVelocityNew.magnitude > MaxSpeed)
+            {
+                if (Grounded)
+                    LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max(MaxSpeed, LateralVelocityNew.magnitude - FrictionForce);
+                //else
+                //	LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max (MaxSpeed, LateralVelocityNew.magnitude - (FrictionForce * AirControlFactor));
+            }
 
-			//Add the vertical component back, convert it to world-space, and set the new velocity to it.
-			LateralVelocityNew += new Vector3(0, 0, TransformedNewVelocity.z);
-			newVelocity = transform.TransformVector (LateralVelocityNew);
-		}
+            //Add the vertical component back, convert it to world-space, and set the new velocity to it.
+            LateralVelocityNew += new Vector3(0, 0, TransformedNewVelocity.z);
+            newVelocity = transform.TransformVector(LateralVelocityNew);
+        }
 
-		//DEBUG DISPLAY.
-		PlaneVelocity.x = Mathf.Round (LateralVelocityNew.x * 100f) / 100f;
-		PlaneVelocity.y = Mathf.Round (LateralVelocityNew.y * 100f) / 100f;
-		VerticalVelocity = Mathf.Round (TransformedNewVelocity.z * 100f) / 100f;
+        //DEBUG DISPLAY.
+        PlaneVelocity.x = Mathf.Round(LateralVelocityNew.x * 100f) / 100f;
+        PlaneVelocity.y = Mathf.Round(LateralVelocityNew.y * 100f) / 100f;
+        VerticalVelocity = Mathf.Round(TransformedNewVelocity.z * 100f) / 100f;
 
-		Vector3 FinalVelocityChange = newVelocity - RB.velocity;
+        Vector3 FinalVelocityChange = newVelocity - RB.velocity;
 
-		DebugString = "Not";
-		//If standing on a surface, and the player is not trying to move or jump, or if movement is disabled, slow movement.
-		if ((Grounded && OnSomething && desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || DisableMovement) {
-			
-			Vector3 NewVelocity = RB.velocity;
+        DebugString = "Not";
+        //If standing on a surface, and the player is not trying to move or jump, or if movement is disabled, slow movement.
+        if ((Grounded && OnSomething && desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || DisableMovement)
+        {
 
-			//Jump to zero velocity when below max speed and on the ground to give more control and prevent gliding.
-			if (RB.velocity.magnitude < AlteredMaxSpeed / 2)
-				RB.velocity = new Vector3 ();
-			else {
-				//Apply a 'friction' force to the player.
-				DebugString = "Stopping";
-				NewVelocity = NewVelocity.normalized * Mathf.Max (0, NewVelocity.magnitude - (StoppingForce * Time.deltaTime));
-				RB.velocity = NewVelocity;
-			}
-		} else {
-			if (Time.time < WantToJump + JumpLeniency) {
-				RB.velocity += -transform.forward * JumpVelocity;
-				LastJumpTime = Time.time;
-			}
+            Vector3 NewVelocity = RB.velocity;
 
-			WantToJump = -5;
+            //Jump to zero velocity when below max speed and on the ground to give more control and prevent gliding.
+            if (RB.velocity.magnitude < AlteredMaxSpeed / 2)
+                RB.velocity = new Vector3();
+            else
+            {
+                //Apply a 'friction' force to the player.
+                DebugString = "Stopping";
+                NewVelocity = NewVelocity.normalized * Mathf.Max(0, NewVelocity.magnitude - (StoppingForce * Time.deltaTime));
+                RB.velocity = NewVelocity;
+            }
+        }
+        else
+        {
+            if (Time.time < WantToJump + JumpLeniency)
+            {
+                RB.velocity += -transform.forward * JumpVelocity;
+                LastJumpTime = Time.time;
+            }
 
-			if (Time.time < LastJumpTime + MaxJumpTime) {
-				if (Input.GetButton("Jump"))
-					RB.velocity += -transform.forward * JumpVelocityPerSecondHeld * Time.deltaTime;
-			}
+            WantToJump = -5;
 
-			//Move the player the chosen direction (could move to fixed update to regulate speed).
-			RB.velocity += FinalVelocityChange;// * Time.deltaTime;
-		}
-		DisableMovement = false;
+            if (Time.time < LastJumpTime + MaxJumpTime)
+            {
+                if (Input.GetButton("Jump"))
+                    RB.velocity += -transform.forward * JumpVelocityPerSecondHeld * Time.deltaTime;
+            }
 
-		ImpactLastFrame = false;
-	}
+            //Move the player the chosen direction (could move to fixed update to regulate speed).
+            RB.velocity += FinalVelocityChange;// * Time.deltaTime;
+        }
+        DisableMovement = false;
 
-    //THIS IS ALL DEBUG CODE
-    /*
-	void FixedUpdate () {
-		FUVelocityDelta = RB.velocity.magnitude - FUVelocityLastFrame;
-		FUVelocityLastFrame = RB.velocity.magnitude;
-		if (FUVelocityDelta > FULargestDeltaThisSecond)
-			FULargestDeltaThisSecond = FUVelocityDelta;
-		if (Time.time > FULastUpdate + 3) {
-			FULastUpdate = Time.time;
-			FULargestDeltaLastSecond = FULargestDeltaThisSecond;
-			FULargestDeltaThisSecond = 0;
-		}
-	}
-	*/
+        ImpactLastFrame = false;
+    }
 
     public void Pause() {
         Paused = !Paused;
