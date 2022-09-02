@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 public class Movement : Shootable {
@@ -36,7 +37,8 @@ public class Movement : Shootable {
 	//private Canvas C;
 	private GameObject Menu;
 	//private AudioSource SFXPlayer;
-	private AudioManager SFXPlayer;
+    [HideInInspector]
+	public AudioManager SFXPlayer;
 	public ParticleSystem ImpactEffect;
 	private Slider HealthBar;
 
@@ -46,6 +48,7 @@ public class Movement : Shootable {
 	private bool Crouching = false;
 	private bool UnCrouching = false;
 	private float AlteredMaxSpeed = 3;
+    private float SensitivityMultiplier = 1f;
 
 
 	//--->Messages between Update and FixedUpdate
@@ -61,16 +64,13 @@ public class Movement : Shootable {
 	public bool Grounded = false;
     [System.NonSerialized]
     public float LastGrounded = -1;
+    /// <summary> Disables player movement for this frame only. </summary>
     [System.NonSerialized]
 	public bool DisableMovement = false;
 	[System.NonSerialized]
 	public bool DisableMouseInput = false;  //Disables the movement of the camera, so that the Gravity script can move it smoothly.
     [System.NonSerialized]
     public Vector3 AIFollowPoint;
-	[System.NonSerialized]
-	public bool ImpactLastFrame = false;
-	[System.NonSerialized]
-	public float VelocityOfImpact = 0;
 	[System.NonSerialized]
 	public float CameraAngle = 0;
 	[System.NonSerialized]
@@ -79,11 +79,9 @@ public class Movement : Shootable {
 	public bool Invisible = false;
 	[System.NonSerialized]
 	public bool OnSoftWall = false;
-    /// <summary> Used by Gravity script. Becomes true when the player collides with a wall. </summary>
-	[System.NonSerialized]
-	public bool CheckForWallAlignment = false;
-	[System.NonSerialized]
-	public Collision LastCollision;
+    // <summary> Used by Gravity script. Becomes true when the player collides with a wall. </summary>
+	//[System.NonSerialized]
+	//public bool CheckForWallAlignment = false;
 
 
     //Public values (for adjustment)
@@ -96,7 +94,7 @@ public class Movement : Shootable {
 	/// <summary> The number of degrees per second the camera will be rotated so that it is not outside the clamp angle. </summary>
 	public float ClampAdjustmentSpeed = 5;
 	/// <summary> The in game sensitivity multiplier (for settings). </summary>
-	public float Sensitivity = 1;
+	public float UserSensitivity = 1;
 	/// <summary> The maximum non-vertical speed the player can cause themselves to move at with 'walking' (does not constrain gravity, explosions etc). </summary>
 	[Range(1f, 100f)]
 	public float MaxSpeed = 3;
@@ -124,8 +122,6 @@ public class Movement : Shootable {
 	public float PlayerSphereSize = 2;
 	/// <summary> The radius of the players capsule collider. </summary>
 	public float PlayerWaistSize = 0.5f;
-	/// <summary> The minimum velocity to play impact sounds at (or destroy robots on impact). </summary>
-	public float ImpactVelocity = 10;
 
 
 	void Awake () {
@@ -229,7 +225,7 @@ public class Movement : Shootable {
         //CAMERA CONTROL
 
         //CAMERA X-ROTATION
-        //Clamp the angle to a range of -180 to 180 for easier maths.
+        //Clamp the angle to a range of -180 to 180 instead of 0 to 360 for easier maths.
         if (CameraAngle > 180 || CameraAngle < -180)
             CameraAngle = ClampAngleTo180(CameraAngle);
 
@@ -249,6 +245,11 @@ public class Movement : Shootable {
         if (CameraAngle.Outside(-90, 90))
             rotationX *= -1;
         transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
+    }
+
+    protected float Sensitivity
+    {
+        get { return UserSensitivity * SensitivityMultiplier; }
     }
 
     private void UpdCrouch()
@@ -379,8 +380,6 @@ public class Movement : Shootable {
             RB.velocity += FinalVelocityChange;// * Time.deltaTime;
         }
         DisableMovement = false;
-
-        ImpactLastFrame = false;
     }
 
     public void Pause() {
@@ -474,12 +473,12 @@ public class Movement : Shootable {
 	}
 
 	public void SetSensitivity (GameObject TextObject) {
-		Sensitivity = float.Parse(TextObject.GetComponent<Text>().text);
+		UserSensitivity = float.Parse(TextObject.GetComponent<Text>().text);
 		DisplaySensitivity ();
 	}
 
 	public void DisplaySensitivity () {
-		Menu.GetComponentsInChildren<MenuDisplayText>()[0].text = "Sensitivity = " + Sensitivity;
+		Menu.GetComponentsInChildren<MenuDisplayText>()[0].text = "Sensitivity = " + UserSensitivity;
 	}
 
 	public void SetVolume (GameObject TextObject) {
@@ -531,45 +530,22 @@ public class Movement : Shootable {
 		return 0;
 	}
 
-	/*
-	void OnTriggerExit (Collider col) {
-		Grounded = false;
-	}
 
-	void OnTriggerStay (Collider col) {
-		Grounded = true;
-	}
-	*/
-	void OnCollisionEnter (Collision col) {
-		if (col.impulse.magnitude > ImpactVelocity) {
-			//If this is a fake collision caused by 'uncrouching' and hitting your head on an object, re-crouch and cancel effect.
-			if (UnCrouching) {
-				UnCrouching = false;
-				Crouch ();
-				return;
-			}
-
-			if (col.gameObject.CompareTag ("Softwall")) {
-				//Play soft wall sounds and do 'minijump'
-				RB.velocity += -transform.forward * col.impulse.magnitude * 0.2f;
-				OnSoftWall = true;
-			} else {
-				ImpactEffect.Play ();
-				ImpactLastFrame = true;
-				VelocityOfImpact = col.impulse.magnitude;
-				SFXPlayer.PlaySound ("Impact");
-				//ReachedImpactVelocity = false;
-				BaseEnemy Enemy = col.transform.GetComponentInParent<BaseEnemy> ();
-				if (Enemy) {
-					AchievementTracker.StompKills += 1;
-					AchievementTracker.EnemyDied ();
-					Enemy.Die ();
-				}
-			}
-		}
-
-		LastCollision = col;
-		CheckForWallAlignment = true;
+    public delegate void CollisionEvent(Collision collision);
+    [HideInInspector]
+    public CollisionEvent collisionEvent;
+    
+	void OnCollisionEnter (Collision col)
+    {
+        //If this is a fake collision caused by 'uncrouching' and hitting your head on an object, re-crouch and cancel effect.
+        if (UnCrouching)
+        {
+            UnCrouching = false;
+            Crouch();
+            return;
+        }
+        
+        collisionEvent.Invoke(col);
 	}
 
 	void OnCollisionExit (Collision col) {

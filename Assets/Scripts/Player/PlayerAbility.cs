@@ -68,7 +68,7 @@ public abstract class PlayerAbility : MonoBehaviour {
         return true;
     }
     
-    /// <summary> Reduce resource by the given value, returning false if resource is ALREADY zero. </summary>
+    /// <summary> Reduce resource by the given value, but returns false and does not consume it if resource is ALREADY zero. </summary>
     public virtual bool ConsumeResource(float value)
     {
         if (!UseResource)
