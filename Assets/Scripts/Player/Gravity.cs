@@ -140,6 +140,9 @@ public class Gravity : PlayerAbility {
     [Range(0.001f, 1)]
     public float flyingSenseMultiplier = 0.5f;
 
+    [Range(0, 360)]
+    public float autoCameraSpeed = 90f;
+
     #endregion
 
     #region Unity Events
@@ -360,6 +363,7 @@ public class Gravity : PlayerAbility {
             (Vector3.Distance(shiftPosition, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
         {
             ShiftGravityDirection(customGravity.magnitude / normalGravityMagnitude, targetWall.normal * -1, false, GravityType.Aligned);
+            StartMoveCameraCoroutine();
         }
     }
     #endregion
@@ -451,6 +455,7 @@ public class Gravity : PlayerAbility {
 			if (targetWall.distance < autoLockDistance * 2 && !Input.GetButton ("AlignModifier") && Physics.Raycast (transform.position, targetWall.normal * -1, out Hit)) {
 				if (Hit.distance < autoLockDistance && (Hit.normal - targetWall.normal).magnitude < 0.1f) {
 					ShiftGravityDirection (defaultLashingMagnitude, targetWall.normal * -1, GravityType.Aligned);
+                    StartMoveCameraCoroutine();
                     multipleLashingLastTime = Time.time;
                     return;
 				}
@@ -686,6 +691,29 @@ public class Gravity : PlayerAbility {
     {
         Disabled = true;
         ResetGravity();
+    }
+    #endregion
+
+    #region Coroutines
+    private Coroutine moveCameraCoroutine;
+
+    private void StartMoveCameraCoroutine()
+    {
+        if (moveCameraCoroutine != null)
+            StopCoroutine(moveCameraCoroutine);
+        moveCameraCoroutine = StartCoroutine(MoveCameraUp());
+    }
+
+    private IEnumerator MoveCameraUp()
+    {
+        WaitForEndOfFrame wait = new WaitForEndOfFrame();
+        float angleLastFrame = PM.CameraAngle;
+        while (PM.CameraAngle.FurtherFromZero(5) && Utility.UnsignedDifference(PM.CameraAngle, angleLastFrame) < 10)
+        {
+            PM.CameraAngle = Mathf.MoveTowards(PM.CameraAngle, 0, autoCameraSpeed * Time.deltaTime);
+            angleLastFrame = PM.CameraAngle;
+            yield return wait;
+        }
     }
     #endregion
 }

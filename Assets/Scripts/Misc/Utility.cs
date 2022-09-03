@@ -36,6 +36,11 @@ public static class Utility
         return false;
     }
 
+    public static float UnsignedDifference(float f, float comparison)
+    {
+        return Mathf.Abs(f - comparison);
+    }
+
     public static float Sign(this float signOf)
     {
         if (signOf > 0)
