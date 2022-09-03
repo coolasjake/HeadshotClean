@@ -139,8 +139,7 @@ public class Gravity : PlayerAbility {
     /// <summary> Amount to reduce sensitivity by when flying if setting is on. </summary>
     [Range(0.001f, 1)]
     public float flyingSenseMultiplier = 0.5f;
-
-    [Range(0, 360)]
+    
     public AnimationCurve autoCameraSpeedByAngle = new AnimationCurve();
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
     public float stopAutoCameraThreshold = 10f;
