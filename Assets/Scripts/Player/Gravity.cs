@@ -141,7 +141,10 @@ public class Gravity : PlayerAbility {
     public float flyingSenseMultiplier = 0.5f;
 
     [Range(0, 360)]
-    public float autoCameraSpeed = 90f;
+    public AnimationCurve autoCameraSpeedByAngle = new AnimationCurve();
+    [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
+    public float stopAutoCameraThreshold = 10f;
+    public float maxAutoCameraDur = 2;
 
     #endregion
 
@@ -707,10 +710,23 @@ public class Gravity : PlayerAbility {
     private IEnumerator MoveCameraUp()
     {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
+        float startTime = Time.time;
         float angleLastFrame = PM.CameraAngle;
-        while (PM.CameraAngle.FurtherFromZero(5) && Utility.UnsignedDifference(PM.CameraAngle, angleLastFrame) < 10)
+        while (PM.CameraAngle.FurtherFromZero(0.1f))
         {
-            PM.CameraAngle = Mathf.MoveTowards(PM.CameraAngle, 0, autoCameraSpeed * Time.deltaTime);
+            if (Time.time > startTime + maxAutoCameraDur)
+                break; //Break if the routine has been running for too long
+
+            if (stopAutoCameraThreshold > 0)
+            {
+                float frameDiff = Utility.UnsignedDifference(PM.CameraAngle, angleLastFrame);
+                print(frameDiff / Time.deltaTime);
+                if (frameDiff / Time.deltaTime > stopAutoCameraThreshold)
+                    break; //Break if the player manually moved the camera too much last frame
+            }
+
+            float remaining = Utility.UnsignedDifference(PM.CameraAngle, 0);
+            PM.CameraAngle = Mathf.MoveTowards(PM.CameraAngle, 0, autoCameraSpeedByAngle.Evaluate(remaining) * Time.deltaTime);
             angleLastFrame = PM.CameraAngle;
             yield return wait;
         }
