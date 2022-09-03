@@ -595,7 +595,9 @@ public class Gravity : PlayerAbility {
 		IntuitiveSnapRotation ();
 		SFXPlayer.Play ();
 
-        if (targetWall.point != null)
+        if (circle == null)
+            Debug.LogError("Gravity Target Circle not set in inspector!");
+        else if (targetWall.point != null)
 		    circle.Shift (targetWall.point - customGravity.normalized * 0.01f, Quaternion.LookRotation (transform.forward, transform.up));
 
 		shiftPosition = transform.position;
