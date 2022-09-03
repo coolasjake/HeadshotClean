@@ -140,10 +140,10 @@ public class Gravity : PlayerAbility {
     [Range(0.001f, 1)]
     public float flyingSenseMultiplier = 0.5f;
     
-    public AnimationCurve autoCameraSpeedByAngle = new AnimationCurve();
+    public AnimationCurve autoCameraSpeedByAngle = new AnimationCurve(new Keyframe[1] { new Keyframe(0, 90) });
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
-    public float stopAutoCameraThreshold = 10f;
-    public float maxAutoCameraDur = 2;
+    public float stopAutoCameraThreshold = 0f;
+    public float maxAutoCameraDur = 2f;
 
     #endregion
 
@@ -740,8 +740,8 @@ public class Gravity : PlayerAbility {
  * - option for disabling or reducing movement after gravity shift
  * - option for lowering sensitivity after gravity shift
  * - button for slow motion while in mid air
- * - automatic camera pan after changing gravity
  * - predicted trajectory line
+ * - FINISH hold to reset (needs to not be overriden by shift on release)
  * 
  *>> settings for:
  * - maximum shift distance
@@ -750,4 +750,5 @@ public class Gravity : PlayerAbility {
  * 
  * Done:
  * - hold button to reset
+ * - automatic camera pan after changing gravity
  */
