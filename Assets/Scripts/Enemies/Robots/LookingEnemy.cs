@@ -87,7 +87,7 @@ public abstract class LookingEnemy : BaseEnemy {
 			}
 		}
 		
-		if (!Movement.ThePlayer.Invisible) {
+		if (!Movement.ThePlayer._Invisible) {
 			if (!NoHit) {
 				HaveLOSToPlayer = true;
 				float AngleToPlayer = Vector3.Angle (Head.transform.forward, Movement.ThePlayer.transform.position - Head.transform.position);
@@ -114,8 +114,8 @@ public abstract class LookingEnemy : BaseEnemy {
 		} else if (PlayerVisibility == 0 && !NoHit && Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) < AutoDetectionDistance) {
 			DetectingPlayer = true;
 			PlayerVisibility = 0.2f;
-			LastPlayerPosition = Movement.ThePlayer.AIFollowPoint + new Vector3 (0, Head.transform.position.y - 0.5f, 0); //Make the AI look at eye level rather than the ground.
-			LastPlayerGroundedPosition = Movement.ThePlayer.AIFollowPoint;
+			LastPlayerPosition = Movement.ThePlayer._AIFollowPoint + new Vector3 (0, Head.transform.position.y - 0.5f, 0); //Make the AI look at eye level rather than the ground.
+			LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
 		}
 
 		if (DetectionProgress < 2 && DetectingPlayer)
@@ -202,6 +202,6 @@ public abstract class LookingEnemy : BaseEnemy {
 
 	private void SeePlayer () {
 		LastPlayerPosition = Movement.ThePlayer.transform.position;
-		LastPlayerGroundedPosition = Movement.ThePlayer.AIFollowPoint;
+		LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
 	}
 }

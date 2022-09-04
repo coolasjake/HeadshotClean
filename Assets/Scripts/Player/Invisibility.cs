@@ -16,28 +16,28 @@ public class Invisibility : PlayerAbility {
 
         GameObject InvisibilityUI = UIManager.stat.LoadOrGetUI("Gravity");
         ScreenEffect = InvisibilityUI.GetComponentInChildren<Image> ();
-		ScreenEffect.enabled = PM.Invisible;
+		ScreenEffect.enabled = PM._Invisible;
 		Meter = FindObjectOfType<Canvas> ().GetComponentsInChildren<ResourceMeter> () [1];
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if (!Disabled && Input.GetButtonDown ("Invisibility")) {
-			if (PM.Invisible) {
-				PM.Invisible = false;
+			if (PM._Invisible) {
+				PM._Invisible = false;
 				ScreenEffect.enabled = false;
 			} else if (Resource > MinToUse) {
-				PM.Invisible = true;
+				PM._Invisible = true;
 				ScreenEffect.enabled = true;
 			}
 		}
 
-        if (PM.Invisible)
+        if (PM._Invisible)
         {
             ConsumeResource(Time.deltaTime);
             if (Resource <= 0)
             {
-                PM.Invisible = false;
+                PM._Invisible = false;
                 ScreenEffect.enabled = false;
             }
         }

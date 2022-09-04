@@ -46,7 +46,7 @@ public class WallClimbing : PlayerAbility {
 
 		if (Input.GetKey (KeyCode.Space) && FacingWall.Triggered && !NearTopOfWall.Triggered && !Disabled) {
 			Climbing = true;
-			PM.DisableMovement = true;
+			PM._DisableMovement = true;
 			if (Input.GetKey (KeyCode.LeftControl))
 				ClimbStop = true;
 		}

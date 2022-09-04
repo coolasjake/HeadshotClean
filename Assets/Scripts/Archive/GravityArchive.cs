@@ -165,7 +165,7 @@ public class GravityArchive : PlayerAbility {
 			transform.localRotation = NewRot;
 			//transform.rotation = Quaternion.FromToRotation (transform.up, TargetFacing);
 			NeedToRotate = false;
-			PM.DisableMouseInput = false;
+			PM._DisableMouseInput = false;
 		}
 
 
@@ -174,7 +174,7 @@ public class GravityArchive : PlayerAbility {
 		//	Resource -= Mathf.Clamp(PM.VelocityOfImpact * 2, 0, Resource + 20);
 
 		//Drain or regenerate the resource.
-		if (Type == ArchiveGravityType.Normal && Resource < MaxResource && PM.Grounded)
+		if (Type == ArchiveGravityType.Normal && Resource < MaxResource && PM._Grounded)
 			Resource += RegenPerSecond * Time.deltaTime;
 		else if (Type != ArchiveGravityType.Normal) {
 			Resource -= Time.deltaTime;
@@ -200,7 +200,7 @@ public class GravityArchive : PlayerAbility {
 
 		//Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
 		AngleOldToNew = Quaternion.Angle(CameraPreRotation, PM.MainCamera.transform.rotation);
-		PM.CameraAngle += AngleOldToNew;
+		PM._CameraAngle += AngleOldToNew;
 
 		PM.MainCamera.transform.rotation = CameraPreRotation;
 	}
@@ -313,8 +313,8 @@ public class GravityArchive : PlayerAbility {
 
 			//Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
 			AngleOldToNew = Quaternion.Angle(CameraPreRotation, PM.MainCamera.transform.rotation);
-			PM.CameraAngle -= AngleOldToNew;
-			PM.CameraSpin = PM.MainCamera.transform.localRotation.eulerAngles.y;
+			PM._CameraAngle -= AngleOldToNew;
+			PM._CameraSpin = PM.MainCamera.transform.localRotation.eulerAngles.y;
 		}
 		FinishRotationTimer = RotationTime;
 	}

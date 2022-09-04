@@ -29,24 +29,24 @@ public class TestPlayer : Movement {
 		transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.down);
 
 		//Rotate camera
-		if (CameraAngle > 180)
-			CameraAngle = ClampAngleTo180 (CameraAngle);
+		if (_CameraAngle > 180)
+			_CameraAngle = ClampAngleTo180 (_CameraAngle);
 
-		bool CameraWasWithinClamp = (CameraAngle <= 90) && (CameraAngle >= -90);
-		CameraAngle -= Input.GetAxis ("Mouse Y") * Sensitivity;
-		if (CameraAngle > 90 || CameraAngle < -90) {
+		bool CameraWasWithinClamp = (_CameraAngle <= 90) && (_CameraAngle >= -90);
+		_CameraAngle -= Input.GetAxis ("Mouse Y") * Sensitivity;
+		if (_CameraAngle > 90 || _CameraAngle < -90) {
 			if (CameraWasWithinClamp)
-				CameraAngle = Mathf.Clamp (CameraAngle, -90, 90);
+				_CameraAngle = Mathf.Clamp (_CameraAngle, -90, 90);
 			else {
-				if (CameraAngle > 90)
-					CameraAngle -= ClampAdjustmentSpeed * Time.deltaTime;
-				if (CameraAngle < -90)
-					CameraAngle += ClampAdjustmentSpeed * Time.deltaTime;
+				if (_CameraAngle > 90)
+					_CameraAngle -= clampAdjustmentSpeed * Time.deltaTime;
+				if (_CameraAngle < -90)
+					_CameraAngle += clampAdjustmentSpeed * Time.deltaTime;
 			}
 		}
 
 		Quaternion NewRot = new Quaternion ();
-		NewRot.eulerAngles = new Vector3 (CameraAngle, MainCamera.transform.localRotation.y, 0);
+		NewRot.eulerAngles = new Vector3 (_CameraAngle, MainCamera.transform.localRotation.y, 0);
 		MainCamera.transform.localRotation = NewRot;
 
 

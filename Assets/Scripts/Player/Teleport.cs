@@ -37,7 +37,7 @@ public class Teleport : PlayerAbility {
 			//When the button is released, do a final raycast and teleport the player to the position chosen.
 			RaycastHit Hit;
 			if (Physics.Raycast (PM.MainCamera.transform.position, PM.MainCamera.transform.forward, out Hit, Distance, RaycastMask))
-				PM.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * (Hit.distance - PM.PlayerSphereSize));
+				PM.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * (Hit.distance - PM.playerSphereSize));
 			else
 				PM.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * Distance);
             ConsumeResource(Distance / 300);
@@ -49,7 +49,7 @@ public class Teleport : PlayerAbility {
 
 			RaycastHit Hit;
 			if (Physics.Raycast (PM.MainCamera.transform.position, PM.MainCamera.transform.forward, out Hit, Distance, RaycastMask)) {
-				PointRep.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * (Hit.distance - PM.PlayerSphereSize));
+				PointRep.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * (Hit.distance - PM.playerSphereSize));
 				Distance = Vector3.Distance (transform.position, Hit.point);
 			} else
 				PointRep.transform.position = PM.MainCamera.transform.position + (PM.MainCamera.transform.forward * Distance);

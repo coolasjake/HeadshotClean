@@ -184,8 +184,8 @@ public class Phasing : PlayerAbility {
 	}
 
 	private bool CheckBodyIntersections () {
-		float HalfHeight = PM.PlayerSphereSize / 2;
-		return Physics.CheckCapsule (transform.position + transform.up * HalfHeight, transform.position - transform.up * HalfHeight, PM.PlayerWaistSize, PhaseMask);
+		float HalfHeight = PM.playerSphereSize / 2;
+		return Physics.CheckCapsule (transform.position + transform.up * HalfHeight, transform.position - transform.up * HalfHeight, PM.playerWaistSize, PhaseMask);
 	}
 
 	private bool CheckHeadIntersections () {
@@ -194,8 +194,8 @@ public class Phasing : PlayerAbility {
 
 	private BaseEnemy CheckEnemyIntersections () {
 		int EnemiesOnly = 1 << 12;
-		float HalfHeight = PM.PlayerSphereSize / 2;
-		Collider[] Hits = Physics.OverlapCapsule (transform.position + transform.up * HalfHeight, transform.position - transform.up * HalfHeight, PM.PlayerWaistSize, EnemiesOnly);
+		float HalfHeight = PM.playerSphereSize / 2;
+		Collider[] Hits = Physics.OverlapCapsule (transform.position + transform.up * HalfHeight, transform.position - transform.up * HalfHeight, PM.playerWaistSize, EnemiesOnly);
 		if (Hits.Length > 0)
 			return Hits[0].GetComponent<BaseEnemy>();
 		else

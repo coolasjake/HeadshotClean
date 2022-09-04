@@ -43,42 +43,43 @@ public class Movement : Shootable {
 	private Slider HealthBar;
 
 	//--->Private values
-	private bool OnSomething = false;
-	private bool Paused = false;
-	private bool Crouching = false;
-	private bool UnCrouching = false;
-	private float AlteredMaxSpeed = 3;
-    private float SensitivityMultiplier = 1f;
+	private bool _onSomething = false;
+	private bool _paused = false;
+	private bool _crouching = false;
+	private bool _unCrouching = false;
+	private float _alteredMaxSpeed = 3;
+    private float _sensitivityMultiplier = 1f;
+    private float _airControlMultiplier = 1f;
 
 
-	//--->Messages between Update and FixedUpdate
-	private Vector3 DirectionToMove = new Vector3();
-	private float WantToJump = -5;
-	private float LastJumpTime = -5;
+    //--->Messages between Update and FixedUpdate
+    private Vector3 _directionToMove = new Vector3();
+	private float _wantToJump = -5;
+	private float _lastJumpTime = -5;
 
 	//--->Messages from or for other scripts:
 	//-->That SHOULD be in the inspector.
 
 	//-->That SHOULDN'T be in the inspector, AKA Public non-serialized values
 	[System.NonSerialized]
-	public bool Grounded = false;
+	public bool _Grounded = false;
     [System.NonSerialized]
-    public float LastGrounded = -1;
+    public float _LastGrounded = -1;
     /// <summary> Disables player movement for this frame only. </summary>
     [System.NonSerialized]
-	public bool DisableMovement = false;
+	public bool _DisableMovement = false;
 	[System.NonSerialized]
-	public bool DisableMouseInput = false;  //Disables the movement of the camera, so that the Gravity script can move it smoothly.
+	public bool _DisableMouseInput = false;  //Disables the movement of the camera, so that the Gravity script can move it smoothly.
     [System.NonSerialized]
-    public Vector3 AIFollowPoint;
+    public Vector3 _AIFollowPoint;
 	[System.NonSerialized]
-	public float CameraAngle = 0;
+	public float _CameraAngle = 0;
 	[System.NonSerialized]
-	public float CameraSpin = 0;
+	public float _CameraSpin = 0;
 	[System.NonSerialized]
-	public bool Invisible = false;
+	public bool _Invisible = false;
 	[System.NonSerialized]
-	public bool OnSoftWall = false;
+	public bool _OnSoftWall = false;
     // <summary> Used by Gravity script. Becomes true when the player collides with a wall. </summary>
 	//[System.NonSerialized]
 	//public bool CheckForWallAlignment = false;
@@ -87,41 +88,41 @@ public class Movement : Shootable {
     //Public values (for adjustment)
     //------------------------------
     [Header("Settings")]
-    public bool DisableMusic = false;
-	public bool DisableDeath = false;
+    public bool disableMusic = false;
+	public bool disableDeath = false;
 	/// <summary> The min and max angles the camera can face when looking up or down. </summary>
-	public float Clamp = 89;
+	public float clamp = 89;
 	/// <summary> The number of degrees per second the camera will be rotated so that it is not outside the clamp angle. </summary>
-	public float ClampAdjustmentSpeed = 5;
+	public float clampAdjustmentSpeed = 5;
 	/// <summary> The in game sensitivity multiplier (for settings). </summary>
-	public float UserSensitivity = 1;
+	public float userSensitivity = 1;
 	/// <summary> The maximum non-vertical speed the player can cause themselves to move at with 'walking' (does not constrain gravity, explosions etc). </summary>
 	[Range(1f, 100f)]
-	public float MaxSpeed = 3;
+	public float maxSpeed = 3;
 	/// <summary> How quickly direction is changed. </summary>
 	[Range(0f, 100f)]
-	public float Acceleration = 0.5f;
+	public float acceleration = 0.5f;
 	/// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
 	[Range(0f, 500f)]
-	public float StoppingForce = 0.05f;
+	public float stoppingForce = 0.05f;
 	/// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
 	[Range(0f, 500f)]
-	public float FrictionForce = 0.05f;
+	public float frictionForce = 0.05f;
 	/// <summary> The multiplier on movement while in the air. Also effects air-ground friction ratio. Cannot result in greater air speed than ground speed. </summary>
 	[Range(0f, 1f)]
-	public float AirControlFactor = 0.5f;
+	public float airControlFactor = 0.5f;
 	/// <summary> The jump velocity. </summary>
-	public float JumpVelocity = 8;
+	public float jumpVelocity = 8;
 	/// <summary> The jump velocity per tick it is held. </summary>
-	public float JumpVelocityPerSecondHeld = 4;
+	public float jumpVelocityPerSecondHeld = 4;
 	/// <summary> The maximum amount of seconds jump can be held to jump higher. </summary>
-	public float MaxJumpTime = 0.2f;
+	public float maxJumpTime = 0.2f;
 	/// <summary> The time that a jump request is 'remembered', in case Unity physics doesn't detect a collision on that frame. </summary>
-	public float JumpLeniency = 0.1f;
+	public float jumpLeniency = 0.1f;
 	/// <summary> The maximim size of the player (i.e. head to toe). </summary>
-	public float PlayerSphereSize = 2;
+	public float playerSphereSize = 2;
 	/// <summary> The radius of the players capsule collider. </summary>
-	public float PlayerWaistSize = 0.5f;
+	public float playerWaistSize = 0.5f;
 
 
 	void Awake () {
@@ -148,7 +149,7 @@ public class Movement : Shootable {
 		RB = GetComponent<Rigidbody> ();
 		RB.freezeRotation = true;
 		Body = GetComponentInChildren<CapsuleCollider> ().transform;
-		AlteredMaxSpeed = MaxSpeed;
+		_alteredMaxSpeed = maxSpeed;
 		SFXPlayer = GetComponent<AudioManager> ();
         if (ImpactEffect == null)
 		    ImpactEffect = GetComponentInChildren<ParticleSystem> ();
@@ -186,7 +187,7 @@ public class Movement : Shootable {
         if (Input.GetKeyDown(KeyCode.BackQuote) || Input.GetKeyDown(KeyCode.Escape))
             Pause();
 
-        if (Paused)
+        if (_paused)
             return;
 
         UpdCamera();
@@ -200,23 +201,23 @@ public class Movement : Shootable {
         RaycastHit ClosestDownwardSurface;
         if (Physics.Raycast(transform.position, -Vector3.up, out ClosestDownwardSurface))
         {
-            AIFollowPoint = ClosestDownwardSurface.point;
+            _AIFollowPoint = ClosestDownwardSurface.point;
         }
     }
 
     private void UpdAchievements()
     {
         //TELL ACHIEVEMENT TRACKER WHEN GROUNDED
-        Grounded = GroundedTrigger.Triggered;
-        if (Grounded)
+        _Grounded = GroundedTrigger.Triggered;
+        if (_Grounded)
         {
-            LastGrounded = Time.time;
+            _LastGrounded = Time.time;
             AchievementTracker.TouchedTheGround();
         }
         else
         {
             AchievementTracker.InAir = true;
-            OnSoftWall = false;
+            _OnSoftWall = false;
         }
     }
 
@@ -226,41 +227,56 @@ public class Movement : Shootable {
 
         //CAMERA X-ROTATION
         //Clamp the angle to a range of -180 to 180 instead of 0 to 360 for easier maths.
-        if (CameraAngle > 180 || CameraAngle < -180)
-            CameraAngle = ClampAngleTo180(CameraAngle);
+        if (_CameraAngle > 180 || _CameraAngle < -180)
+            _CameraAngle = ClampAngleTo180(_CameraAngle);
 
         //Check if the camera was within the clamps before input (in case it was changed, eg by Gravity)
-        bool CameraWasWithinClamp = (CameraAngle <= Clamp) && (CameraAngle >= -Clamp);
+        bool CameraWasWithinClamp = (_CameraAngle <= clamp) && (_CameraAngle >= -clamp);
         //Apply the mouse input.
-        CameraAngle -= Input.GetAxis("Mouse Y") * Sensitivity;
+        _CameraAngle -= Input.GetAxis("Mouse Y") * Sensitivity;
         //Clamp the angle.
-        CameraAngle = Mathf.Clamp(CameraAngle, -Clamp, Clamp);
+        _CameraAngle = Mathf.Clamp(_CameraAngle, -clamp, clamp);
 
         Quaternion NewRot = new Quaternion();
-        NewRot.eulerAngles = new Vector3(CameraAngle, CameraOrHolder.localRotation.y, 0);
+        NewRot.eulerAngles = new Vector3(_CameraAngle, CameraOrHolder.localRotation.y, 0);
         CameraOrHolder.localRotation = NewRot;
 
         //Rotate player
         float rotationX = -Input.GetAxis("Mouse X") * Sensitivity;
-        if (CameraAngle.Outside(-90, 90))
+        if (_CameraAngle.Outside(-90, 90))
             rotationX *= -1;
         transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
     }
 
     protected float Sensitivity
     {
-        get { return UserSensitivity * SensitivityMultiplier; }
+        get { return userSensitivity * _sensitivityMultiplier; }
+    }
+
+    public float SensitivityMultiplier
+    {
+        set { _sensitivityMultiplier = value; }
+    }
+
+    protected float AirControl
+    {
+        get { return airControlFactor * _airControlMultiplier; }
+    }
+
+    public float AirControlMultiplier
+    {
+        set { _airControlMultiplier = value; }
     }
 
     private void UpdCrouch()
     {
         //CROUCHING
-        if (Grounded && Input.GetButton("Crouch"))
+        if (_Grounded && Input.GetButton("Crouch"))
         {
-            if (!Crouching)
+            if (!_crouching)
                 Crouch();
         }
-        else if (Crouching)
+        else if (_crouching)
             UnCrouch();
     }
 
@@ -276,11 +292,11 @@ public class Movement : Shootable {
 
         if (Input.GetButtonDown("Jump"))
         {
-            if (Grounded && OnSomething)
+            if (_Grounded && _onSomething)
             {
-                Grounded = false;
-                OnSomething = false;
-                WantToJump = Time.time;
+                _Grounded = false;
+                _onSomething = false;
+                _wantToJump = Time.time;
                 SFXPlayer.PlaySound("Jump");
             }
         }
@@ -288,19 +304,19 @@ public class Movement : Shootable {
         UpdCrouch();
 
         //Factor crouching and being in the air into the max speed;
-        AlteredMaxSpeed = MaxSpeed;
-        if (Crouching)
-            AlteredMaxSpeed *= 0.8f;
-        if (!Grounded)
-            AlteredMaxSpeed *= 0.5f;
+        _alteredMaxSpeed = maxSpeed;
+        if (_crouching)
+            _alteredMaxSpeed *= 0.8f;
+        if (!_Grounded)
+            _alteredMaxSpeed *= 0.5f;
 
         Vector3 newVelocity;
-        if (Grounded && OnSomething)
+        if (_Grounded && _onSomething)
         {
-            newVelocity = RB.velocity + (desiredDirection * Acceleration * Time.deltaTime);
+            newVelocity = RB.velocity + (desiredDirection * acceleration * Time.deltaTime);
         }
         else
-            newVelocity = RB.velocity + (desiredDirection * Acceleration * AirControlFactor * Time.deltaTime);
+            newVelocity = RB.velocity + (desiredDirection * acceleration * airControlFactor * Time.deltaTime);
 
         Vector3 TransformedOldVelocity = transform.InverseTransformVector(RB.velocity);
         Vector3 TransformedNewVelocity = transform.InverseTransformVector(newVelocity);
@@ -308,24 +324,24 @@ public class Movement : Shootable {
         //If the local non-vertical (lateral) velocity of the player is above the max speed, do not allow any increases in speed due to input.
         Vector3 LateralVelocityOld = new Vector3(TransformedOldVelocity.x, TransformedOldVelocity.y, 0);
         Vector3 LateralVelocityNew = new Vector3(TransformedNewVelocity.x, TransformedNewVelocity.y, 0);
-        if (LateralVelocityNew.magnitude > AlteredMaxSpeed)
+        if (LateralVelocityNew.magnitude > _alteredMaxSpeed)
         {
             //If the new movement would speed up the player.
             if (LateralVelocityNew.magnitude > LateralVelocityOld.magnitude)
             {
                 //If the player was not at max speed yet, set them to the max speed, otherwise revert to the old speed (but with direction changes).
-                if (LateralVelocityOld.magnitude < AlteredMaxSpeed)
-                    LateralVelocityNew = LateralVelocityNew.normalized * AlteredMaxSpeed;
+                if (LateralVelocityOld.magnitude < _alteredMaxSpeed)
+                    LateralVelocityNew = LateralVelocityNew.normalized * _alteredMaxSpeed;
                 else
                     LateralVelocityNew = LateralVelocityNew.normalized * LateralVelocityOld.magnitude;
             }
 
             //FRICTION
             //If the new lateral velocity is still greater than the max speed, reduce it by the relevant amount until it is AT the max speed.
-            if (LateralVelocityNew.magnitude > MaxSpeed)
+            if (LateralVelocityNew.magnitude > maxSpeed)
             {
-                if (Grounded)
-                    LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max(MaxSpeed, LateralVelocityNew.magnitude - FrictionForce);
+                if (_Grounded)
+                    LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max(maxSpeed, LateralVelocityNew.magnitude - frictionForce);
                 //else
                 //	LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max (MaxSpeed, LateralVelocityNew.magnitude - (FrictionForce * AirControlFactor));
             }
@@ -344,47 +360,47 @@ public class Movement : Shootable {
 
         DebugString = "Not";
         //If standing on a surface, and the player is not trying to move or jump, or if movement is disabled, slow movement.
-        if ((Grounded && OnSomething && desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || DisableMovement)
+        if ((_Grounded && _onSomething && desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || _DisableMovement)
         {
 
             Vector3 NewVelocity = RB.velocity;
 
             //Jump to zero velocity when below max speed and on the ground to give more control and prevent gliding.
-            if (RB.velocity.magnitude < AlteredMaxSpeed / 2)
+            if (RB.velocity.magnitude < _alteredMaxSpeed / 2)
                 RB.velocity = new Vector3();
             else
             {
                 //Apply a 'friction' force to the player.
                 DebugString = "Stopping";
-                NewVelocity = NewVelocity.normalized * Mathf.Max(0, NewVelocity.magnitude - (StoppingForce * Time.deltaTime));
+                NewVelocity = NewVelocity.normalized * Mathf.Max(0, NewVelocity.magnitude - (stoppingForce * Time.deltaTime));
                 RB.velocity = NewVelocity;
             }
         }
         else
         {
-            if (Time.time < WantToJump + JumpLeniency)
+            if (Time.time < _wantToJump + jumpLeniency)
             {
-                RB.velocity += -transform.forward * JumpVelocity;
-                LastJumpTime = Time.time;
+                RB.velocity += -transform.forward * jumpVelocity;
+                _lastJumpTime = Time.time;
             }
 
-            WantToJump = -5;
+            _wantToJump = -5;
 
-            if (Time.time < LastJumpTime + MaxJumpTime)
+            if (Time.time < _lastJumpTime + maxJumpTime)
             {
                 if (Input.GetButton("Jump"))
-                    RB.velocity += -transform.forward * JumpVelocityPerSecondHeld * Time.deltaTime;
+                    RB.velocity += -transform.forward * jumpVelocityPerSecondHeld * Time.deltaTime;
             }
 
             //Move the player the chosen direction (could move to fixed update to regulate speed).
             RB.velocity += FinalVelocityChange;// * Time.deltaTime;
         }
-        DisableMovement = false;
+        _DisableMovement = false;
     }
 
     public void Pause() {
-        Paused = !Paused;
-        if (Paused)
+        _paused = !_paused;
+        if (_paused)
         {
             if (!Input.GetKeyDown(KeyCode.BackQuote))
             {
@@ -405,15 +421,15 @@ public class Movement : Shootable {
     }
 
 	public void Crouch () {
-		Crouching = true;
+		_crouching = true;
 		Body.localScale = new Vector3 (1, 0.5f, 1);
 		Body.localPosition = new Vector3 (0, -0.5f, 0);
 		MainCamera.transform.localPosition = new Vector3 (0, -0.08f, 0.226f);
 	}
 
 	public void UnCrouch () {
-		Crouching = false;
-		UnCrouching = true;
+		_crouching = false;
+		_unCrouching = true;
 		Body.localScale = new Vector3 (1, 1, 1);
 		Body.localPosition = new Vector3 (0, 0, 0);
 		MainCamera.transform.localPosition = new Vector3 (0, 0.42f, 0.226f);
@@ -428,7 +444,7 @@ public class Movement : Shootable {
 	public override void Hit(float Damage) {
 		Health -= Damage;
 		HealthBar.value = Health / 100f;
-		if (Health <= 0 && !DisableDeath) {
+		if (Health <= 0 && !disableDeath) {
 			DeathCamera.transform.position = MainCamera.transform.position;
 			DeathCamera.transform.rotation = MainCamera.transform.rotation;
 
@@ -436,7 +452,7 @@ public class Movement : Shootable {
 			Quaternion Rot = new Quaternion ();
 			Rot.eulerAngles = new Vector3 (90, 180, 135);
 			transform.rotation = Rot;
-			CameraAngle = 0;
+			_CameraAngle = 0;
 			Health = MaxHealth;
 			HealthBar.value = Health / 100f;
 			RB.velocity = Vector3.zero;
@@ -473,12 +489,12 @@ public class Movement : Shootable {
 	}
 
 	public void SetSensitivity (GameObject TextObject) {
-		UserSensitivity = float.Parse(TextObject.GetComponent<Text>().text);
+		userSensitivity = float.Parse(TextObject.GetComponent<Text>().text);
 		DisplaySensitivity ();
 	}
 
 	public void DisplaySensitivity () {
-		Menu.GetComponentsInChildren<MenuDisplayText>()[0].text = "Sensitivity = " + UserSensitivity;
+		Menu.GetComponentsInChildren<MenuDisplayText>()[0].text = "Sensitivity = " + userSensitivity;
 	}
 
 	public void SetVolume (GameObject TextObject) {
@@ -538,9 +554,9 @@ public class Movement : Shootable {
 	void OnCollisionEnter (Collision col)
     {
         //If this is a fake collision caused by 'uncrouching' and hitting your head on an object, re-crouch and cancel effect.
-        if (UnCrouching)
+        if (_unCrouching)
         {
-            UnCrouching = false;
+            _unCrouching = false;
             Crouch();
             return;
         }
@@ -549,13 +565,13 @@ public class Movement : Shootable {
 	}
 
 	void OnCollisionExit (Collision col) {
-		OnSomething = false;
+		_onSomething = false;
 	}
 
 	void OnCollisionStay (Collision col) {
-		OnSomething = true;
+		_onSomething = true;
 
 		if (col.gameObject.CompareTag ("Softwall"))
-			OnSoftWall = true;
+			_OnSoftWall = true;
 	}
 }

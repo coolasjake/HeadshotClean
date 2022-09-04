@@ -71,7 +71,7 @@ public class LaserTurret : LaserMiner {
 
 		if (PlayerVisibility > 0.5f || Time.time < LastSawPlayer + CanGuessPositionTime) {
 			LastPlayerPosition = Movement.ThePlayer.transform.position;
-			LastPlayerGroundedPosition = Movement.ThePlayer.AIFollowPoint;
+			LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
 		}
 
 		if (State == AIState.Working)

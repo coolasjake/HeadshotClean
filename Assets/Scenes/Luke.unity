@@ -341,6 +341,11 @@ PrefabInstance:
       propertyPath: MaxSpeed
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 114293508722803054, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: autoCameraSpeedByAngle.m_Curve.Array.size
@@ -435,6 +440,16 @@ PrefabInstance:
         type: 3}
       propertyPath: maxAutoCameraDur
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114939530895717702, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114946941385801228, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
@@ -743,22 +758,22 @@ MonoBehaviour:
   DeathCamera: {fileID: 0}
   SFXPlayer: {fileID: 0}
   ImpactEffect: {fileID: 0}
-  DisableMusic: 0
-  DisableDeath: 0
-  Clamp: 45
-  ClampAdjustmentSpeed: 5
-  UserSensitivity: 1
-  MaxSpeed: 3
-  Acceleration: 0.5
-  StoppingForce: 0.05
-  FrictionForce: 0.05
-  AirControlFactor: 0.5
-  JumpVelocity: 8
-  JumpVelocityPerSecondHeld: 4
-  MaxJumpTime: 0.2
-  JumpLeniency: 0.1
-  PlayerSphereSize: 2
-  PlayerWaistSize: 0.5
+  disableMusic: 0
+  disableDeath: 0
+  clamp: 89
+  clampAdjustmentSpeed: 5
+  userSensitivity: 1
+  maxSpeed: 3
+  acceleration: 0.5
+  stoppingForce: 0.05
+  frictionForce: 0.05
+  airControlFactor: 0.5
+  jumpVelocity: 8
+  jumpVelocityPerSecondHeld: 4
+  maxJumpTime: 0.2
+  jumpLeniency: 0.1
+  playerSphereSize: 2
+  playerWaistSize: 0.5
 --- !u!4 &620370924
 Transform:
   m_ObjectHideFlags: 0
