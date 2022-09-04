@@ -341,6 +341,61 @@ PrefabInstance:
       propertyPath: MaxSpeed
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: disableDeath
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: clamp
+      value: 89.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: Health
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: MaxHealth
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: clampAdjustmentSpeed
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: maxSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: acceleration
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: stoppingForce
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: frictionForce
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: jumpVelocity
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: jumpVelocityPerSecondHeld
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 114293508722803054, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: m_Enabled

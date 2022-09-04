@@ -91,30 +91,30 @@ public class Movement : Shootable {
     public bool disableMusic = false;
 	public bool disableDeath = false;
 	/// <summary> The min and max angles the camera can face when looking up or down. </summary>
-	public float clamp = 89;
+	public float clamp = 89.99f;
 	/// <summary> The number of degrees per second the camera will be rotated so that it is not outside the clamp angle. </summary>
-	public float clampAdjustmentSpeed = 5;
+	public float clampAdjustmentSpeed = 180;
 	/// <summary> The in game sensitivity multiplier (for settings). </summary>
 	public float userSensitivity = 1;
 	/// <summary> The maximum non-vertical speed the player can cause themselves to move at with 'walking' (does not constrain gravity, explosions etc). </summary>
 	[Range(1f, 100f)]
-	public float maxSpeed = 3;
+	public float maxSpeed = 4;
 	/// <summary> How quickly direction is changed. </summary>
 	[Range(0f, 100f)]
-	public float acceleration = 0.5f;
+	public float acceleration = 20f;
 	/// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
 	[Range(0f, 500f)]
-	public float stoppingForce = 0.05f;
+	public float stoppingForce = 500f;
 	/// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
 	[Range(0f, 500f)]
-	public float frictionForce = 0.05f;
+	public float frictionForce = 100f;
 	/// <summary> The multiplier on movement while in the air. Also effects air-ground friction ratio. Cannot result in greater air speed than ground speed. </summary>
 	[Range(0f, 1f)]
 	public float airControlFactor = 0.5f;
 	/// <summary> The jump velocity. </summary>
-	public float jumpVelocity = 8;
+	public float jumpVelocity = 4;
 	/// <summary> The jump velocity per tick it is held. </summary>
-	public float jumpVelocityPerSecondHeld = 4;
+	public float jumpVelocityPerSecondHeld = 30;
 	/// <summary> The maximum amount of seconds jump can be held to jump higher. </summary>
 	public float maxJumpTime = 0.2f;
 	/// <summary> The time that a jump request is 'remembered', in case Unity physics doesn't detect a collision on that frame. </summary>
