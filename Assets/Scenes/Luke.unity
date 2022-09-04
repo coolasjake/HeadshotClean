@@ -233,6 +233,18 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7642783306496130873, guid: 9d6e53dcfde767a408c4c62319a705e5, type: 3}
+--- !u!114 &177287868 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8011634177840255934, guid: 272e0e3cd65e49f449ce49dd707d9f76,
+    type: 3}
+  m_PrefabInstance: {fileID: 637180762}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b56e478b2b23df429e9639055b3afca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &250466304
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -415,7 +427,7 @@ PrefabInstance:
         type: 3}
       propertyPath: circle
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 177287868}
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: holdToResetTime
@@ -495,6 +507,26 @@ PrefabInstance:
         type: 3}
       propertyPath: maxAutoCameraDur
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: reduceSenseWhileFlying
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: flyingSenseMultiplier
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: reduceControlWhileFlying
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: flyingAirControlMultiplier
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 114939530895717702, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}

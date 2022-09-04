@@ -127,7 +127,7 @@ public class Gravity : PlayerAbility {
     /// <summary> How long it takes to reset gravity to world default when holding the gravity button [F]. </summary>
     private float gravityButtonHeldTime = 0f;
     /// <summary> The last time an ability was used. </summary>
-    private float lastLimitedAbilityUse = 0f;
+    private float lastLimitedAbilityUse = float.NegativeInfinity;
     #endregion
 
     #region ExperimentalSettings
@@ -137,9 +137,16 @@ public class Gravity : PlayerAbility {
     /// <summary> When true sensitivity is reduced after gravity has changed until the player lands. </summary>
     public bool reduceSenseWhileFlying = false;
     /// <summary> Amount to reduce sensitivity by when flying if setting is on. </summary>
-    [Range(0.001f, 1)]
+    [Range(0f, 1)]
     public float flyingSenseMultiplier = 0.5f;
+    /// <summary> When true sensitivity is reduced after gravity has changed until the player lands. </summary>
+    public bool reduceControlWhileFlying = false;
+    /// <summary> Amount to reduce sensitivity by when flying if setting is on. </summary>
+    [Range(0f, 1)]
+    public float flyingAirControlMultiplier = 0.5f;
 
+    public bool doCollisionAutoCamera = true;
+    public bool doFlyingAutoCamera = false;
     public AnimationCurve autoCameraSpeedByAngle = new AnimationCurve(new Keyframe[1] { new Keyframe(0, 90) });
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
     public float stopAutoCameraThreshold = 0f;
@@ -170,6 +177,7 @@ public class Gravity : PlayerAbility {
         customGravityMagnitude = normalGravityMagnitude;
         ChangeGravity(Physics.gravity);
         ResetGravity();
+        groundedClamp = PM.clamp;
 
         if (abilityLimitMethod == LimitType.Resource)
         {
@@ -325,7 +333,7 @@ public class Gravity : PlayerAbility {
     #region Collision Functions
     private void GravityCollision(Collision col)
     {
-        RestoreSense();
+        RestoreSenseAndControl();
 
         float velocityOfImpact = col.impulse.magnitude;
         if (velocityOfImpact > impactVelocity)
@@ -367,7 +375,7 @@ public class Gravity : PlayerAbility {
             (Vector3.Distance(shiftPosition, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
         {
             ShiftGravityDirection(customGravity.magnitude / normalGravityMagnitude, targetWall.normal * -1, false, GravityType.Aligned);
-            StartMoveCameraCoroutine();
+            StartCollisionMoveCameraCoroutine();
         }
     }
     #endregion
@@ -459,7 +467,7 @@ public class Gravity : PlayerAbility {
             if (targetWall.distance < autoLockDistance * 2 && !Input.GetButton("AlignModifier") && Physics.Raycast(transform.position, targetWall.normal * -1, out Hit)) {
                 if (Hit.distance < autoLockDistance && (Hit.normal - targetWall.normal).magnitude < 0.1f) {
                     ShiftGravityDirection(defaultLashingMagnitude, targetWall.normal * -1, GravityType.Aligned);
-                    StartMoveCameraCoroutine();
+                    StartCollisionMoveCameraCoroutine();
                     multipleLashingLastTime = Time.time;
                     return;
                 }
@@ -468,8 +476,7 @@ public class Gravity : PlayerAbility {
 
         //Otherwise shift to the direction the player is pointing.
         ShiftGravityDirection(defaultLashingMagnitude, PM.MainCamera.transform.forward, GravityType.Unaligned);
-        StartMoveCameraCoroutine();
-        ReduceSense();
+        StartFallingMoveCameraCoroutine();
         multipleLashingLastTime = Time.time;
     }
 
@@ -484,7 +491,7 @@ public class Gravity : PlayerAbility {
             {
                 if (Hit.distance < autoLockDistance && (Hit.normal - targetWall.normal).magnitude < 0.1f)
                 {
-                    ShiftGravityDirection(1, targetWall.normal * -1, GravityType.Unaligned);
+                    ShiftGravityDirection(1, targetWall.normal * -1, GravityType.Aligned);
                     return;
                 }
             }
@@ -544,13 +551,16 @@ public class Gravity : PlayerAbility {
 
     /// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force. 
     /// Checks for repeat changes and changes that would set gravity back to normal, and doesn't use resource for them. </summary>
-    private void ShiftGravityDirection(float GravityMultiplier, Vector3 Direction, bool useResources, GravityType newGravityType) {
+    private void ShiftGravityDirection(float GravityMultiplier, Vector3 Direction, bool useResources, GravityType newGravityType)
+    {
         Vector3 NewGravity = Direction * normalGravityMagnitude * GravityMultiplier;
 
         if (NewGravity == customGravity)
+        {
+            type = newGravityType;
             return;
-
-        if (VectorsAreSimilar(NewGravity, Physics.gravity))
+        }
+        else if (VectorsAreSimilar(NewGravity, Physics.gravity))
         {
             //If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
             ResetGravity(GravityMultiplier, true);
@@ -590,9 +600,17 @@ public class Gravity : PlayerAbility {
             customGravityMagnitude = NewGravity.magnitude;
             ChangeGravity(NewGravity);
             type = newGravityType;
-            if (type == GravityType.Normal)
-                type = GravityType.Aligned;
         }
+        else //Vectors ARE similar
+        {
+            RB.useGravity = false;
+            customGravityMagnitude = NewGravity.magnitude;
+            ChangeGravity(NewGravity);
+            type = newGravityType;
+        }
+
+        if (type == GravityType.Unaligned)
+            ReduceSenseAndControl();
 
         IntuitiveSnapRotation();
         SFXPlayer.Play();
@@ -704,21 +722,38 @@ public class Gravity : PlayerAbility {
     #region Movement Interactions
     private Coroutine moveCameraCoroutine;
 
-    private void StartMoveCameraCoroutine()
+    private void StartCollisionMoveCameraCoroutine()
     {
+        if (!doCollisionAutoCamera)
+            return;
         if (moveCameraCoroutine != null)
             StopCoroutine(moveCameraCoroutine);
         moveCameraCoroutine = StartCoroutine(MoveCameraUp());
     }
 
-    private IEnumerator MoveCameraUp()
+    private void StartFallingMoveCameraCoroutine()
+    {
+        if (!doFlyingAutoCamera)
+            return;
+        if (moveCameraCoroutine != null)
+            StopCoroutine(moveCameraCoroutine);
+        if (customGravityMagnitude <= 0)
+            return;
+        float expectedFallTime = Mathf.Sqrt((2f * (targetWall.distance - PM.playerSphereSize)) / customGravityMagnitude);
+        if (expectedFallTime <= 0)
+            return;
+        moveCameraCoroutine = StartCoroutine(MoveCameraUp(false, expectedFallTime));
+    }
+
+    private IEnumerator MoveCameraUp(bool collisionVersion = true, float expectedDuration = 1)
     {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
         float startTime = Time.time;
         float angleLastFrame = PM._CameraAngle;
+        float fallingVersionSpeed = Utility.UnsignedDifference(PM._CameraAngle, 0) / expectedDuration;
         while (PM._CameraAngle.FurtherFromZero(0.1f))
         {
-            if (Time.time > startTime + maxAutoCameraDur)
+            if (Time.time > startTime + Mathf.Max(maxAutoCameraDur, expectedDuration))
                 break; //Break if the routine has been running for too long
 
             if (stopAutoCameraThreshold > 0)
@@ -729,29 +764,35 @@ public class Gravity : PlayerAbility {
                     break; //Break if the player manually moved the camera too much last frame
             }
 
-            float remaining = Utility.UnsignedDifference(PM._CameraAngle, 0);
-            PM._CameraAngle = Mathf.MoveTowards(PM._CameraAngle, 0, autoCameraSpeedByAngle.Evaluate(remaining) * Time.deltaTime);
+
+            float toMove = fallingVersionSpeed;
+            if (collisionVersion)
+                toMove = autoCameraSpeedByAngle.Evaluate(Utility.UnsignedDifference(PM._CameraAngle, 0));
+
+            PM._CameraAngle = Mathf.MoveTowards(PM._CameraAngle, 0, toMove * Time.deltaTime);
             angleLastFrame = PM._CameraAngle;
             yield return wait;
         }
     }
 
-    private void ReduceSense()
+    private void ReduceSenseAndControl()
     {
-        PM.SensitivityMultiplier = flyingSenseMultiplier;
+        if (reduceSenseWhileFlying)
+            PM.SensitivityMultiplier = flyingSenseMultiplier;
+        if (reduceControlWhileFlying)
+            PM.AirControlMultiplier = flyingAirControlMultiplier;
     }
 
-    private void RestoreSense()
+    private void RestoreSenseAndControl()
     {
         PM.SensitivityMultiplier = 1;
+        PM.AirControlMultiplier = 1;
     }
     #endregion
 }
 
 
 /* TO DO:
- * - option for disabling or reducing movement after gravity shift
- * - option for lowering sensitivity after gravity shift
  * - button for slow motion while in mid air
  * - predicted trajectory line
  * - FINISH hold to reset (needs to not be overriden by shift on release)
@@ -768,4 +809,6 @@ public class Gravity : PlayerAbility {
  * Done:
  * - hold button to reset
  * - automatic camera pan after changing gravity
+ * - option for disabling or reducing movement after gravity shift
+ * - option for lowering sensitivity after gravity shift
  */

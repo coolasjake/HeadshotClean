@@ -316,7 +316,7 @@ public class Movement : Shootable {
             newVelocity = RB.velocity + (desiredDirection * acceleration * Time.deltaTime);
         }
         else
-            newVelocity = RB.velocity + (desiredDirection * acceleration * airControlFactor * Time.deltaTime);
+            newVelocity = RB.velocity + (desiredDirection * acceleration * AirControl * Time.deltaTime);
 
         Vector3 TransformedOldVelocity = transform.InverseTransformVector(RB.velocity);
         Vector3 TransformedNewVelocity = transform.InverseTransformVector(newVelocity);
