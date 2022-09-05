@@ -498,6 +498,11 @@ PrefabInstance:
       propertyPath: MaxSpeed
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: disableDeath
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: autoCameraSpeedByAngle.m_Curve.Array.size
@@ -512,7 +517,7 @@ PrefabInstance:
         type: 3}
       propertyPath: circle
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 637180763}
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: holdToResetTime
@@ -591,6 +596,26 @@ PrefabInstance:
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: maxAutoCameraDur
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: flyingSenseMultiplier
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: flyingAirControlMultiplier
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: reduceSenseWhileFlying
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: reduceControlWhileFlying
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 198924016047586812, guid: 60ee08027849ba9498b68e338754cbe8,
@@ -1028,22 +1053,22 @@ MonoBehaviour:
   DeathCamera: {fileID: 0}
   SFXPlayer: {fileID: 0}
   ImpactEffect: {fileID: 0}
-  DisableMusic: 0
-  DisableDeath: 0
-  Clamp: 45
-  ClampAdjustmentSpeed: 5
-  UserSensitivity: 1
-  MaxSpeed: 3
-  Acceleration: 0.5
-  StoppingForce: 0.05
-  FrictionForce: 0.05
-  AirControlFactor: 0.5
-  JumpVelocity: 8
-  JumpVelocityPerSecondHeld: 4
-  MaxJumpTime: 0.2
-  JumpLeniency: 0.1
-  PlayerSphereSize: 2
-  PlayerWaistSize: 0.5
+  disableMusic: 0
+  disableDeath: 0
+  clamp: 89.99
+  clampAdjustmentSpeed: 180
+  userSensitivity: 1
+  maxSpeed: 4
+  acceleration: 20
+  stoppingForce: 500
+  frictionForce: 100
+  airControlFactor: 0.5
+  jumpVelocity: 4
+  jumpVelocityPerSecondHeld: 30
+  maxJumpTime: 0.2
+  jumpLeniency: 0.1
+  playerSphereSize: 2
+  playerWaistSize: 0.5
 --- !u!4 &620370924
 Transform:
   m_ObjectHideFlags: 0
@@ -1149,6 +1174,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 272e0e3cd65e49f449ce49dd707d9f76, type: 3}
+--- !u!114 &637180763 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8011634177840255934, guid: 272e0e3cd65e49f449ce49dd707d9f76,
+    type: 3}
+  m_PrefabInstance: {fileID: 637180762}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b56e478b2b23df429e9639055b3afca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &667848604 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -1871951819888102062, guid: 9d6e53dcfde767a408c4c62319a705e5,
