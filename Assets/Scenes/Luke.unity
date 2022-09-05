@@ -618,6 +618,11 @@ PrefabInstance:
       propertyPath: reduceControlWhileFlying
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 114946941385801228, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 198924016047586812, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: playOnAwake
