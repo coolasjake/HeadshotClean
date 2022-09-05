@@ -360,13 +360,13 @@ public class Movement : Shootable {
 
         DebugString = "Not";
         //If standing on a surface, and the player is not trying to move or jump, or if movement is disabled, slow movement.
-        if ((_Grounded && _onSomething && desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || _DisableMovement)
+        if ((_Grounded && _onSomething && (desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || _DisableMovement))
         {
 
             Vector3 NewVelocity = RB.velocity;
 
             //Jump to zero velocity when below max speed and on the ground to give more control and prevent gliding.
-            if (RB.velocity.magnitude < _alteredMaxSpeed / 2)
+            if (RB.velocity.magnitude < _alteredMaxSpeed)
                 RB.velocity = new Vector3();
             else
             {

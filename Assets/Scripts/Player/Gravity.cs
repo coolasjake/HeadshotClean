@@ -148,6 +148,7 @@ public class Gravity : PlayerAbility {
     public bool doCollisionAutoCamera = true;
     public bool doFlyingAutoCamera = false;
     public AnimationCurve autoCameraSpeedByAngle = new AnimationCurve(new Keyframe[1] { new Keyframe(0, 90) });
+    public AnimationCurve autoCameraSpeedForFlying = new AnimationCurve(new Keyframe[1] { new Keyframe(0, 90) });
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
     public float stopAutoCameraThreshold = 0f;
     public float maxAutoCameraDur = 2f;
@@ -768,6 +769,8 @@ public class Gravity : PlayerAbility {
             float toMove = fallingVersionSpeed;
             if (collisionVersion)
                 toMove = autoCameraSpeedByAngle.Evaluate(Utility.UnsignedDifference(PM._CameraAngle, 0));
+            else
+                toMove = autoCameraSpeedForFlying.Evaluate(Time.time - startTime);
 
             PM._CameraAngle = Mathf.MoveTowards(PM._CameraAngle, 0, toMove * Time.deltaTime);
             angleLastFrame = PM._CameraAngle;
@@ -793,6 +796,7 @@ public class Gravity : PlayerAbility {
 
 
 /* TO DO:
+ * - max duration for gravity jump
  * - button for slow motion while in mid air
  * - predicted trajectory line
  * - FINISH hold to reset (needs to not be overriden by shift on release)
