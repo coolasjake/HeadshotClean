@@ -4,29 +4,33 @@ using UnityEngine;
 
 public class TimeSlowing : MonoBehaviour {
 
-	public float SlowedTimeFactor = 0.2f;
-	public float SlowTimeDuration = 2f;
-	public float Cooldown = 10f;
+	public float SlowedTimeFactor = 0.5f;
+    private float DefaultFixedTimeInterval;
 
 	private float SlowStartTime;
 	private bool CanSlow = false;
 	private bool CurrentlySlowing = false;
 
-	// Update is called once per frame
-	void Update () {
-		if (Time.time > SlowStartTime + Cooldown)
-			CanSlow = true;
+    void Start()
+    {
+        DefaultFixedTimeInterval = Time.fixedDeltaTime;
+    }
 
-		if (CanSlow && Input.GetKeyDown (KeyCode.R)) {
-			SlowStartTime = Time.time;
-			Time.timeScale = SlowedTimeFactor;
-			CurrentlySlowing = true;
-			CanSlow = false;
-		}
-
-		if (CurrentlySlowing && Time.time > SlowStartTime + SlowTimeDuration) {
-			Time.timeScale = 1;
-			CurrentlySlowing = false;
+    // Update is called once per frame
+    void Update () {
+		if (Input.GetKeyDown (KeyCode.R)) {
+            if (CurrentlySlowing)
+            {
+                Time.fixedDeltaTime = DefaultFixedTimeInterval;
+                Time.timeScale = 1;
+                CurrentlySlowing = false;
+            }
+            else
+            {
+                Time.fixedDeltaTime = DefaultFixedTimeInterval * SlowedTimeFactor;
+                Time.timeScale = SlowedTimeFactor;
+                CurrentlySlowing = true;
+            }
 		}
 	}
 }

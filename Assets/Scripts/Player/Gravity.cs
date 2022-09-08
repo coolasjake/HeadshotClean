@@ -14,11 +14,9 @@ public class Gravity : PlayerAbility
 	private GravityCircle circle;
     #endregion
 
-    public GameObject gravityCirclePrefab;
-    /// <summary> Reference to an AudioSource which plays sounds for gravity abilities. </summary>
-	public AudioSource GravitySFXPlayer;
-
+    #region Script Variables
     private float defaultGravityMagnitude = 9.8f;
+    private float defaultFixedTimeInterval;
 
     private Vector3 _customGravity;
     private Vector3 _customGravityDirection;
@@ -49,16 +47,22 @@ public class Gravity : PlayerAbility
         Unaligned,  //Gravity was set by the camera direction, and will change on a collision.
         Aligned     //Gravity is aligned to a surface (or to normal, but with a different magnitude).
     }
-    public GravityType gravityType = GravityType.Normal;
+    private GravityType gravityType = GravityType.Normal;
 
     /// <summary> Last point the player shifted gravity from. </summary>
     private Vector3 shiftPoint;
     /// <summary> . </summary>
     private RaycastHit targetWall;
+    #endregion
 
+    #region Inspector
+    #region Manual References
+    public GameObject gravityCirclePrefab;
+    /// <summary> Reference to an AudioSource which plays sounds for gravity abilities. </summary>
+	public AudioSource GravitySFXPlayer;
+    #endregion
 
-
-    #region Inspector Settings
+    #region Settings
     [Header("Gravity Ability Settings")]
     /// <summary> Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction. </summary>
     [Tooltip("Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction.")]
@@ -77,7 +81,7 @@ public class Gravity : PlayerAbility
     #region ExperimentalSettings
     [Header("Experimental Settings")]
     /// <summary> How long it takes to reset gravity to world default when holding the gravity down button [C]. </summary>
-    public float holdTimeToReset = 1f;
+    public float holdTimeToReset = 0.5f;
     /// <summary> When true sensitivity is reduced after gravity has changed until the player lands. </summary>
     public bool reduceSenseWhileFlying = false;
     /// <summary> Amount to reduce sensitivity by when flying if setting is on. </summary>
@@ -96,6 +100,16 @@ public class Gravity : PlayerAbility
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
     public float stopAutoCameraThreshold = 0f;
     public float maxAutoCameraDur = 2f;
+    [Header("Time Slow")]
+    public bool usedFixedSlowFactor = true;
+    /// <summary> How much time is slowed at different speeds ('Time' = speed, 'Value' = factor). </summary>
+    [Tooltip("How much time is slowed at different speeds ('Time' = speed, 'Value' = factor).")]
+    public AnimationCurve timeSlowFactor = new AnimationCurve(new Keyframe[2] { new Keyframe(0, 0.8f), new Keyframe(19.6f, 0.33f) });
+    /// <summary> How much time is slowed at different speeds ('Time' = speed, 'Value' = factor). </summary>
+    [Tooltip("How much time is slowed.")]
+    [Range(0.1f, 1f)]
+    public float fixedTimeSlowFactor = 0.5f;
+    #endregion
     #endregion
 
     #region Unity Events
@@ -121,6 +135,7 @@ public class Gravity : PlayerAbility
 
         //Setup starting values
         defaultGravityMagnitude = Physics.gravity.magnitude;
+        defaultFixedTimeInterval = Time.fixedDeltaTime;
         UINormalGravity.Down = -Vector3.up * defaultGravityMagnitude;
         CustomGravity = Physics.gravity;
         ResetToWorldGravity();
@@ -229,7 +244,7 @@ public class Gravity : PlayerAbility
     /// <summary> Calls ContextualShift with the down direction of the camera. </summary>
     private void DownShift()
     {
-        if (Time.time < forwardLastActivation + superGravityWindow)
+        if (Time.time < downLastActivation + superGravityWindow)
         {
             SuperGravity();
         }
@@ -237,7 +252,7 @@ public class Gravity : PlayerAbility
         {
             ContextualShift(-PM.MainCamera.transform.up);
         }
-        forwardLastActivation = Time.time;
+        downLastActivation = Time.time;
     }
 
 
@@ -249,6 +264,7 @@ public class Gravity : PlayerAbility
 
         if (Physics.Raycast(PM.MainCamera.transform.position, direction, out targetWall))
         {
+            print("TargetWall = " + targetWall.transform.name);
             RaycastHit Hit;
             //If the raycast hits a surface less than double the flyDistance away, do a second raycast to see if there is a matching surface
             //less than the fly distance away in the direction gravity would be changed to. If so, align gravity with the surface.
@@ -262,12 +278,12 @@ public class Gravity : PlayerAbility
             }
 
             //If the surface is too far away, call FlyingGravity.
-            FlyingGravity();
+            FlyingGravity(direction);
             return;
         }
 
         //If no surface was found at all call FlyingGravity, but specify that the targetWall data will not be relevant.
-        FlyingGravity(false);
+        FlyingGravity(direction, false);
     }
 
     /// <summary> Change gravity to the normal of the target surface. </summary>
@@ -281,9 +297,9 @@ public class Gravity : PlayerAbility
     }
 
     /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift. </summary>
-    private void FlyingGravity(bool foundTarget = true)
+    private void FlyingGravity(Vector3 direction, bool foundTarget = true)
     {
-        if (ShiftGravityDirection(1, PM.MainCamera.transform.forward))
+        if (ShiftGravityDirection(1, direction))
         {
             if (!foundTarget)
                 circle.Hide();
@@ -308,16 +324,44 @@ public class Gravity : PlayerAbility
         }
     }
 
+    private bool _slowingTime = false;
+    private Coroutine slowTimeCoroutine;
     /// <summary> Slow time. </summary>
     private void BulletTimeStart()
     {
+        if (slowTimeCoroutine != null)
+            StopCoroutine(slowTimeCoroutine);
+        _slowingTime = true;
 
+        if (usedFixedSlowFactor)
+        {
+            Time.fixedDeltaTime = defaultFixedTimeInterval * fixedTimeSlowFactor;
+            Time.timeScale = fixedTimeSlowFactor;
+        }
+        else
+        {
+            slowTimeCoroutine = StartCoroutine(ScaleTimeWithSpeed());
+        }
+    }
+
+    private IEnumerator ScaleTimeWithSpeed()
+    {
+        WaitForSecondsRealtime wait = new WaitForSecondsRealtime(0.5f);
+        while (_slowingTime)
+        {
+            float timeFactor = Mathf.Clamp(timeSlowFactor.Evaluate(RB.velocity.magnitude), 0.1f, 2f);
+            Time.fixedDeltaTime = defaultFixedTimeInterval * timeFactor;
+            Time.timeScale = timeFactor;
+            yield return wait;
+        }
     }
 
     /// <summary> Slow time. </summary>
     private void BulletTimeEnd()
     {
-
+        _slowingTime = false;
+        Time.fixedDeltaTime = defaultFixedTimeInterval;
+        Time.timeScale = 1;
     }
 
     /// <summary> Begin simulating the trajectory line. </summary>
