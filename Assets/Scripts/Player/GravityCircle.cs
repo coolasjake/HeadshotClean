@@ -15,6 +15,11 @@ public class GravityCircle : MonoBehaviour {
 		Circle.color = new Color (C.r, C.g, C.b, 1);
 	}
 
+    public void Hide()
+    {
+        Circle.color = new Color(C.r, C.g, C.b, 0);
+    }
+
 	// Update is called once per frame
 	void Update () {
 		C = Circle.color;

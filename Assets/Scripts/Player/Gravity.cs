@@ -219,12 +219,12 @@ public class Gravity : PlayerAbility {
     private void PlayerInput()
     {
         //If 'Reset' or 'ChangeGravity' are pressed, change gravity (which checks if it is needed).
-        if (Input.GetButtonDown("GravityReset"))
+        if (Input.GetButtonDown("GravityDown"))
         {
             //Disable gravity when [C] is pressed down.
             //NoGravity ();
         }
-        else if (Input.GetButtonUp("GravityReset"))
+        else if (Input.GetButtonUp("GravityDown"))
         {
             //Reset gravity to normal when [C] is released, or half normal when [SHIFT] is also held.
             if (Input.GetButton("AlignModifier"))
@@ -236,7 +236,7 @@ public class Gravity : PlayerAbility {
                 ContextualShiftDown();
             }
         }
-        else if (Input.GetButton("GravityReset"))
+        else if (Input.GetButton("GravityDown"))
         {
             //Reset gravity to normal when [C] is released, or half normal when [SHIFT] is also held.
             //CustomIntuitiveSnapRotation(-PM.MainCamera.transform.up);
