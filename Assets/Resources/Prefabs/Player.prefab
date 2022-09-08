@@ -1535,7 +1535,7 @@ ParticleSystem:
   ringBufferLoopRange: {x: 0, y: 1}
   looping: 0
   prewarm: 0
-  playOnAwake: 0
+  playOnAwake: 1
   useUnscaledTime: 0
   autoRandomSeed: 1
   useRigidbodyForVelocity: 1
@@ -6250,16 +6250,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4210383356121638}
-  - component: {fileID: 33624257016670652}
-  - component: {fileID: 23100105085315578}
   - component: {fileID: 114100980628957524}
-  - component: {fileID: 114662305352359660}
-  - component: {fileID: 114824226525029478}
-  - component: {fileID: 114946941385801228}
   - component: {fileID: 114503768100975814}
   - component: {fileID: 114819942403559452}
-  - component: {fileID: 114939530895717702}
-  - component: {fileID: 114293508722803054}
   - component: {fileID: 54659051475382338}
   - component: {fileID: 82619633161992320}
   - component: {fileID: 114496289360331542}
@@ -6282,7 +6275,7 @@ Transform:
   m_GameObject: {fileID: 1456636474970118}
   m_LocalRotation: {x: -0.5, y: -0.5, z: 0.5, w: -0.5}
   m_LocalPosition: {x: 0, y: -48.21, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 0.79542}
   m_Children:
   - {fileID: 4704147534033172}
   - {fileID: 4185330880486012}
@@ -6292,53 +6285,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: -90, z: 180}
---- !u!33 &33624257016670652
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &23100105085315578
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 0
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
 --- !u!114 &114100980628957524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6359,56 +6305,27 @@ MonoBehaviour:
   FUVelocityDelta: 0
   FULargestDeltaLastSecond: 0
   LateralVelocityBeforeFriction: 0
+  CameraOrHolder: {fileID: 0}
   DeathCamera: {fileID: 0}
-  DisableMusic: 0
-  DisableDeath: 1
-  Clamp: 89.99
-  ClampAdjustmentSpeed: 180
-  Sensitivity: 2
-  MaxSpeed: 6
-  Acceleration: 40
-  StoppingForce: 500
-  FrictionForce: 100
-  AirControlFactor: 0.2
-  JumpVelocity: 8
-  JumpVelocityPerSecondHeld: 30
-  MaxJumpTime: 0.2
-  JumpLeniency: 0.1
-  PlayerSphereSize: 2
-  PlayerWaistSize: 0.5
-  ImpactVelocity: 15
---- !u!114 &114662305352359660
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69115ea28f996e0459674bf8b45e52e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Recording: 0
-  Playing: 0
---- !u!114 &114824226525029478
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 443fa5724898f3b45be49f0c85f89e08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaxResource: 3
-  RegenPerSecond: 0.5
-  MinToUse: 1
-  UseResource: 1
-  ClimbingSpeed: 3
---- !u!114 &114946941385801228
+  SFXPlayer: {fileID: 0}
+  ImpactEffect: {fileID: 0}
+  disableMusic: 0
+  disableDeath: 1
+  clamp: 89.99
+  clampAdjustmentSpeed: 180
+  userSensitivity: 1
+  maxSpeed: 4
+  acceleration: 20
+  stoppingForce: 500
+  frictionForce: 100
+  airControlFactor: 0.5
+  jumpVelocity: 4
+  jumpVelocityPerSecondHeld: 30
+  maxJumpTime: 0.2
+  jumpLeniency: 0.1
+  playerSphereSize: 2
+  playerWaistSize: 0.5
+--- !u!114 &114503768100975814
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6417,28 +6334,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1456636474970118}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8193d0811f1b134f80127d9eb83440b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaxResource: 5
-  RegenPerSecond: 0.5
-  MinToUse: 4
-  UseResource: 1
---- !u!114 &114503768100975814
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d17217ba3180eb4eb395449ca0eb507, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   SlowedTimeFactor: 0.2
-  SlowTimeDuration: 1
-  Cooldown: 10
 --- !u!114 &114819942403559452
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6454,80 +6353,81 @@ MonoBehaviour:
   MaxResource: 1000000
   RegenPerSecond: 100
   MinToUse: 0
-  UseResource: 0
-  Type: 0
-  StartAtMaxResource: 1
-  Circle: {fileID: 0}
-  AutoLockDistance: 5
-  NormalGravityMagnitude: 9.8
-  ResourcePerUse: 5
-  StabilizingRPS: 2
-  ImpactDamageMag: 0.5
-  StabilizationForce: 5
-  ScrollChangeRate: 2
-  RotationTime: 1
---- !u!114 &114939530895717702
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 179b37cabb3c1b146a50fd25b7131c76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaxResource: 3
-  RegenPerSecond: 0.5
-  MinToUse: 1
   UseResource: 1
-  PointRepPrefab: {fileID: 1098136049145344, guid: 657631cceb815a543865b6309db199fe,
+  gravityCirclePrefab: {fileID: 8011634177840255929, guid: 272e0e3cd65e49f449ce49dd707d9f76,
     type: 3}
-  MinimumDistance: 5
-  DistanceIncreasePerSecond: 35
---- !u!114 &114293508722803054
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 600d9475c6a9a9649b56b861db3cee11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaxResource: 5
-  RegenPerSecond: 0.5
-  MinToUse: 1
-  UseResource: 1
-  FailsafeCapsuleRadius: 0.5
-  Mode: 2
-  AutoUnphase: 1
-  TapDelay: 0.5
-  MaxPhaseTime: 10
-  XRayDistance: 40
-  PhasedObjectOpacity: 0.5
-  Silhoutte: {fileID: 2100000, guid: e9fc2233c832c6e4187ad5fe642d4c03, type: 2}
-  TestPhaseChangeMat: {fileID: 2100000, guid: be033fb7b2518ba4589dbbb0d18ba025, type: 2}
-  PhaseTransparentMats:
-  - {fileID: 2100000, guid: f22a22e0d10563d43a7ffebd122d6c78, type: 2}
-  - {fileID: 2100000, guid: 9ff9a9acd004e064ebd9ad37e9800943, type: 2}
-  - {fileID: 2100000, guid: ae2cd91e813f7064d8422565b07f5f13, type: 2}
-  - {fileID: 2100000, guid: f198a07a7d97c964ab876bb5f96fc779, type: 2}
-  - {fileID: 2100000, guid: 6df8a7bc0dc8fd944bad071338c69030, type: 2}
-  - {fileID: 2100000, guid: dbc1bdadf0e20a1489313cbe9a62f3df, type: 2}
-  - {fileID: 2100000, guid: 97934f7083536d24fa5ef92d2747be69, type: 2}
-  - {fileID: 2100000, guid: d6667c42cce245648bff0ab72797f789, type: 2}
-  - {fileID: 2100000, guid: 4dbf58a2fc9b93e41bb5eada2fcc9cd1, type: 2}
-  - {fileID: 2100000, guid: f75aeec9ede927f488fe4d2ef3e4f867, type: 2}
-  - {fileID: 2100000, guid: e20a2c647bbfb2f45b9564470fa6c689, type: 2}
-  - {fileID: 2100000, guid: 45cee428c59e64540bcdb77d83b4036a, type: 2}
-  - {fileID: 2100000, guid: e28d6bb1998d9c444a28a2d741e36bc1, type: 2}
-  - {fileID: 2100000, guid: 5d3650e6d56de9a44af6bcd0026ab836, type: 2}
-  - {fileID: 2100000, guid: 215d1e1d1945f0e4cb12b79738a2f415, type: 2}
-  - {fileID: 2100000, guid: 0caaf788c52e9dc488c377b48a250f4d, type: 2}
+  GravitySFXPlayer: {fileID: 0}
+  gravityType: 0
+  flyDistance: 2
+  superGravityWindow: 0.2
+  maxGravityMultipliers: 3
+  impactVelocity: 10
+  holdTimeToReset: 1
+  reduceSenseWhileFlying: 1
+  flyingSenseMultiplier: 0.3
+  reduceControlWhileFlying: 1
+  flyingAirControlMultiplier: 0.1
+  doCollisionAutoCamera: 1
+  doFlyingAutoCamera: 1
+  autoCameraSpeedByAngle:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 50
+      inSlope: 0.20573051
+      outSlope: 0.20573051
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.5002276
+    - serializedVersion: 3
+      time: 49.72658
+      value: 149.31212
+      inSlope: 0.026117744
+      outSlope: 0.026117744
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.5120688
+    - serializedVersion: 3
+      time: 90
+      value: 100
+      inSlope: 0.015070316
+      outSlope: 0.015070316
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.6147933
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  autoCameraSpeedForFlying:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.3
+      value: 5
+      inSlope: 5.4730463
+      outSlope: 5.4730463
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.279476
+    - serializedVersion: 3
+      time: 5
+      value: 90
+      inSlope: 45.156948
+      outSlope: 45.156948
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.10865922
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stopAutoCameraThreshold: 0
+  maxAutoCameraDur: 2
 --- !u!54 &54659051475382338
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6556,7 +6456,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 756c4e23e8553954fa91b4cc2936afa0, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -11379,7 +11279,7 @@ ParticleSystemRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1456636474970118}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -11390,7 +11290,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8e11b9dbf8e552040b0738773506e708, type: 2}
+  - {fileID: 2100000, guid: 7e692c03a45e3e94fac3ba7d19f7b9a0, type: 2}
   - {fileID: 2100000, guid: 8e11b9dbf8e552040b0738773506e708, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -12168,7 +12068,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: c6173cf22c3cf56448c754c3aae849f7, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 0.04
   m_Pitch: 1
   Loop: 1

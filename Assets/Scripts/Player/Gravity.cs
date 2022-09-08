@@ -1,139 +1,83 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-
-public enum GravityType {
-	Normal,		//Gravity is set by the RigidBody, and the resource can regenerate.
-	Unaligned,	//Gravity was set by the camera direction, and will change on a collision.
-	Aligned		//Gravity is aligned to a surface (or to normal, but with a different magnitude).
-}
 
 [RequireComponent(typeof(Movement))]
-public class Gravity : PlayerAbility {
-
+public class Gravity : PlayerAbility
+{
     #region Auto References
     private Rigidbody RB;
     private Movement PM;
     private GravityRep UIGyroscope;
     private GravityRep UINormalGravity;
-    #endregion
-
-    #region Ability Variables
-    /// <summary> Represents the amount of force that should be added to the player (or object) per second. </summary>
-    private Vector3 customGravity;
-    /// <summary> Normalized direction of gravity, so that the gravity magnitude can be changed by VariableGravity to a negative (and not lose its sign straight after). </summary>
-    private Vector3 originalDirection;
-    /// <summary> Reflects (does not define) the unsigned magnitude of gravity, required for VariableGravity to work. </summary>
-    private float customGravityMagnitude;
-    /// <summary> The position from which unaligned gravity was set, so that collisions before reaching the target don't align gravity too early. </summary>
-	private Vector3 shiftPosition;
-    /// <summary> The raycast hit of an unaligned gravity shift, used to find the normal to align to later, and the distance to it. </summary>
-	private RaycastHit targetWall;
-    /// <summary> The magnitude that gravity will be set to if it is changed. Used for a 'custom gravity force' with a flexible number. </summary>
-    private float personalScale = 0;
-    /// <summary> Saves the magnitude of gravity before a jump-hover activation, so it can be returned on release. </summary>
-    private float magBeforeDoubleJump = 0;
-    /// <summary> The clamp value set in Movement. Clamp is disabled while in mid air. </summary>
-    private float groundedClamp = 89;
-    /// <summary> Speed at which the clamp returns to normal when grounded, in degrees per second. </summary>
-    private float clampReturnRate = 2;
-    /// <summary> The minimum velocity to play impact sounds at (or destroy robots on impact). </summary>
-    public float impactVelocity = 10;
-    #endregion
-
-    #region Debug
-    [Header("Debug Properties")]
-    /// <summary> The current status of gravity, see GravityType declaration above for detail. </summary>
-	public GravityType type = GravityType.Normal;
-
-    public bool startAtMaxResource = true;
-    #endregion
-
-    #region Inspector References
-    [Header("Object References")]
     /// <summary> Reference to the object that shows where gravity has been shifted to. </summary>
-	public GravityCircle circle;
-    /// <summary> Reference to the UI element which shows how much resource the player has. </summary>
-	private ResourceMeter meter;
-    /// <summary> Reference to the UI element which shows the magnitude of gravity. </summary>
-	private BarDisplay dragonMeter;
-    /// <summary> Reference to an AudioSource which plays sounds for gravity abilities. </summary>
-	private AudioSource SFXPlayer;
+	private GravityCircle circle;
     #endregion
+
+    public GameObject gravityCirclePrefab;
+    /// <summary> Reference to an AudioSource which plays sounds for gravity abilities. </summary>
+	public AudioSource GravitySFXPlayer;
+
+    private float defaultGravityMagnitude = 9.8f;
+
+    private Vector3 _customGravity;
+    private Vector3 _customGravityDirection;
+    private float _customGravityMagnitude;
+    private Vector3 CustomGravity
+    {
+        get { return _customGravity; }
+        set
+        {
+            _customGravity = value;
+            _customGravityDirection = _customGravity.normalized;
+            _customGravityMagnitude = _customGravity.magnitude;
+            UIGyroscope.Down = _customGravity;
+        }
+    }
+    private Vector3 CustomGravityDir
+    {
+        get { return _customGravityDirection; }
+    }
+    private float CustomGravityMag
+    {
+        get { return _customGravityMagnitude; }
+    }
+
+    public enum GravityType
+    {
+        Normal,     //Gravity is set by the RigidBody, and the resource can regenerate.
+        Unaligned,  //Gravity was set by the camera direction, and will change on a collision.
+        Aligned     //Gravity is aligned to a surface (or to normal, but with a different magnitude).
+    }
+    public GravityType gravityType = GravityType.Normal;
+
+    /// <summary> Last point the player shifted gravity from. </summary>
+    private Vector3 shiftPoint;
+    /// <summary> . </summary>
+    private RaycastHit targetWall;
+
+
 
     #region Inspector Settings
     [Header("Gravity Ability Settings")]
     /// <summary> Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction. </summary>
     [Tooltip("Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction.")]
-    public float autoLockDistance = 2f;
-    /// <summary> The normal value of gravity. Used for resetting and as a multiplier for abilities. </summary>
-    [Tooltip("The normal value of gravity. Used for resetting and as a multiplier for abilities.")]
-    public float normalGravityMagnitude = 9.8f;
-    /// <summary> Multiplier on the impact force, which is used to calculate the resource loss from the impact. </summary>
-    [Tooltip("Multiplier on the impact force, which is used to calculate the resource loss from the impact.")]
-    public float impactDamageMag = 2f;
-    /// <summary> Affects how quickly the player will come to a halt while holding C. </summary>
-    [Tooltip("Affects how quickly the player will come to a halt while holding C.")]
-    public float stabilizationForce = 2f;
-    /// <summary> Multiplier for how fast the scroll wheel changes gravity. </summary>
-    [Tooltip("Multiplier for how fast the scroll wheel changes gravity.")]
-    public float scrollChangeRate = 2f;
-    /// <summary> The magnitude of the gravity (relative to normal G) when the shift key is pressed once. </summary>
-    [Tooltip("The magnitude of the gravity (relative to normal G) when the shift key is pressed once.")]
-    public float defaultLashingMagnitude = 0.5f;
+    public float flyDistance = 2f;
     /// <summary> Time between gravity changes (in the same direction) where it will double the gravity instead of resetting. </summary>
     [Tooltip("Time between gravity changes (in the same direction) where it will double the gravity instead of resetting.")]
-    public float multipleLashingWindow = 0.2f;
+    public float superGravityWindow = 0.2f;
     /// <summary> Maximum number of times the player can double their gravity. </summary>
     [Tooltip("Maximum number of times the player can double their gravity.")]
-    public int maxLashings = 3;
-
-    //Variables used for ability settings:
-    /// <summary> Time since the last gravity change (for doing multiple lashings). </summary>
-    private float multipleLashingLastTime = -10f;
-    /// <summary> Maximum number of times the player can double their gravity. </summary>
-    private int currentLashings = 0;
-
-    public enum LimitType
-    {
-        None,
-        Resource,
-        Cooldown,
-        Charges
-    }
-    [Header("Resource/Cooldown Settings")]
-    public LimitType abilityLimitMethod = LimitType.Cooldown;
-
-    /// <summary> Time between uses of the main gravity abilities. </summary>
-    public float cooldownTime = 5f;
-
-    /// <summary> Time between uses of the main gravity abilities. </summary>
-    public int numberOfCharges = 5;
-
-    /// <summary> Reset gravity to world normal when the resource is drained. </summary>
-    public bool resetAtZeroResource = false;
-    /// <summary> If false, resource regeneration will only occur when the players feet are on the ground. </summary>
-    public bool regenMidair = false;
-    /// <summary> If true, resource regeneration will not be effected by having abnormal gravity,
-    /// standing on a soft-wall, or being mid air (overrides RegenMidair). </summary>
-    public bool flatRegenRate = false;
-    /// <summary> Resource used per gravity change (caused by player). </summary>
-    public float resourcePerUse = 5f;
-    /// <summary> Resource used per second that gravity is not normal. </summary>
-    public float stabilizingRPS = 2f;
-    /// <summary> Time after ability use before the resource will begin regenerating. </summary>
-    public float regenDelay = 0.2f;
-    /// <summary> How long it takes to reset gravity to world default when holding the gravity button [F]. </summary>
-    private float gravityButtonHeldTime = 0f;
-    /// <summary> The last time an ability was used. </summary>
-    private float lastLimitedAbilityUse = float.NegativeInfinity;
+    public int maxGravityMultipliers = 3;
+    /// <summary> The minimum velocity to play impact sounds at (or destroy robots on impact). </summary>
+    [Tooltip("The minimum velocity to play impact sounds at (or destroy robots on impact).")]
+    public float impactVelocity = 10;
     #endregion
 
     #region ExperimentalSettings
     [Header("Experimental Settings")]
-    /// <summary> How long it takes to reset gravity to world default when holding the gravity button [F]. </summary>
-    public float holdToResetTime = 1f;
+    /// <summary> How long it takes to reset gravity to world default when holding the gravity down button [C]. </summary>
+    public float holdTimeToReset = 1f;
     /// <summary> When true sensitivity is reduced after gravity has changed until the player lands. </summary>
     public bool reduceSenseWhileFlying = false;
     /// <summary> Amount to reduce sensitivity by when flying if setting is on. </summary>
@@ -152,7 +96,6 @@ public class Gravity : PlayerAbility {
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
     public float stopAutoCameraThreshold = 0f;
     public float maxAutoCameraDur = 2f;
-
     #endregion
 
     #region Unity Events
@@ -163,171 +106,364 @@ public class Gravity : PlayerAbility {
         RB = GetComponent<Rigidbody>();
         PM = GetComponent<Movement>();
         PM.collisionEvent += GravityCollision;
-        SFXPlayer = GetComponentsInChildren<AudioSource>()[1];
+
+        circle = Instantiate(gravityCirclePrefab).GetComponent<GravityCircle>();
+
+        if (GravitySFXPlayer == null)
+            GravitySFXPlayer = GetComponentInChildren<AudioSource>();
 
         //Find UI elements
         GameObject GravityUI = UIManager.stat.LoadOrGetUI("Gravity");
-        meter = GravityUI.GetComponentInChildren<ResourceMeter>();
-        dragonMeter = GravityUI.GetComponentInChildren<BarDisplay>();
+        //meter = GravityUI.GetComponentInChildren<ResourceMeter>();
+        //dragonMeter = GravityUI.GetComponentInChildren<BarDisplay>();
         UIGyroscope = GetComponentInChildren<GravityRep>();
         UINormalGravity = GetComponentsInChildren<GravityRep>()[1];
 
         //Setup starting values
-        normalGravityMagnitude = Physics.gravity.magnitude;
-        UINormalGravity.Down = -Vector3.up * normalGravityMagnitude;
-        customGravityMagnitude = normalGravityMagnitude;
-        ChangeGravity(Physics.gravity);
-        ResetGravity();
-        groundedClamp = PM.clamp;
-
-        if (abilityLimitMethod == LimitType.Resource)
-        {
-            if (startAtMaxResource)
-                FillResource();
-        }
-        else if (abilityLimitMethod == LimitType.Cooldown)
-        {
-            MaxResource = cooldownTime;
-            if (startAtMaxResource)
-                FillResource();
-            MinToUse = cooldownTime;
-            RegenPerSecond = 1;
-            flatRegenRate = true;
-        }
+        defaultGravityMagnitude = Physics.gravity.magnitude;
+        UINormalGravity.Down = -Vector3.up * defaultGravityMagnitude;
+        CustomGravity = Physics.gravity;
+        ResetToWorldGravity();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!Disabled)
-        {
-            PlayerInput();
-        }
-
+        InputLogic();
         CustomGravityTick();
-        FreeLookInAir();
-        PassiveResourceChange();
-
-        //Update the visual rep of the meter.
-        meter.ChangeValue(Resource / MaxResource);
     }
     #endregion
 
-    //--------------------FUNCTIONS--------------------
-    #region Update Functions
-    /// <summary> Perform actions based on the players input. </summary>
-    private void PlayerInput()
+    private void InputLogic()
     {
         //If 'Reset' or 'ChangeGravity' are pressed, change gravity (which checks if it is needed).
         if (Input.GetButtonDown("GravityDown"))
         {
-            //Disable gravity when [C] is pressed down.
-            //NoGravity ();
+            StartResetTimer();
         }
         else if (Input.GetButtonUp("GravityDown"))
         {
-            //Reset gravity to normal when [C] is released, or half normal when [SHIFT] is also held.
-            if (Input.GetButton("AlignModifier"))
+            if (CheckResetTimer())
             {
-                //ResetGravity (0.5f);
+                GravityReset();
             }
-            else if (type != GravityType.Normal)
+            else
             {
-                ContextualShiftDown();
+                DownShift();
             }
         }
-        else if (Input.GetButton("GravityDown"))
+
+        if (Input.GetButtonDown("GravityNormal"))
         {
-            //Reset gravity to normal when [C] is released, or half normal when [SHIFT] is also held.
-            //CustomIntuitiveSnapRotation(-PM.MainCamera.transform.up);
-            NoGravityFreeLook();
-        }
-        else if (Input.GetButtonDown("GravityNormal"))
-        {
-            //Gravity Trajectory?
+            TrajectoryLineStart();
         }
         else if (Input.GetButtonUp("GravityNormal"))
         {
-            //Run the change gravity function when [F] is released.
-            ContextualGravityShift();
-
-            //Prevents magnitude being reset when a shift is done during a double-jump
-            magBeforeDoubleJump = 0;
-
-            //Set the timer for resetting gravity on hold back to zero
-            gravityButtonHeldTime = 0f;
+            TrajectoryLineEnd();
+            ForwardShift();
         }
 
-        if (Input.GetButton("GravityNormal"))
+        if (Input.GetButtonDown("TimeSlow"))
         {
-            gravityButtonHeldTime += Time.deltaTime;
-            if (gravityButtonHeldTime >= holdToResetTime)
-                ResetGravity();
+            BulletTimeStart();
+        }
+        else if (Input.GetButtonUp("TimeSlow"))
+        {
+            BulletTimeEnd();
         }
 
-        if (Input.GetButton("Crouch") && !PM._Grounded)
-            //Provide a tiny slowing force when [Ctrl] is HELD.
-            Stabilize();
+        if (Input.GetButtonDown("Crouch"))
+        {
+            MoonGravityModifier = true;
+        }
+        else if (Input.GetButtonUp("Crouch"))
+        {
+            MoonGravityModifier = false;
+        }
 
-        if (Time.time > PM._LastGrounded + 0.1f && Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump") && Time.time > PM._LastGrounded + 0.1f)
         {
-            magBeforeDoubleJump = customGravity.magnitude / normalGravityMagnitude;
-            ShiftGravityMagnitude(0.001f);
+            GravityJumpStart();
         }
-        else if (Input.GetButtonUp("Jump"))
+        else if (Input.GetButtonUp("Jump") && magBeforeDoubleJump > 0)
         {
-            if (magBeforeDoubleJump > 0)
-                ShiftGravityMagnitude(magBeforeDoubleJump);
-            magBeforeDoubleJump = 0;
+            GravityJumpEnd();
         }
+    }
+
+    #region Abilities
+    /// <summary> The magnitude of gravity before a GravityJump activation (so it can be returned on release). </summary>
+    private float magBeforeDoubleJump = 0;
+    /// <summary> Save current gravity and then set gravity to zero. </summary>
+    private void GravityJumpStart()
+    {
+        magBeforeDoubleJump = CustomGravityMag;
+        ChangeGravityMagnitude(0.001f);
+    }
+
+    /// <summary> Restore gravity to the value saved when starting the jump. </summary>
+    private void GravityJumpEnd()
+    {
+        ChangeGravityMagnitude(magBeforeDoubleJump / defaultGravityMagnitude);
+        magBeforeDoubleJump = 0;
+    }
+
+    /// <summary> The Time.time value of the last time the ForwardShift ability was used (for SuperGravity). </summary>
+    private float forwardLastActivation = float.NegativeInfinity;
+    /// <summary> Calls ContextualShift with the forward direction of the camera. </summary>
+    private void ForwardShift()
+    {
+        if (Time.time < forwardLastActivation + superGravityWindow)
+        {
+            SuperGravity();
+        }
+        else
+        {
+            ContextualShift(PM.MainCamera.transform.forward);
+        }
+        forwardLastActivation = Time.time;
+    }
+
+    /// <summary> The Time.time value of the last time the DownShift ability was used (for SuperGravity). </summary>
+    private float downLastActivation = float.NegativeInfinity;
+    /// <summary> Calls ContextualShift with the down direction of the camera. </summary>
+    private void DownShift()
+    {
+        if (Time.time < forwardLastActivation + superGravityWindow)
+        {
+            SuperGravity();
+        }
+        else
+        {
+            ContextualShift(-PM.MainCamera.transform.up);
+        }
+        forwardLastActivation = Time.time;
+    }
+
+
+    /// <summary> Do a raycast with the specified direction (usually camera-forward or camera-down)
+    /// and call either GravityShift or FlyingGravity based on the distance to the hit surface. </summary>
+    private void ContextualShift(Vector3 direction)
+    {
+        currentGravityMultipliers = 0;
+
+        if (Physics.Raycast(PM.MainCamera.transform.position, direction, out targetWall))
+        {
+            RaycastHit Hit;
+            //If the raycast hits a surface less than double the flyDistance away, do a second raycast to see if there is a matching surface
+            //less than the fly distance away in the direction gravity would be changed to. If so, align gravity with the surface.
+            if (targetWall.distance < flyDistance * 2f && Physics.Raycast(transform.position, targetWall.normal * -1, out Hit, flyDistance))
+            {
+                if (Hit.distance < flyDistance && VectorsAreSimilar(Hit.normal, targetWall.normal))
+                {
+                    GravityShift();
+                    return;
+                }
+            }
+
+            //If the surface is too far away, call FlyingGravity.
+            FlyingGravity();
+            return;
+        }
+
+        //If no surface was found at all call FlyingGravity, but specify that the targetWall data will not be relevant.
+        FlyingGravity(false);
+    }
+
+    /// <summary> Change gravity to the normal of the target surface. </summary>
+    private void GravityShift()
+    {
+        if (ShiftGravityDirection(1, targetWall.normal * -1))
+        {
+            gravityType = GravityType.Aligned;
+            StartCollisionMoveCameraCoroutine();
+        }
+    }
+
+    /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift. </summary>
+    private void FlyingGravity(bool foundTarget = true)
+    {
+        if (ShiftGravityDirection(1, PM.MainCamera.transform.forward))
+        {
+            if (!foundTarget)
+                circle.Hide();
+            gravityType = GravityType.Unaligned;
+            StartFallingMoveCameraCoroutine();
+            ReduceSenseAndControl();
+        }
+    }
+
+    [Min(0)]
+    private int currentGravityMultipliers = 0;
+    /// <summary> Multiply the current gravity magnitude by 2, up to the maximum number of multiplications. </summary>
+    private void SuperGravity()
+    {
+        if (currentGravityMultipliers < maxGravityMultipliers)
+        {
+            currentGravityMultipliers += 1;
+            float newMultiplier = 2f * currentGravityMultipliers;
+            if (MoonGravityModifier)
+                newMultiplier = 0.5f / currentGravityMultipliers;
+            ChangeGravityMagnitude(newMultiplier);
+        }
+    }
+
+    /// <summary> Slow time. </summary>
+    private void BulletTimeStart()
+    {
+
+    }
+
+    /// <summary> Slow time. </summary>
+    private void BulletTimeEnd()
+    {
+
+    }
+
+    /// <summary> Begin simulating the trajectory line. </summary>
+    private void TrajectoryLineStart()
+    {
+
+    }
+
+    /// <summary> Stop simulating the trajectory line. </summary>
+    private void TrajectoryLineEnd()
+    {
+
+    }
+
+    /// <summary> Calculate the path of the player with the expected gravity and draw it in the game. </summary>
+    private void TrajectoryLine(Vector3 expectedGravity)
+    {
+
+    }
+
+    private bool _moonGravityModifier = false;
+
+    private bool MoonGravityModifier
+    {
+        get { return _moonGravityModifier; }
+        set
+        {
+            _moonGravityModifier = value;
+        }
+    }
+
+    /// <summary> Reset gravity to the default physics gravity of the world. </summary>
+    private void GravityReset()
+    {
+        ResetToWorldGravity();
+    }
+
+    private void StartResetTimer()
+    {
+        _resetPressedTime = Time.time;
+    }
+
+    private float _resetPressedTime = float.NegativeInfinity;
+    private bool CheckResetTimer()
+    {
+        return Time.time > _resetPressedTime + holdTimeToReset;
+    }
+    #endregion
+
+    #region Gravity-Change Functions
+
+    /// <summary> Change only the magnitude of the current gravity. Uses no resource. </summary>
+    private void ChangeGravityMagnitude(float NewMultiplier)
+    {
+        Vector3 NewGravity = CustomGravityDir * defaultGravityMagnitude * NewMultiplier;
+
+        if (VectorsAreSimilar(NewGravity, Physics.gravity))
+        {
+            //If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
+            ResetToWorldGravity();
+        }
+        else
+        {
+            RB.useGravity = false;
+            CustomGravity = NewGravity;
+            if (gravityType == GravityType.Normal)
+                gravityType = GravityType.Aligned;
+        }
+    }
+
+    /// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force.</summary>
+    private bool ShiftGravityDirection(float GravityMultiplier, Vector3 Direction)
+    {
+        Vector3 NewGravity = Direction * defaultGravityMagnitude * GravityMultiplier;
+
+        if (NewGravity == CustomGravity)
+        {
+            return false;
+        }
+        else if (VectorsAreSimilar(NewGravity, Physics.gravity))
+        {
+            //If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
+            return ResetToWorldGravity();
+        }
+        else if (VectorsAreSimilar(NewGravity, CustomGravity))
+        {
+            return false;
+        }
+        else //Vectors ARE similar
+        {
+            RB.useGravity = false;
+            CustomGravity = NewGravity;
+            IntuitiveSnapRotation();
+            circle.Shift(targetWall.point - CustomGravityDir * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
+            shiftPoint = transform.position;
+            return true;
+        }
+    }
+
+    /// <summary> Change gravity to the default for the scene. </summary>
+	private bool ResetToWorldGravity()
+    {
+        if (gravityType != GravityType.Normal)
+        {
+            gravityType = GravityType.Normal;
+            RB.useGravity = true;
+            CustomGravity = Physics.gravity;
+
+            IntuitiveSnapRotation();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary> Change the rotation of the players body so that the 'feet' are pointing 'down' relative to the current gravity direction,
+    /// and keep the facing (body-y / camera-x rot) as close to the original as manageable.
+    /// NOTE: (accuracy is usually impossible since the position of the camera moves, and players focus is often different from their aim). </summary>
+    private void IntuitiveSnapRotation()
+    {
+        CustomIntuitiveSnapRotation(CustomGravity);
+    }
+
+    private void CustomIntuitiveSnapRotation(Vector3 direction)
+    {
+        Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
+        Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
+
+        //Rotate the players 'body'.
+        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.right);
+        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.forward);
+        Quaternion NewRot = new Quaternion();
+        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
+        transform.localRotation = NewRot;
+
+        //Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
+        float Signed = Vector3.SignedAngle(OriginalFacing, PM.MainCamera.transform.forward, transform.right);
+        PM._CameraAngle -= Signed;
+        PM.MainCamera.transform.rotation = CameraPreRotation;
     }
 
     /// <summary> Apply the gravity force (usually CurrentGravityMagnitude) to the player. </summary>
     private void CustomGravityTick()
     {
         //Apply the gravity force (so long as normal gravity isn't enabled).
-        if (type != GravityType.Normal)
-            RB.velocity += customGravity * Time.deltaTime;
-    }
-
-    private void FreeLookInAir()
-    {
-        if (!PM._Grounded)
-        {
-            PM.clamp = 360;
-        }
-        else
-            PM.clamp = Mathf.Lerp(PM.clamp, groundedClamp, clampReturnRate * Time.deltaTime);
-    }
-
-    /// <summary> Decreases or Increases the ability resource based on settings and various factors. </summary>
-    private void PassiveResourceChange()
-    {
-        if (abilityLimitMethod == LimitType.None || abilityLimitMethod == LimitType.Charges)
-            return;
-
-        if (flatRegenRate)
-        {
-            RegenWithDelay(1f);
-            return;
-        }
-
-        //Drain or regenerate the resource.
-        if (PM._OnSoftWall || (type == GravityType.Normal && (regenMidair || PM._Grounded)))
-        {
-            if (PM._OnSoftWall)
-                RegenWithDelay(2f);
-            else
-                RegenWithDelay(1f);
-        }
-        else if (type != GravityType.Normal)
-        {
-            if (!ConsumeResource(Time.deltaTime))
-            {
-                if (resetAtZeroResource)
-                    ResetGravity();
-            }
-        }
+        if (gravityType != GravityType.Normal)
+            RB.velocity += CustomGravity * Time.deltaTime;
     }
     #endregion
 
@@ -357,10 +493,6 @@ public class Gravity : PlayerAbility {
                     AchievementTracker.EnemyDied();
                     Enemy.Die();
                 }
-
-                if (abilityLimitMethod == LimitType.Resource)
-                    ConsumeResourceGreedy(velocityOfImpact * impactDamageMag, -20);
-                //The minimum value of -20 creates the delay after a strong collision while the resource value is in the negatives.
             }
         }
         else
@@ -369,354 +501,15 @@ public class Gravity : PlayerAbility {
         }
 
         //If Gravity is unaligned and shift is not being held AND
-        //The distance to the target is less than 2, or the original distance to the target is less than 3 OR
+        //The distance to the target is less than the flyDistance, or the original distance to the target is less than double the flyDistance OR
         //The distance from the target point is less than the distance from the starting point.
-        if (type == GravityType.Unaligned && !Input.GetButton("AlignModifier") && (
-            (Vector3.Distance(targetWall.point, transform.position) < 2 || Vector3.Distance(targetWall.point, shiftPosition) < 3) ||
-            (Vector3.Distance(shiftPosition, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
+        if (gravityType == GravityType.Unaligned &&
+            ((Vector3.Distance(targetWall.point, transform.position) < flyDistance /*|| Vector3.Distance(targetWall.point, shiftPoint) < flyDistance * 2*/) ||
+            (Vector3.Distance(shiftPoint, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
         {
-            ShiftGravityDirection(customGravity.magnitude / normalGravityMagnitude, targetWall.normal * -1, false, GravityType.Aligned);
+            ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1);
             StartCollisionMoveCameraCoroutine();
         }
-    }
-    #endregion
-
-    #region Helper Functions
-    /// <summary> Pauses regeneration if an ability was used more recently than RegenDelay. </summary>
-    private void RegenWithDelay(float multiplier)
-    {
-        if (Time.time > lastLimitedAbilityUse + regenDelay)
-            RegenerateResource(multiplier);
-    }
-
-    private bool VectorsAreSimilar(Vector3 vector1, Vector3 vector2)
-    {
-        return (vector1 - vector2).magnitude < 0.1f;
-    }
-    #endregion
-
-    #region Gravity-Change Functions
-    /// <summary> Sets gravityDirection, originalDirection, UIGyroscope.Down, and the dragonMeter to the new Value. </summary>
-    private void ChangeGravity(Vector3 newValue)
-    {
-        customGravity = newValue;
-        originalDirection = customGravity.normalized;
-        UIGyroscope.Down = customGravity;
-        dragonMeter.ChangeValue(customGravityMagnitude / (normalGravityMagnitude * 2));
-    }
-
-    /// <summary> Changes just the magnitude of gravity based on input from the scroll wheel. </summary>
-    private void VariableGravity() {
-        customGravityMagnitude += Input.mouseScrollDelta.y;
-
-        if (customGravityMagnitude > normalGravityMagnitude * 2)
-            customGravityMagnitude = normalGravityMagnitude * 2;
-        else if (customGravityMagnitude < -(normalGravityMagnitude * 2))
-            customGravityMagnitude = -(normalGravityMagnitude * 2);
-
-        customGravity = originalDirection * customGravityMagnitude;
-        dragonMeter.ChangeValue(customGravityMagnitude / (normalGravityMagnitude * 2));
-
-        if (type == GravityType.Normal && (customGravity - Physics.gravity).magnitude > 0.1f) {
-            type = GravityType.Aligned;
-            RB.useGravity = false;
-        }
-    }
-
-    /// <summary> When a modifier key is held (shift), and player is in the air, convert movement into 'bursts' of non-rotating gravity. </summary>
-    private void GravityBurst()
-    {
-        //Check horizontal/vertical input.
-        //Update a 'bursts' vector3 with the new desired burst.
-        //Apply the current burst to the players gravity (or as a 'seperate' force?)
-    }
-
-    /// <summary> Brings the player towards zero velocity, but not below 0.1, so it doesnt feel unnatural. </summary>
-    private void Stabilize() {
-        if (abilityLimitMethod == LimitType.Resource)
-        {
-            if (!ConsumeResource(stabilizingRPS * Time.deltaTime))
-                return;
-        }
-        if (RB.velocity.magnitude > 0.1f)
-            RB.velocity = RB.velocity.normalized * (RB.velocity.magnitude - (stabilizationForce * Time.deltaTime));
-    }
-
-    /// <summary> Check if the target of the shift is within autolock distance, then call the gravity shift with the relevant values.
-    /// Also checks for repeated taps for multiplied gravity. </summary>
-    private void ContextualGravityShift() {
-        //If the gravity button is pressed rapidly, double the gravity instead of changing it.
-        if (Time.time < multipleLashingLastTime + multipleLashingWindow)
-        {
-            if (currentLashings < maxLashings)
-            {
-                ++currentLashings;
-                //Play 'multiple lashings' SFX here.
-                multipleLashingLastTime = Time.time;
-                ChangeGravity(customGravity * 2);
-                //customGravity = customGravity * 2;
-                SFXPlayer.Play();
-            }
-            return;
-        }
-        else
-            currentLashings = 0;
-
-        if (Physics.Raycast(PM.MainCamera.transform.position, PM.MainCamera.transform.forward, out targetWall)) {
-            RaycastHit Hit;
-            //Align if pointing to a wall 2 * AutoLockDistance away, or half the distance away if the modifier is held (SHIFT).
-            if (targetWall.distance < autoLockDistance * 2 && !Input.GetButton("AlignModifier") && Physics.Raycast(transform.position, targetWall.normal * -1, out Hit)) {
-                if (Hit.distance < autoLockDistance && (Hit.normal - targetWall.normal).magnitude < 0.1f) {
-                    ShiftGravityDirection(defaultLashingMagnitude, targetWall.normal * -1, GravityType.Aligned);
-                    StartCollisionMoveCameraCoroutine();
-                    multipleLashingLastTime = Time.time;
-                    return;
-                }
-            }
-        }
-
-        //Otherwise shift to the direction the player is pointing.
-        ShiftGravityDirection(defaultLashingMagnitude, PM.MainCamera.transform.forward, GravityType.Unaligned);
-        StartFallingMoveCameraCoroutine();
-        multipleLashingLastTime = Time.time;
-    }
-
-    /// <summary> Do a contextual gravity shift down relative to the camera. </summary>
-    private void ContextualShiftDown()
-    {
-        if (Physics.Raycast(PM.MainCamera.transform.position, -PM.MainCamera.transform.up, out targetWall))
-        {
-            RaycastHit Hit;
-            //Align if pointing to a wall 2 * AutoLockDistance away, or half the distance away if the modifier is held (SHIFT).
-            if (targetWall.distance < autoLockDistance * 2 && !Input.GetButton("AlignModifier") && Physics.Raycast(transform.position, targetWall.normal * -1, out Hit))
-            {
-                if (Hit.distance < autoLockDistance && (Hit.normal - targetWall.normal).magnitude < 0.1f)
-                {
-                    ShiftGravityDirection(1, targetWall.normal * -1, GravityType.Aligned);
-                    return;
-                }
-            }
-        }
-
-        //Otherwise shift to the direction the player is pointing.
-        ShiftGravityDirection(1, -PM.MainCamera.transform.up, GravityType.Unaligned);
-    }
-
-    /// <summary> Set gravity to down, but with a tiny magnitude, to create the effect of Zero-Gravity. </summary>
-    private void NoGravity() {
-        RB.useGravity = false;
-        customGravityMagnitude = Physics.gravity.magnitude * 0.01f;
-        ChangeGravity(Physics.gravity.normalized * 0.01f);
-        type = GravityType.Aligned;
-
-        IntuitiveSnapRotation();
-    }
-
-    /// <summary> Removes gravity, and sets the reference frame relative to the *camera* to allow free/intuitive looking. (Copy of NoGravity) </summary>
-    private void NoGravityFreeLook()
-    {
-        RB.useGravity = false;
-        customGravityMagnitude = Physics.gravity.magnitude * 0.01f;
-        ChangeGravity(-PM.MainCamera.transform.up * 0.01f);
-        type = GravityType.Unaligned;
-
-        IntuitiveSnapRotation();
-    }
-
-    /// <summary> Change only the magnitude of the current gravity. Uses no resource. </summary>
-    private void ShiftGravityMagnitude(float GravityMultiplier)
-    {
-        Vector3 NewGravity = customGravity.normalized * normalGravityMagnitude * GravityMultiplier;
-
-        if (VectorsAreSimilar(NewGravity, Physics.gravity))
-        {
-            //If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
-            ResetGravity(GravityMultiplier, false);
-        }
-        else
-        {
-            RB.useGravity = false;
-            customGravityMagnitude = NewGravity.magnitude;
-            ChangeGravity(NewGravity);
-        }
-
-        //TODO: sfx
-    }
-
-    /// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force.
-    /// Checks for repeat changes and changes that would set gravity back to normal, and doesn't use resource for them. </summary>
-    private void ShiftGravityDirection(float GravityMultiplier, Vector3 Direction, GravityType newGravityType)
-    {
-        ShiftGravityDirection(GravityMultiplier, Direction, true, newGravityType);
-    }
-
-    /// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force. 
-    /// Checks for repeat changes and changes that would set gravity back to normal, and doesn't use resource for them. </summary>
-    private void ShiftGravityDirection(float GravityMultiplier, Vector3 Direction, bool useResources, GravityType newGravityType)
-    {
-        Vector3 NewGravity = Direction * normalGravityMagnitude * GravityMultiplier;
-
-        if (NewGravity == customGravity)
-        {
-            type = newGravityType;
-            return;
-        }
-        else if (VectorsAreSimilar(NewGravity, Physics.gravity))
-        {
-            //If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
-            ResetGravity(GravityMultiplier, true);
-        }
-        else if (!VectorsAreSimilar(customGravity, NewGravity))
-        {
-            if (useResources)
-            {
-                if (abilityLimitMethod == LimitType.Resource)
-                {
-                    //If limit type is resource, return if there is not enough
-                    if (!StartConsumeResource(resourcePerUse))
-                        return;
-                }
-                else if (abilityLimitMethod == LimitType.Cooldown)
-                {
-                    //If limit type is cooldown, return if cooldown is not finished, otherwise set the resource meter to 0
-                    if (Time.time < lastLimitedAbilityUse + cooldownTime)
-                        return;
-                    else
-                        ConsumeResourceGreedy(MaxResource, 0);
-                }
-                else if (abilityLimitMethod == LimitType.Charges)
-                {
-                    //If limit type is charges, return if there are no charges left, otherwise use a charge
-                    if (numberOfCharges > 0)
-                        numberOfCharges -= 1;
-                    else
-                        return;
-                }
-            }
-
-            if (useResources)
-                lastLimitedAbilityUse = Time.time;
-
-            RB.useGravity = false;
-            customGravityMagnitude = NewGravity.magnitude;
-            ChangeGravity(NewGravity);
-            type = newGravityType;
-        }
-        else //Vectors ARE similar
-        {
-            RB.useGravity = false;
-            customGravityMagnitude = NewGravity.magnitude;
-            ChangeGravity(NewGravity);
-            type = newGravityType;
-        }
-
-        if (type == GravityType.Unaligned)
-            ReduceSenseAndControl();
-
-        IntuitiveSnapRotation();
-        SFXPlayer.Play();
-
-        if (circle == null)
-            Debug.LogError("Gravity Target Circle not set in inspector!");
-        else if (targetWall.point != null)
-            circle.Shift(targetWall.point - customGravity.normalized * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
-
-        shiftPosition = transform.position;
-    }
-
-    /// <summary> Change gravity to the default for the scene. </summary>
-	private void ResetGravity() {
-        ResetGravity(1, false);
-    }
-
-    /// <summary> Change gravity to the default for the scene. Takes a multiplier for the magnitude (1 = normal gravity). </summary>
-	private void ResetGravity(float GravityMultiplier, bool countsAsUse) {
-        //If we are changing gravity:
-        //If making gravity normal, and gravity is not already normal OR we are giving gravity a diffent magnitude to it's current one:
-        //--->Play a sound effect, and rotate the players body.
-        bool Rotate = false;
-        if (countsAsUse && (GravityMultiplier == 1 && customGravity != Physics.gravity) || (customGravity.magnitude != Physics.gravity.magnitude * GravityMultiplier)) {
-            SFXPlayer.Play();
-            Rotate = true; //If this is false, the magnitude code might still need to run, but the rotation code doesn't. (also still give feedback ;)
-        }
-
-        //Reset Gravity.
-        if (GravityMultiplier != 1) {//Normal gravity but different magnitude.
-            if (StartConsumeResource(resourcePerUse)) {
-                type = GravityType.Aligned;
-                customGravityMagnitude = (Physics.gravity * GravityMultiplier).magnitude;
-                ChangeGravity(Physics.gravity * GravityMultiplier);
-            } else {
-                //Play ability failed SFX
-            }
-        } else {
-            type = GravityType.Normal;
-            RB.useGravity = true;
-            customGravityMagnitude = Physics.gravity.magnitude;
-            ChangeGravity(Physics.gravity);
-        }
-
-        //Reset player rotation.
-        if (Rotate)
-            IntuitiveSnapRotation();
-    }
-
-    /// <summary> Change the rotation of the players body so that the 'feet' are pointing 'down' relative to the current gravity direction,
-    /// and keep the facing (body-y / camera-x rot) as close to the original as manageable.
-    /// NOTE: (accuracy is usually impossible since the position of the camera moves, and players focus is often different from their aim). </summary>
-    private void IntuitiveSnapRotation()
-    {
-        Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
-        Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
-
-        //Rotate the players 'body'.
-        transform.rotation = Quaternion.LookRotation(customGravity, GetComponentInChildren<GravityReference>().transform.right);
-        transform.rotation = Quaternion.LookRotation(customGravity, GetComponentInChildren<GravityReference>().transform.forward);
-        Quaternion NewRot = new Quaternion();
-        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
-        transform.localRotation = NewRot;
-
-        //Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
-        float Signed = Vector3.SignedAngle(OriginalFacing, PM.MainCamera.transform.forward, transform.right);
-        PM._CameraAngle -= Signed;
-        PM.MainCamera.transform.rotation = CameraPreRotation;
-    }
-
-    private void CustomIntuitiveSnapRotation(Vector3 direction)
-    {
-        Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
-        Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
-
-        //Rotate the players 'body'.
-        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.right);
-        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.forward);
-        Quaternion NewRot = new Quaternion();
-        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
-        transform.localRotation = NewRot;
-
-        //Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
-        float Signed = Vector3.SignedAngle(OriginalFacing, PM.MainCamera.transform.forward, transform.right);
-        PM._CameraAngle -= Signed;
-        PM.MainCamera.transform.rotation = CameraPreRotation;
-    }
-    #endregion
-
-    #region Public Functions
-    public void SetChargesTo(int numCharges)
-    {
-        numberOfCharges = numCharges;
-    }
-
-    public void IncreaseChargesBy(int numCharges)
-    {
-        numberOfCharges += numCharges;
-    }
-
-    //Disable override for PlayerAbility parent class
-    public override void Disable()
-    {
-        Disabled = true;
-        ResetGravity();
     }
     #endregion
 
@@ -738,9 +531,9 @@ public class Gravity : PlayerAbility {
             return;
         if (moveCameraCoroutine != null)
             StopCoroutine(moveCameraCoroutine);
-        if (customGravityMagnitude <= 0)
+        if (CustomGravityMag <= 0)
             return;
-        float expectedFallTime = Mathf.Sqrt((2f * (targetWall.distance - PM.playerSphereSize)) / customGravityMagnitude);
+        float expectedFallTime = Mathf.Sqrt((2f * (targetWall.distance - PM.playerSphereSize)) / CustomGravityMag);
         if (expectedFallTime <= 0)
             return;
         moveCameraCoroutine = StartCoroutine(MoveCameraUp(false, expectedFallTime));
@@ -790,6 +583,13 @@ public class Gravity : PlayerAbility {
     {
         PM.SensitivityMultiplier = 1;
         PM.AirControlMultiplier = 1;
+    }
+    #endregion
+
+    #region Helper Functions
+    private bool VectorsAreSimilar(Vector3 vector1, Vector3 vector2)
+    {
+        return (vector1 - vector2).magnitude < 0.1f;
     }
     #endregion
 }
