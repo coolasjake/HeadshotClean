@@ -448,6 +448,160 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
+--- !u!1 &250466305 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1456636474970118, guid: 60ee08027849ba9498b68e338754cbe8,
+    type: 3}
+  m_PrefabInstance: {fileID: 250466304}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &250466306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 250466305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a424d50ea040bbd42aaa01792208fc6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MaxResource: 3
+  RegenPerSecond: 0.5
+  MinToUse: 1
+  UseResource: 1
+  gravityCirclePrefab: {fileID: 0}
+  GravitySFXPlayer: {fileID: 0}
+  abilitySettings:
+  - name: GravityJump
+    ability: 0
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: GravityShift
+    ability: 1
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: FlyingGravity
+    ability: 2
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: SuperGravity
+    ability: 3
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: TimeSlow
+    ability: 4
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: TrajectoryLine
+    ability: 5
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: DownShift
+    ability: 6
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: GravityReset
+    ability: 7
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: MoonGravity
+    ability: 8
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: ForceTransfer
+    ability: 9
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  flyDistance: 2
+  superGravityWindow: 0.2
+  maxGravityMultipliers: 3
+  impactVelocity: 10
+  holdTimeToReset: 0.5
+  reduceSenseWhileFlying: 0
+  flyingSenseMultiplier: 0.5
+  reduceControlWhileFlying: 0
+  flyingAirControlMultiplier: 0.5
+  doCollisionAutoCamera: 1
+  doFlyingAutoCamera: 0
+  autoCameraSpeedByAngle:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 90
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  autoCameraSpeedForFlying:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 90
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stopAutoCameraThreshold: 0
+  maxAutoCameraDur: 2
+  usedFixedSlowFactor: 1
+  timeSlowFactor:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 19.6
+      value: 0.33
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  fixedTimeSlowFactor: 0.5
 --- !u!1 &282779667 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4737915141460924800, guid: 9d6e53dcfde767a408c4c62319a705e5,

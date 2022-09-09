@@ -74,7 +74,7 @@ public class Gravity : PlayerAbility
         DownShift,
         GravityReset,
         MoonGravity,
-        ForceTransfer
+        ForceTransfer,
     }
     public enum AbilityStatus
     {
@@ -113,6 +113,11 @@ public class Gravity : PlayerAbility
             ability = Ability;
             status = Status;
             name = ability.ToString();
+        }
+
+        public GravityAbility Ability
+        {
+            get { return ability; }
         }
 
         public void SetAsCooldown(float CooldownDuration)
@@ -187,6 +192,39 @@ public class Gravity : PlayerAbility
         new AbilitySettings((GravityAbility)6), new AbilitySettings((GravityAbility)7), new AbilitySettings((GravityAbility)8),
         new AbilitySettings((GravityAbility)9)
     };
+
+    private Dictionary<GravityAbility, int> abilitiesDict = new Dictionary<GravityAbility, int>();
+
+    private void SetupAbilityDict()
+    {
+        for (int i = 0; i < abilitySettings.Count; ++i)
+        {
+            if (abilitiesDict.ContainsKey(abilitySettings[i].Ability))
+            {
+                abilitySettings.RemoveAt(i);
+                --i;
+            }
+            else
+            {
+                abilitiesDict.Add(abilitySettings[i].Ability, i);
+            }
+        }
+
+        foreach (GravityAbility ability in System.Enum.GetValues(typeof(GravityAbility)))
+        {
+            if (!abilitiesDict.ContainsKey(ability))
+            {
+                abilitySettings.Add(new AbilitySettings(ability, AbilityStatus.Disabled));
+                abilitiesDict.Add(ability, abilitySettings.Count - 1);
+            }
+        }
+    }
+
+    private AbilitySettings GetAbility(GravityAbility ability)
+    {
+        //TODO needs error checking HERE
+        return abilitySettings[abilitiesDict[ability]];
+    }
     #endregion
 
     #region Settings
@@ -266,6 +304,8 @@ public class Gravity : PlayerAbility
         UINormalGravity.Down = -Vector3.up * defaultGravityMagnitude;
         CustomGravity = Physics.gravity;
         ResetToWorldGravity();
+
+        SetupAbilityDict();
     }
 
     // Update is called once per frame
@@ -273,6 +313,7 @@ public class Gravity : PlayerAbility
     {
         InputLogic();
         CustomGravityTick();
+        AbilitiesUpdate();
     }
     #endregion
 
@@ -334,13 +375,24 @@ public class Gravity : PlayerAbility
     }
 
     #region Abilities
+    private void AbilitiesUpdate()
+    {
+        foreach (AbilitySettings ability in abilitySettings)
+        {
+            ability.RegenerateIfResource();
+        }
+    }
+
     /// <summary> The magnitude of gravity before a GravityJump activation (so it can be returned on release). </summary>
     private float magBeforeDoubleJump = 0;
     /// <summary> Save current gravity and then set gravity to zero. </summary>
     private void GravityJumpStart()
     {
-        magBeforeDoubleJump = CustomGravityMag;
-        ChangeGravityMagnitude(0.001f);
+        if (GetAbility(GravityAbility.GravityJump).TryUse())
+        {
+            magBeforeDoubleJump = CustomGravityMag;
+            ChangeGravityMagnitude(0.001f);
+        }
     }
 
     /// <summary> Restore gravity to the value saved when starting the jump. </summary>
@@ -371,6 +423,9 @@ public class Gravity : PlayerAbility
     /// <summary> Calls ContextualShift with the down direction of the camera. </summary>
     private void DownShift()
     {
+        if (!GetAbility(GravityAbility.DownShift).TryUse())
+            return;
+
         if (Time.time < downLastActivation + superGravityWindow)
         {
             SuperGravity();
@@ -416,6 +471,9 @@ public class Gravity : PlayerAbility
     /// <summary> Change gravity to the normal of the target surface. </summary>
     private void GravityShift()
     {
+        if (!GetAbility(GravityAbility.GravityShift).TryUse())
+            return;
+
         if (ShiftGravityDirection(1, targetWall.normal * -1))
         {
             gravityType = GravityType.Aligned;
@@ -426,6 +484,9 @@ public class Gravity : PlayerAbility
     /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift. </summary>
     private void FlyingGravity(Vector3 direction, bool foundTarget = true)
     {
+        if (!GetAbility(GravityAbility.FlyingGravity).TryUse())
+            return;
+
         if (ShiftGravityDirection(1, direction))
         {
             if (!foundTarget)
@@ -441,6 +502,9 @@ public class Gravity : PlayerAbility
     /// <summary> Multiply the current gravity magnitude by 2, up to the maximum number of multiplications. </summary>
     private void SuperGravity()
     {
+        if (!GetAbility(GravityAbility.SuperGravity).TryUse())
+            return;
+
         if (currentGravityMultipliers < maxGravityMultipliers)
         {
             currentGravityMultipliers += 1;
@@ -456,6 +520,9 @@ public class Gravity : PlayerAbility
     /// <summary> Slow time. </summary>
     private void BulletTimeStart()
     {
+        if (!GetAbility(GravityAbility.TimeSlow).TryUse())
+            return;
+
         if (slowTimeCoroutine != null)
             StopCoroutine(slowTimeCoroutine);
         _slowingTime = true;
@@ -494,6 +561,8 @@ public class Gravity : PlayerAbility
     /// <summary> Begin simulating the trajectory line. </summary>
     private void TrajectoryLineStart()
     {
+        if (!GetAbility(GravityAbility.TrajectoryLine).TryUse())
+            return;
 
     }
 
@@ -516,6 +585,8 @@ public class Gravity : PlayerAbility
         get { return _moonGravityModifier; }
         set
         {
+            if (!GetAbility(GravityAbility.MoonGravity).TryUse())
+                _moonGravityModifier = false;
             _moonGravityModifier = value;
         }
     }
@@ -523,6 +594,9 @@ public class Gravity : PlayerAbility
     /// <summary> Reset gravity to the default physics gravity of the world. </summary>
     private void GravityReset()
     {
+        if (!GetAbility(GravityAbility.GravityReset).TryUse())
+            return;
+
         ResetToWorldGravity();
     }
 
@@ -775,6 +849,7 @@ public class Gravity : PlayerAbility
  * - Object that gives/sets gravity change charges
  * - System for enabling/disabling abiliy parts (list of structs?)
  * - Object that disables parts of ability
+ * - Let clamp go outside max when resetting
  * 
  *>> settings for:
  * - maximum shift distance
