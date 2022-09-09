@@ -62,6 +62,133 @@ public class Gravity : PlayerAbility
 	public AudioSource GravitySFXPlayer;
     #endregion
 
+    #region AbilitySettings
+    public enum GravityAbility
+    {
+        GravityJump,
+        GravityShift,
+        FlyingGravity,
+        SuperGravity,
+        TimeSlow,
+        TrajectoryLine,
+        DownShift,
+        GravityReset,
+        MoonGravity,
+        ForceTransfer
+    }
+    public enum AbilityStatus
+    {
+        Enabled,
+        Disabled,
+        Cooldown,
+        ResourceBar,
+        LimitedUses
+    }
+    [System.Serializable]
+    public class AbilitySettings
+    {
+        [SerializeField]
+        private string name;
+        [SerializeField]
+        private GravityAbility ability;
+        [SerializeField]
+        private AbilityStatus status = AbilityStatus.Enabled;
+        [SerializeField]
+        private float settingOne;
+        [SerializeField]
+        private float settingTwo;
+        [SerializeField]
+
+        private string condition;
+        private float hiddenVariable;
+
+        public AbilitySettings(GravityAbility Ability)
+        {
+            ability = Ability;
+            name = ability.ToString();
+        }
+
+        public AbilitySettings(GravityAbility Ability, AbilityStatus Status)
+        {
+            ability = Ability;
+            status = Status;
+            name = ability.ToString();
+        }
+
+        public void SetAsCooldown(float CooldownDuration)
+        {
+            status = AbilityStatus.Cooldown;
+            settingOne = CooldownDuration;
+        }
+
+        public void SetAsResource(float MaxResource, float RegenRate)
+        {
+            status = AbilityStatus.ResourceBar;
+            settingOne = RegenRate;
+            settingTwo = MaxResource;
+        }
+
+        public void RegenerateIfResource()
+        {
+            if (status == AbilityStatus.ResourceBar)
+                hiddenVariable += Time.deltaTime;
+        }
+
+        public void SetAsLimitedUses(float NumberOfUses)
+        {
+            status = AbilityStatus.LimitedUses;
+            settingOne = NumberOfUses;
+        }
+
+        public void SetCondition(string conditionName)
+        {
+            condition = conditionName;
+        }
+
+        public bool HasCondition()
+        {
+            return condition != null && condition != string.Empty;
+        }
+
+        public bool ConditionIs(string conditionName)
+        {
+            return condition.ToLower() == conditionName.ToLower();
+        }
+
+        public bool TryUse()
+        {
+            switch (status)
+            {
+                case AbilityStatus.Enabled:
+                    return true;
+                case AbilityStatus.Disabled:
+                    return false;
+                case AbilityStatus.Cooldown:
+                    return Time.time > hiddenVariable + settingOne;
+                case AbilityStatus.ResourceBar:
+                    hiddenVariable -= Time.deltaTime;
+                    return hiddenVariable > 0;
+                case AbilityStatus.LimitedUses:
+                    if (hiddenVariable > 0)
+                    {
+                        hiddenVariable -= 1;
+                        return true;
+                    }
+                    return false;
+            }
+            return false;
+        }
+    }
+
+    [Header("Ability List:")]
+    public List<AbilitySettings> abilitySettings = new List<AbilitySettings> {
+        new AbilitySettings((GravityAbility)0), new AbilitySettings((GravityAbility)1), new AbilitySettings((GravityAbility)2),
+        new AbilitySettings((GravityAbility)3), new AbilitySettings((GravityAbility)4), new AbilitySettings((GravityAbility)5),
+        new AbilitySettings((GravityAbility)6), new AbilitySettings((GravityAbility)7), new AbilitySettings((GravityAbility)8),
+        new AbilitySettings((GravityAbility)9)
+    };
+    #endregion
+
     #region Settings
     [Header("Gravity Ability Settings")]
     /// <summary> Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction. </summary>
