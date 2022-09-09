@@ -20,7 +20,7 @@ public class ModuleController : MonoBehaviour {
 
 		gun = GetComponentInChildren<Gun> ();
 		phase = GetComponentInChildren<Phasing> ();
-		gravity = GetComponentInChildren<Gravity> ();
+		//gravity = GetComponentInChildren<Gravity> ();
 		stealth = GetComponentInChildren<Invisibility> ();
 		teleport = GetComponentInChildren<Teleport> ();
 

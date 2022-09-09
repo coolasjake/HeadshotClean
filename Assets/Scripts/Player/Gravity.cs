@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Movement))]
-public class Gravity : PlayerAbility
+public class Gravity : MonoBehaviour//PlayerAbility
 {
     #region Auto References
     private Rigidbody RB;
@@ -12,6 +12,7 @@ public class Gravity : PlayerAbility
     private GravityRep UINormalGravity;
     /// <summary> Reference to the object that shows where gravity has been shifted to. </summary>
 	private GravityCircle circle;
+    private ResourceMeter gravJumpMeter;
     #endregion
 
     #region Script Variables
@@ -58,6 +59,7 @@ public class Gravity : PlayerAbility
     #region Inspector
     #region Manual References
     public GameObject gravityCirclePrefab;
+    public GameObject abilityMeterPrefab;
     /// <summary> Reference to an AudioSource which plays sounds for gravity abilities. </summary>
 	public AudioSource GravitySFXPlayer;
     #endregion
@@ -81,8 +83,8 @@ public class Gravity : PlayerAbility
         Enabled,
         Disabled,
         Cooldown,
-        ResourceBar,
-        LimitedUses
+        LimitedUses,
+        Special
     }
     [System.Serializable]
     public class AbilitySettings
@@ -120,29 +122,22 @@ public class Gravity : PlayerAbility
             get { return ability; }
         }
 
+        public void SetStatus(AbilityStatus Status)
+        {
+            status = Status;
+        }
+
         public void SetAsCooldown(float CooldownDuration)
         {
             status = AbilityStatus.Cooldown;
             settingOne = CooldownDuration;
         }
 
-        public void SetAsResource(float MaxResource, float RegenRate)
-        {
-            status = AbilityStatus.ResourceBar;
-            settingOne = RegenRate;
-            settingTwo = MaxResource;
-        }
-
-        public void RegenerateIfResource()
-        {
-            if (status == AbilityStatus.ResourceBar)
-                hiddenVariable += Time.deltaTime;
-        }
-
         public void SetAsLimitedUses(float NumberOfUses)
         {
             status = AbilityStatus.LimitedUses;
             settingOne = NumberOfUses;
+            hiddenVariable = settingOne;
         }
 
         public void SetCondition(string conditionName)
@@ -169,10 +164,12 @@ public class Gravity : PlayerAbility
                 case AbilityStatus.Disabled:
                     return false;
                 case AbilityStatus.Cooldown:
-                    return Time.time > hiddenVariable + settingOne;
-                case AbilityStatus.ResourceBar:
-                    hiddenVariable -= Time.deltaTime;
-                    return hiddenVariable > 0;
+                    if (Time.time > hiddenVariable + settingOne)
+                    {
+                        hiddenVariable = Time.time;
+                        return true;
+                    }
+                    return false;
                 case AbilityStatus.LimitedUses:
                     if (hiddenVariable > 0)
                     {
@@ -195,7 +192,7 @@ public class Gravity : PlayerAbility
 
     private Dictionary<GravityAbility, int> abilitiesDict = new Dictionary<GravityAbility, int>();
 
-    private void SetupAbilityDict()
+    private void SetupAbilitySettings()
     {
         for (int i = 0; i < abilitySettings.Count; ++i)
         {
@@ -218,12 +215,19 @@ public class Gravity : PlayerAbility
                 abilitiesDict.Add(ability, abilitySettings.Count - 1);
             }
         }
+
+        _gravJumpCharge = gravityJumpMaxCharge;
     }
 
     private AbilitySettings GetAbility(GravityAbility ability)
     {
         //TODO needs error checking HERE
         return abilitySettings[abilitiesDict[ability]];
+    }
+
+    public void SetAbilityStatus(GravityAbility ability, AbilityStatus status)
+    {
+        GetAbility(ability).SetStatus(status);
     }
     #endregion
 
@@ -238,6 +242,15 @@ public class Gravity : PlayerAbility
     /// <summary> Maximum number of times the player can double their gravity. </summary>
     [Tooltip("Maximum number of times the player can double their gravity.")]
     public int maxGravityMultipliers = 3;
+    /// <summary> Maximum duration of the Gravity Jump when the charge is full. </summary>
+    [Tooltip("Maximum duration of the Gravity Jump when the charge is full.")]
+    public float gravityJumpMaxCharge = 3f;
+    /// <summary> Time it takes for the Gravity Jump charge to go from empty to full. </summary>
+    [Tooltip("Time it takes for the Gravity Jump charge to go from empty to full.")]
+    public float gravityJumpRegenTime = 3f;
+    /// <summary> Pause before Gravity Jump charge starts regenerating after it is fully depleted. </summary>
+    [Tooltip("Pause before Gravity Jump charge starts regenerating after it is fully depleted.")]
+    public float gravJumpRegenDelay = 0.5f;
     /// <summary> The minimum velocity to play impact sounds at (or destroy robots on impact). </summary>
     [Tooltip("The minimum velocity to play impact sounds at (or destroy robots on impact).")]
     public float impactVelocity = 10;
@@ -287,6 +300,7 @@ public class Gravity : PlayerAbility
         PM.collisionEvent += GravityCollision;
 
         circle = Instantiate(gravityCirclePrefab).GetComponent<GravityCircle>();
+        gravJumpMeter = Instantiate(abilityMeterPrefab, UIManager.stat.canvas.transform).GetComponent<ResourceMeter>();
 
         if (GravitySFXPlayer == null)
             GravitySFXPlayer = GetComponentInChildren<AudioSource>();
@@ -305,7 +319,7 @@ public class Gravity : PlayerAbility
         CustomGravity = Physics.gravity;
         ResetToWorldGravity();
 
-        SetupAbilityDict();
+        SetupAbilitySettings();
     }
 
     // Update is called once per frame
@@ -313,7 +327,6 @@ public class Gravity : PlayerAbility
     {
         InputLogic();
         CustomGravityTick();
-        AbilitiesUpdate();
     }
     #endregion
 
@@ -364,42 +377,69 @@ public class Gravity : PlayerAbility
             MoonGravityModifier = false;
         }
 
-        if (Input.GetButtonDown("Jump") && Time.time > PM._LastGrounded + 0.1f)
+        if (Input.GetButtonDown("Jump") && Time.time > PM._LastGrounded)// + 0.1f)
         {
             GravityJumpStart();
         }
-        else if (Input.GetButtonUp("Jump") && magBeforeDoubleJump > 0)
+        else if (Input.GetButtonUp("Jump") && magBeforeGravJump > 0)
         {
             GravityJumpEnd();
         }
     }
 
     #region Abilities
-    private void AbilitiesUpdate()
-    {
-        foreach (AbilitySettings ability in abilitySettings)
-        {
-            ability.RegenerateIfResource();
-        }
-    }
 
-    /// <summary> The magnitude of gravity before a GravityJump activation (so it can be returned on release). </summary>
-    private float magBeforeDoubleJump = 0;
+    /// <summary> The magnitude of gravity before a GravityJump activation (so it can be returned on release). Must be 0 if not in use. </summary>
+    private float magBeforeGravJump = 0;
+    private float _gravJumpCharge = 0;
+    private Coroutine _gravJumpCoroutine;
     /// <summary> Save current gravity and then set gravity to zero. </summary>
     private void GravityJumpStart()
     {
-        if (GetAbility(GravityAbility.GravityJump).TryUse())
+        if (GetAbility(GravityAbility.GravityJump).TryUse() && _gravJumpCharge > 0)
         {
-            magBeforeDoubleJump = CustomGravityMag;
+            magBeforeGravJump = CustomGravityMag;
             ChangeGravityMagnitude(0.001f);
+
+            if (_gravJumpCoroutine == null)
+                _gravJumpCoroutine = StartCoroutine(GravityJumpChargeManagement());
         }
     }
 
     /// <summary> Restore gravity to the value saved when starting the jump. </summary>
     private void GravityJumpEnd()
     {
-        ChangeGravityMagnitude(magBeforeDoubleJump / defaultGravityMagnitude);
-        magBeforeDoubleJump = 0;
+        ChangeGravityMagnitude(magBeforeGravJump / defaultGravityMagnitude);
+        magBeforeGravJump = 0;
+    }
+
+    private IEnumerator GravityJumpChargeManagement()
+    {
+        float _lastUse = Time.time;
+        WaitForEndOfFrame wait = new WaitForEndOfFrame();
+        while (magBeforeGravJump != 0 || _gravJumpCharge < gravityJumpMaxCharge)
+        {
+            yield return wait;
+
+            if (magBeforeGravJump != 0) //If using ability reduce charge
+            {
+                _lastUse = Time.time;
+                _gravJumpCharge -= Time.deltaTime;
+                if (_gravJumpCharge <= 0)
+                {
+                    GravityJumpEnd();
+                    _gravJumpCharge = 0;
+                }
+            }
+            else if (Time.time > _lastUse + gravJumpRegenDelay)
+            {
+                _gravJumpCharge += (gravityJumpMaxCharge / gravityJumpRegenTime) * Time.deltaTime;
+            }
+
+            gravJumpMeter.ChangeValue(_gravJumpCharge / gravityJumpMaxCharge);
+        }
+        _gravJumpCharge = gravityJumpMaxCharge;
+        _gravJumpCoroutine = null;
     }
 
     /// <summary> The Time.time value of the last time the ForwardShift ability was used (for SuperGravity). </summary>
@@ -446,7 +486,6 @@ public class Gravity : PlayerAbility
 
         if (Physics.Raycast(PM.MainCamera.transform.position, direction, out targetWall))
         {
-            print("TargetWall = " + targetWall.transform.name);
             RaycastHit Hit;
             //If the raycast hits a surface less than double the flyDistance away, do a second raycast to see if there is a matching surface
             //less than the fly distance away in the direction gravity would be changed to. If so, align gravity with the surface.
@@ -516,15 +555,15 @@ public class Gravity : PlayerAbility
     }
 
     private bool _slowingTime = false;
-    private Coroutine slowTimeCoroutine;
+    private Coroutine _slowTimeCoroutine;
     /// <summary> Slow time. </summary>
     private void BulletTimeStart()
     {
         if (!GetAbility(GravityAbility.TimeSlow).TryUse())
             return;
 
-        if (slowTimeCoroutine != null)
-            StopCoroutine(slowTimeCoroutine);
+        if (_slowTimeCoroutine != null)
+            StopCoroutine(_slowTimeCoroutine);
         _slowingTime = true;
 
         if (usedFixedSlowFactor)
@@ -534,7 +573,7 @@ public class Gravity : PlayerAbility
         }
         else
         {
-            slowTimeCoroutine = StartCoroutine(ScaleTimeWithSpeed());
+            _slowTimeCoroutine = StartCoroutine(ScaleTimeWithSpeed());
         }
     }
 
@@ -759,29 +798,29 @@ public class Gravity : PlayerAbility
     #endregion
 
     #region Movement Interactions
-    private Coroutine moveCameraCoroutine;
+    private Coroutine _moveCameraCoroutine;
 
     private void StartCollisionMoveCameraCoroutine()
     {
         if (!doCollisionAutoCamera)
             return;
-        if (moveCameraCoroutine != null)
-            StopCoroutine(moveCameraCoroutine);
-        moveCameraCoroutine = StartCoroutine(MoveCameraUp());
+        if (_moveCameraCoroutine != null)
+            StopCoroutine(_moveCameraCoroutine);
+        _moveCameraCoroutine = StartCoroutine(MoveCameraUp());
     }
 
     private void StartFallingMoveCameraCoroutine()
     {
         if (!doFlyingAutoCamera)
             return;
-        if (moveCameraCoroutine != null)
-            StopCoroutine(moveCameraCoroutine);
+        if (_moveCameraCoroutine != null)
+            StopCoroutine(_moveCameraCoroutine);
         if (CustomGravityMag <= 0)
             return;
         float expectedFallTime = Mathf.Sqrt((2f * (targetWall.distance - PM.playerSphereSize)) / CustomGravityMag);
         if (expectedFallTime <= 0)
             return;
-        moveCameraCoroutine = StartCoroutine(MoveCameraUp(false, expectedFallTime));
+        _moveCameraCoroutine = StartCoroutine(MoveCameraUp(false, expectedFallTime));
     }
 
     private IEnumerator MoveCameraUp(bool collisionVersion = true, float expectedDuration = 1)
@@ -841,13 +880,9 @@ public class Gravity : PlayerAbility
 
 
 /* TO DO:
- * - max duration for gravity jump
- * - button for slow motion while in mid air
  * - predicted trajectory line
- * - FINISH hold to reset (needs to not be overriden by shift on release)
  * - Make objects that disable gravity (to and/or on collisions)
  * - Object that gives/sets gravity change charges
- * - System for enabling/disabling abiliy parts (list of structs?)
  * - Object that disables parts of ability
  * - Let clamp go outside max when resetting
  * 
@@ -861,4 +896,8 @@ public class Gravity : PlayerAbility
  * - automatic camera pan after changing gravity
  * - option for disabling or reducing movement after gravity shift
  * - option for lowering sensitivity after gravity shift
+ * - max duration for gravity jump
+ * - button for slow motion while in mid air
+ * - FINISH hold to reset (needs to not be overriden by shift on release)
+ * - System for enabling/disabling abiliy parts (list of structs?)
  */

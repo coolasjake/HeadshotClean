@@ -6350,19 +6350,80 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a424d50ea040bbd42aaa01792208fc6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxResource: 1000000
-  RegenPerSecond: 100
-  MinToUse: 0
-  UseResource: 1
   gravityCirclePrefab: {fileID: 8011634177840255929, guid: 272e0e3cd65e49f449ce49dd707d9f76,
     type: 3}
+  abilityMeterPrefab: {fileID: 7627730130446649984, guid: 2c0b943f1f7d107428ac2ff916d5ad4d,
+    type: 3}
   GravitySFXPlayer: {fileID: 0}
-  gravityType: 0
+  abilitySettings:
+  - name: GravityJump
+    ability: 0
+    status: 2
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: GravityShift
+    ability: 1
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: FlyingGravity
+    ability: 2
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: SuperGravity
+    ability: 3
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: TimeSlow
+    ability: 4
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: TrajectoryLine
+    ability: 5
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: DownShift
+    ability: 6
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: GravityReset
+    ability: 7
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: MoonGravity
+    ability: 8
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
+  - name: ForceTransfer
+    ability: 9
+    status: 0
+    settingOne: 0
+    settingTwo: 0
+    condition: 
   flyDistance: 2
   superGravityWindow: 0.2
   maxGravityMultipliers: 3
+  gravityJumpMaxCharge: 0.5
+  gravityJumpRegenTime: 3
+  gravJumpRegenDelay: 0.5
   impactVelocity: 10
-  holdTimeToReset: 1
+  holdTimeToReset: 0.5
   reduceSenseWhileFlying: 1
   flyingSenseMultiplier: 0.3
   reduceControlWhileFlying: 1
@@ -6428,6 +6489,32 @@ MonoBehaviour:
     m_RotationOrder: 4
   stopAutoCameraThreshold: 0
   maxAutoCameraDur: 2
+  usedFixedSlowFactor: 1
+  timeSlowFactor:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 19.6
+      value: 0.33
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  fixedTimeSlowFactor: 0.5
 --- !u!54 &54659051475382338
 Rigidbody:
   m_ObjectHideFlags: 0
