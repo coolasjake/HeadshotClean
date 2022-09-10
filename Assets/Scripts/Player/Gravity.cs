@@ -20,6 +20,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
     private float defaultFixedTimeInterval;
 
     private float lastGrounded = float.NegativeInfinity;
+    private float tempClamp = 180;
 
     private Vector3 _customGravity;
     private Vector3 _customGravityDirection;
@@ -445,7 +446,10 @@ public class Gravity : MonoBehaviour//PlayerAbility
         }
         else
         {
-            ContextualShift(PM.MainCamera.transform.forward);
+            if (DoShiftFromContext(PM.MainCamera.transform.forward) == false)
+            {
+                print("Cancelling because target is not valid.");
+            }
         }
         forwardLastActivation = Time.time;
     }
@@ -464,7 +468,10 @@ public class Gravity : MonoBehaviour//PlayerAbility
         }
         else
         {
-            ContextualShift(-PM.MainCamera.transform.up);
+            if (DoShiftFromContext(-PM.MainCamera.transform.up) == false)
+            {
+                print("Cancelling because target is not valid.");
+            }
         }
         downLastActivation = Time.time;
     }
@@ -472,29 +479,28 @@ public class Gravity : MonoBehaviour//PlayerAbility
 
     /// <summary> Do a raycast with the specified direction (usually camera-forward or camera-down)
     /// and call either GravityShift or FlyingGravity based on the distance to the hit surface. </summary>
-    private bool ContextualShift(Vector3 direction)
+    private bool DoShiftFromContext(Vector3 direction)
     {
-        currentGravityMultipliers = 0;
-
-        if (Physics.Raycast(PM.MainCamera.transform.position, direction, out targetWall))
+        RaycastHit tempTargetWall;
+        if (Physics.Raycast(PM.MainCamera.transform.position, direction, out tempTargetWall))
         {
-            if (limitedGravityChanging && targetWall.transform.CompareTag(gravChangeEnabledTag) == false)
+            if (limitedGravityChanging && tempTargetWall.transform.CompareTag(gravChangeEnabledTag) == false)
                 return false;
 
             RaycastHit Hit;
             //If the raycast hits a surface less than double the flyDistance away, do a second raycast to see if there is a matching surface
             //less than the fly distance away in the direction gravity would be changed to. If so, align gravity with the surface.
-            if (targetWall.distance < flyDistance * 2f && Physics.Raycast(transform.position, targetWall.normal * -1, out Hit, flyDistance))
+            if (tempTargetWall.distance < flyDistance * 2f && Physics.Raycast(transform.position, tempTargetWall.normal * -1, out Hit, flyDistance))
             {
-                if (Hit.distance < flyDistance && VectorsAreSimilar(Hit.normal, targetWall.normal))
+                if (Hit.distance < flyDistance && VectorsAreSimilar(Hit.normal, tempTargetWall.normal))
                 {
-                    GravityShift();
+                    GravityShift(tempTargetWall);
                     return true;
                 }
             }
 
             //If the surface is too far away, call FlyingGravity.
-            FlyingGravity(direction);
+            FlyingGravity(direction, tempTargetWall);
             return true;
         }
 
@@ -502,33 +508,46 @@ public class Gravity : MonoBehaviour//PlayerAbility
             return false;
 
         //If no surface was found at all call FlyingGravity, but specify that the targetWall data will not be relevant.
-        FlyingGravity(direction, false);
+        FlyingGravity(direction, tempTargetWall, false);
         return true;
     }
 
     /// <summary> Change gravity to the normal of the target surface. </summary>
-    private void GravityShift()
+    private void GravityShift(RaycastHit newTargetWall)
     {
         if (!GetAbility(GravityAbility.GravityShift).TryUse())
-            return;
-
-        if (ShiftGravityDirection(1, targetWall.normal * -1))
         {
+            print("Cancelling because GravityShift (short distance shift) is disabled.");
+            return;
+        }
+
+        if (ShiftGravityDirection(1, newTargetWall.normal * -1))
+        {
+            targetWall = newTargetWall;
+            circle.Shift(targetWall.point - CustomGravityDir * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
             gravityType = GravityType.Aligned;
             StartCollisionMoveCameraCoroutine();
         }
     }
 
     /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift. </summary>
-    private void FlyingGravity(Vector3 direction, bool foundTarget = true)
+    private void FlyingGravity(Vector3 direction, RaycastHit newTargetWall, bool foundTarget = true)
     {
         if (!GetAbility(GravityAbility.FlyingGravity).TryUse())
+        {
+            print("Cancelling because flying (long distance shift) is disabled.");
             return;
+        }
 
         if (ShiftGravityDirection(1, direction))
         {
+            targetWall = newTargetWall;
+
             if (!foundTarget)
                 circle.Hide();
+            else
+                circle.Shift(targetWall.point - CustomGravityDir * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
+
             gravityType = GravityType.Unaligned;
             StartFallingMoveCameraCoroutine();
             ReduceSenseAndControl();
@@ -678,6 +697,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
 
         if (NewGravity == CustomGravity)
         {
+            print("Cancelling because no change.");
             return false;
         }
         else if (VectorsAreSimilar(NewGravity, Physics.gravity))
@@ -687,14 +707,15 @@ public class Gravity : MonoBehaviour//PlayerAbility
         }
         else if (VectorsAreSimilar(NewGravity, CustomGravity))
         {
+            print("Cancelling because too similar.");
             return false;
         }
-        else //Vectors ARE similar
+        else //Do shift
         {
+            currentGravityMultipliers = 0;
             RB.useGravity = false;
             CustomGravity = NewGravity;
             IntuitiveSnapRotation();
-            circle.Shift(targetWall.point - CustomGravityDir * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
             shiftPoint = transform.position;
             return true;
         }
@@ -790,8 +811,11 @@ public class Gravity : MonoBehaviour//PlayerAbility
             ((Vector3.Distance(targetWall.point, transform.position) < flyDistance /*|| Vector3.Distance(targetWall.point, shiftPoint) < flyDistance * 2*/) ||
             (Vector3.Distance(shiftPoint, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
         {
-            ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1);
-            StartCollisionMoveCameraCoroutine();
+            gravityType = GravityType.Aligned;
+            if (ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1))
+            {
+                StartCollisionMoveCameraCoroutine();
+            }
         }
     }
     #endregion
@@ -880,15 +904,13 @@ public class Gravity : MonoBehaviour//PlayerAbility
 
 /* TO DO:
  * - predicted trajectory line
- * - Make objects that disable gravity (to and/or on collisions)
  * - Object that gives/sets gravity change charges
- * - Object that disables parts of ability
- * - Let clamp go outside max when resetting
+ * - SuperGravity uses unscaled time?
+ * - try to fix rotation for forced-shifts
  * 
  *>> settings for:
  * - maximum shift distance
- * - cooldown between shifts
- * - limited number of shifts (with option to reset/increase)
+ * - limited number of shifts (with option to reset/increase) [untested]
  * 
  * Done:
  * - hold button to reset
@@ -899,4 +921,8 @@ public class Gravity : MonoBehaviour//PlayerAbility
  * - button for slow motion while in mid air
  * - FINISH hold to reset (needs to not be overriden by shift on release)
  * - System for enabling/disabling abiliy parts (list of structs?)
+ * - Object that disables parts of ability
+ * - Make objects that disable gravity (to and/or on collisions)
+ * - Let clamp go outside max when resetting
+ * - cooldown between shifts
  */

@@ -235,7 +235,19 @@ public class Movement : Shootable {
         //Apply the mouse input.
         _CameraAngle -= Input.GetAxis("Mouse Y") * Sensitivity;
         //Clamp the angle.
-        _CameraAngle = Mathf.Clamp(_CameraAngle, -clamp, clamp);
+        if (_CameraAngle > clamp || _CameraAngle < -clamp)
+        {
+            if (CameraWasWithinClamp)
+                _CameraAngle = Mathf.Clamp(_CameraAngle, -90, 90);
+            else
+            {
+                if (_CameraAngle > 90)
+                    _CameraAngle -= clampAdjustmentSpeed * Time.deltaTime;
+                if (_CameraAngle < -90)
+                    _CameraAngle += clampAdjustmentSpeed * Time.deltaTime;
+            }
+        }
+
 
         Quaternion NewRot = new Quaternion();
         NewRot.eulerAngles = new Vector3(_CameraAngle, CameraOrHolder.localRotation.y, 0);

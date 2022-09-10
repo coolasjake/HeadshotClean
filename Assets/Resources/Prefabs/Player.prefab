@@ -6358,64 +6358,44 @@ MonoBehaviour:
   abilitySettings:
   - name: GravityJump
     ability: 0
-    status: 2
+    status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: GravityShift
     ability: 1
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: FlyingGravity
     ability: 2
-    status: 0
+    status: 1
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: SuperGravity
     ability: 3
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: TimeSlow
     ability: 4
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: TrajectoryLine
     ability: 5
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: DownShift
     ability: 6
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: GravityReset
     ability: 7
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: MoonGravity
     ability: 8
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   - name: ForceTransfer
     ability: 9
     status: 0
     settingOne: 0
-    settingTwo: 0
-    condition: 
   flyDistance: 2
   superGravityWindow: 0.2
   maxGravityMultipliers: 3
@@ -6423,6 +6403,8 @@ MonoBehaviour:
   gravityJumpRegenTime: 3
   gravJumpRegenDelay: 0.5
   impactVelocity: 10
+  limitedGravityChanging: 1
+  gravChangeEnabledTag: CanShiftTo
   holdTimeToReset: 0.5
   reduceSenseWhileFlying: 1
   flyingSenseMultiplier: 0.3

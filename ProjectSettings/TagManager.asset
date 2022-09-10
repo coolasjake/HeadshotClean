@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Trigger
   - Softwall
+  - CanShiftTo
   layers:
   - Default
   - TransparentFX
