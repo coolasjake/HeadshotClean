@@ -19,6 +19,8 @@ public class Gravity : MonoBehaviour//PlayerAbility
     private float defaultGravityMagnitude = 9.8f;
     private float defaultFixedTimeInterval;
 
+    private float lastGrounded = float.NegativeInfinity;
+
     private Vector3 _customGravity;
     private Vector3 _customGravityDirection;
     private float _customGravityMagnitude;
@@ -65,6 +67,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
     #endregion
 
     #region AbilitySettings
+
     public enum GravityAbility
     {
         GravityJump,
@@ -83,8 +86,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
         Enabled,
         Disabled,
         Cooldown,
-        LimitedUses,
-        Special
+        LimitedUses
     }
     [System.Serializable]
     public class AbilitySettings
@@ -97,11 +99,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
         private AbilityStatus status = AbilityStatus.Enabled;
         [SerializeField]
         private float settingOne;
-        [SerializeField]
-        private float settingTwo;
-        [SerializeField]
 
-        private string condition;
         private float hiddenVariable;
 
         public AbilitySettings(GravityAbility Ability)
@@ -138,21 +136,6 @@ public class Gravity : MonoBehaviour//PlayerAbility
             status = AbilityStatus.LimitedUses;
             settingOne = NumberOfUses;
             hiddenVariable = settingOne;
-        }
-
-        public void SetCondition(string conditionName)
-        {
-            condition = conditionName;
-        }
-
-        public bool HasCondition()
-        {
-            return condition != null && condition != string.Empty;
-        }
-
-        public bool ConditionIs(string conditionName)
-        {
-            return condition.ToLower() == conditionName.ToLower();
         }
 
         public bool TryUse()
@@ -254,6 +237,12 @@ public class Gravity : MonoBehaviour//PlayerAbility
     /// <summary> The minimum velocity to play impact sounds at (or destroy robots on impact). </summary>
     [Tooltip("The minimum velocity to play impact sounds at (or destroy robots on impact).")]
     public float impactVelocity = 10;
+    /// <summary> If true the player can only GravityShift/FlyingGravity to surfaces with the correct Tag. </summary>
+    [Tooltip("If true the player can only GravityShift/FlyingGravity to surfaces with the correct Tag.")]
+    public bool limitedGravityChanging = true;
+    /// <summary> The Tag of objects the player is allowed to shift gravity towards (if limitedGravityChanging is on). </summary>
+    [Tooltip("If true the player can only GravityShift/FlyingGravity to surfaces with the correct Tag.")]
+    public string gravChangeEnabledTag = "CanShiftTo";
     #endregion
 
     #region ExperimentalSettings
@@ -376,8 +365,11 @@ public class Gravity : MonoBehaviour//PlayerAbility
         {
             MoonGravityModifier = false;
         }
+        
+        if (PM._Grounded)
+            lastGrounded = Time.time;
 
-        if (Input.GetButtonDown("Jump") && Time.time > PM._LastGrounded)// + 0.1f)
+        if (Input.GetButtonDown("Jump") && Time.time > lastGrounded)
         {
             GravityJumpStart();
         }
@@ -480,12 +472,15 @@ public class Gravity : MonoBehaviour//PlayerAbility
 
     /// <summary> Do a raycast with the specified direction (usually camera-forward or camera-down)
     /// and call either GravityShift or FlyingGravity based on the distance to the hit surface. </summary>
-    private void ContextualShift(Vector3 direction)
+    private bool ContextualShift(Vector3 direction)
     {
         currentGravityMultipliers = 0;
 
         if (Physics.Raycast(PM.MainCamera.transform.position, direction, out targetWall))
         {
+            if (limitedGravityChanging && targetWall.transform.CompareTag(gravChangeEnabledTag) == false)
+                return false;
+
             RaycastHit Hit;
             //If the raycast hits a surface less than double the flyDistance away, do a second raycast to see if there is a matching surface
             //less than the fly distance away in the direction gravity would be changed to. If so, align gravity with the surface.
@@ -494,17 +489,21 @@ public class Gravity : MonoBehaviour//PlayerAbility
                 if (Hit.distance < flyDistance && VectorsAreSimilar(Hit.normal, targetWall.normal))
                 {
                     GravityShift();
-                    return;
+                    return true;
                 }
             }
 
             //If the surface is too far away, call FlyingGravity.
             FlyingGravity(direction);
-            return;
+            return true;
         }
+
+        if (limitedGravityChanging)
+            return false;
 
         //If no surface was found at all call FlyingGravity, but specify that the targetWall data will not be relevant.
         FlyingGravity(direction, false);
+        return true;
     }
 
     /// <summary> Change gravity to the normal of the target surface. </summary>
