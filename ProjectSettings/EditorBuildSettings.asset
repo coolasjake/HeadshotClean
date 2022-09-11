@@ -6,13 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/Scenes/TestCity.unity
+    path: Assets/Scenes/OldScenes/TestCity.unity
     guid: 701d8f2ac56759745b0b9b11c4242781
   - enabled: 0
-    path: Assets/Scenes/TutorialBuild.unity
+    path: Assets/Scenes/OldScenes/TutorialBuild.unity
     guid: 7fb0d0e7b9087c242a9aa902ff5bb3b8
   - enabled: 0
-    path: Assets/Scenes/Death.unity
+    path: Assets/Scenes/OldScenes/Death.unity
     guid: 74b4bf46925d699449eee1d0b45fcc5f
   - enabled: 1
     path: Assets/RESTART/FreshStart.unity

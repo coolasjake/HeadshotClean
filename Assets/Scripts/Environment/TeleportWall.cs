@@ -21,4 +21,11 @@ public class TeleportWall : MonoBehaviour {
 		if (P)
 			P.Teleport (Exit.TeleportLocation);
 	}
+
+    void OnTriggerEnter(Collider other)
+    {
+        Movement P = other.gameObject.GetComponentInParent<Movement>();
+        if (P)
+            P.Teleport(Exit.TeleportLocation);
+    }
 }
