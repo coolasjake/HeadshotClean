@@ -442,16 +442,22 @@ public class Gravity : MonoBehaviour//PlayerAbility
     {
         if (Time.time < forwardLastActivation + superGravityWindow)
         {
-            SuperGravity();
+            if (SuperGravity())
+            {
+                forwardLastActivation = Time.time;
+            }
         }
         else
         {
-            if (DoShiftFromContext(PM.MainCamera.transform.forward) == false)
+            if (DoShiftFromContext(PM.MainCamera.transform.forward))
+            {
+                forwardLastActivation = Time.time;
+            }
+            else
             {
                 print("Cancelling because target is not valid.");
             }
         }
-        forwardLastActivation = Time.time;
     }
 
     /// <summary> The Time.time value of the last time the DownShift ability was used (for SuperGravity). </summary>
@@ -464,16 +470,22 @@ public class Gravity : MonoBehaviour//PlayerAbility
 
         if (Time.time < downLastActivation + superGravityWindow)
         {
-            SuperGravity();
+            if (SuperGravity())
+            {
+                downLastActivation = Time.time;
+            }
         }
         else
         {
-            if (DoShiftFromContext(-PM.MainCamera.transform.up) == false)
+            if (DoShiftFromContext(-PM.MainCamera.transform.up))
+            {
+                downLastActivation = Time.time;
+            }
+            else
             {
                 print("Cancelling because target is not valid.");
             }
         }
-        downLastActivation = Time.time;
     }
 
 
@@ -494,31 +506,28 @@ public class Gravity : MonoBehaviour//PlayerAbility
             {
                 if (Hit.distance < flyDistance && VectorsAreSimilar(Hit.normal, tempTargetWall.normal))
                 {
-                    GravityShift(tempTargetWall);
-                    return true;
+                    return GravityShift(tempTargetWall);
                 }
             }
 
             //If the surface is too far away, call FlyingGravity.
-            FlyingGravity(direction, tempTargetWall);
-            return true;
+            return FlyingGravity(direction, tempTargetWall);
         }
 
         if (limitedGravityChanging)
             return false;
 
         //If no surface was found at all call FlyingGravity, but specify that the targetWall data will not be relevant.
-        FlyingGravity(direction, tempTargetWall, false);
-        return true;
+        return FlyingGravity(direction, tempTargetWall, false);
     }
 
     /// <summary> Change gravity to the normal of the target surface. </summary>
-    private void GravityShift(RaycastHit newTargetWall)
+    private bool GravityShift(RaycastHit newTargetWall)
     {
         if (!GetAbility(GravityAbility.GravityShift).TryUse())
         {
             print("Cancelling because GravityShift (short distance shift) is disabled.");
-            return;
+            return false;
         }
 
         if (ShiftGravityDirection(1, newTargetWall.normal * -1))
@@ -528,15 +537,16 @@ public class Gravity : MonoBehaviour//PlayerAbility
             gravityType = GravityType.Aligned;
             StartCollisionMoveCameraCoroutine();
         }
+        return true;
     }
 
     /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift. </summary>
-    private void FlyingGravity(Vector3 direction, RaycastHit newTargetWall, bool foundTarget = true)
+    private bool FlyingGravity(Vector3 direction, RaycastHit newTargetWall, bool foundTarget = true)
     {
         if (!GetAbility(GravityAbility.FlyingGravity).TryUse())
         {
             print("Cancelling because flying (long distance shift) is disabled.");
-            return;
+            return false;
         }
 
         if (ShiftGravityDirection(1, direction))
@@ -552,15 +562,16 @@ public class Gravity : MonoBehaviour//PlayerAbility
             StartFallingMoveCameraCoroutine();
             ReduceSenseAndControl();
         }
+        return true;
     }
 
     [Min(0)]
     private int currentGravityMultipliers = 0;
     /// <summary> Multiply the current gravity magnitude by 2, up to the maximum number of multiplications. </summary>
-    private void SuperGravity()
+    private bool SuperGravity()
     {
         if (!GetAbility(GravityAbility.SuperGravity).TryUse())
-            return;
+            return false;
 
         if (currentGravityMultipliers < maxGravityMultipliers)
         {
@@ -569,7 +580,9 @@ public class Gravity : MonoBehaviour//PlayerAbility
             if (MoonGravityModifier)
                 newMultiplier = 0.5f / currentGravityMultipliers;
             ChangeGravityMagnitude(newMultiplier);
+            return true;
         }
+        return false;
     }
 
     private bool _slowingTime = false;
@@ -807,6 +820,9 @@ public class Gravity : MonoBehaviour//PlayerAbility
         //If Gravity is unaligned and shift is not being held AND
         //The distance to the target is less than the flyDistance, or the original distance to the target is less than double the flyDistance OR
         //The distance from the target point is less than the distance from the starting point.
+        print("On collision: type = " + gravityType
+            + ", target/player dist = " + Vector3.Distance(targetWall.point, transform.position)
+            + ", shiftPoint/player dist = " + Vector3.Distance(shiftPoint, transform.position));
         if (gravityType == GravityType.Unaligned &&
             ((Vector3.Distance(targetWall.point, transform.position) < flyDistance /*|| Vector3.Distance(targetWall.point, shiftPoint) < flyDistance * 2*/) ||
             (Vector3.Distance(shiftPoint, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
@@ -907,6 +923,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
  * - Object that gives/sets gravity change charges
  * - SuperGravity uses unscaled time?
  * - try to fix rotation for forced-shifts
+ * - movement stopping time
  * 
  *>> settings for:
  * - maximum shift distance
@@ -925,4 +942,6 @@ public class Gravity : MonoBehaviour//PlayerAbility
  * - Make objects that disable gravity (to and/or on collisions)
  * - Let clamp go outside max when resetting
  * - cooldown between shifts
+ * - Fix SuperGravity bug (can use even if shift didn't work)
+ * - Fix bug where collisions stop working (was caused by '_unCrouch' never turning off)
  */
