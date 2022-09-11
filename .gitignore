@@ -37,3 +37,4 @@ sysinfo.txt
 *.unitypackage
 ProjectSettings/Packages/com.unity.probuilder/Settings.json
 *.json
+*.meta
