@@ -267,7 +267,9 @@ public class Gravity : MonoBehaviour//PlayerAbility
     public AnimationCurve autoCameraSpeedForFlying = new AnimationCurve(new Keyframe[1] { new Keyframe(0, 90) });
     [Tooltip("Player mouse input required to cancel the auto camera. 0 to disable.")]
     public float stopAutoCameraThreshold = 0f;
+    public bool onlyStopForDown = true;
     public float maxAutoCameraDur = 2f;
+
     [Header("Time Slow")]
     public bool usedFixedSlowFactor = true;
     /// <summary> How much time is slowed at different speeds ('Time' = speed, 'Value' = factor). </summary>
@@ -820,17 +822,16 @@ public class Gravity : MonoBehaviour//PlayerAbility
         //If Gravity is unaligned and shift is not being held AND
         //The distance to the target is less than the flyDistance, or the original distance to the target is less than double the flyDistance OR
         //The distance from the target point is less than the distance from the starting point.
-        print("On collision: type = " + gravityType
-            + ", target/player dist = " + Vector3.Distance(targetWall.point, transform.position)
-            + ", shiftPoint/player dist = " + Vector3.Distance(shiftPoint, transform.position));
-        if (gravityType == GravityType.Unaligned &&
-            ((Vector3.Distance(targetWall.point, transform.position) < flyDistance /*|| Vector3.Distance(targetWall.point, shiftPoint) < flyDistance * 2*/) ||
-            (Vector3.Distance(shiftPoint, transform.position) > Vector3.Distance(targetWall.point, transform.position))))
+        if (gravityType == GravityType.Unaligned)
         {
-            gravityType = GravityType.Aligned;
-            if (ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1))
+            float distToTarget = Vector3.Distance(targetWall.point, transform.position);
+            if (distToTarget < flyDistance || (distToTarget < Vector3.Distance(shiftPoint, transform.position)))
             {
-                StartCollisionMoveCameraCoroutine();
+                gravityType = GravityType.Aligned;
+                if (ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1))
+                {
+                    StartCollisionMoveCameraCoroutine();
+                }
             }
         }
     }
@@ -866,19 +867,21 @@ public class Gravity : MonoBehaviour//PlayerAbility
     {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
         float startTime = Time.time;
-        float angleLastFrame = PM._CameraAngle;
+        float totalVerticalInput = 0;
         float fallingVersionSpeed = Utility.UnsignedDifference(PM._CameraAngle, 0) / expectedDuration;
         while (PM._CameraAngle.FurtherFromZero(0.1f))
         {
             if (Time.time > startTime + Mathf.Max(maxAutoCameraDur, expectedDuration))
-                break; //Break if the routine has been running for too long
+                yield break; //Break if the routine has been running for too long
 
             if (stopAutoCameraThreshold > 0)
             {
-                float frameDiff = Utility.UnsignedDifference(PM._CameraAngle, angleLastFrame);
-                print(frameDiff / Time.deltaTime);
-                if (frameDiff / Time.deltaTime > stopAutoCameraThreshold)
-                    break; //Break if the player manually moved the camera too much last frame
+                if (onlyStopForDown == false || Input.GetAxis("Mouse Y") < 0)
+                {
+                    totalVerticalInput += Mathf.Abs(Input.GetAxis("Mouse Y"));
+                    if (totalVerticalInput > stopAutoCameraThreshold)
+                        yield break;
+                }
             }
 
 
@@ -889,7 +892,6 @@ public class Gravity : MonoBehaviour//PlayerAbility
                 toMove = autoCameraSpeedForFlying.Evaluate(Time.time - startTime);
 
             PM._CameraAngle = Mathf.MoveTowards(PM._CameraAngle, 0, toMove * Time.deltaTime);
-            angleLastFrame = PM._CameraAngle;
             yield return wait;
         }
     }
@@ -924,6 +926,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
  * - SuperGravity uses unscaled time?
  * - try to fix rotation for forced-shifts
  * - movement stopping time
+ * - fix camera move cancel bug
  * 
  *>> settings for:
  * - maximum shift distance
