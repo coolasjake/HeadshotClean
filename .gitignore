@@ -38,3 +38,4 @@ sysinfo.txt
 ProjectSettings/Packages/com.unity.probuilder/Settings.json
 *.json
 *.meta
+Assets/Packages/Lava_Flowing_Shader/Materials/mtl_lava_distort.mat

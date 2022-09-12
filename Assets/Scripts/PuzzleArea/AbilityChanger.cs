@@ -9,7 +9,6 @@ public class AbilityChanger : MonoBehaviour
 
     public void ChangeAbility()
     {
-        print("Setting " + ability.ToString() + " to " + status.ToString());
         Movement.ThePlayer.GetComponent<Gravity>().SetAbilityStatus(ability, status);
     }
 }
