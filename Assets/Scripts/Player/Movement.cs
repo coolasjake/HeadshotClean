@@ -290,6 +290,8 @@ public class Movement : Shootable {
         }
         else if (_crouching)
             UnCrouch();
+        else
+            _unCrouching = false;
     }
 
     private void UpdMove()
