@@ -904,92 +904,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
---- !u!1 &770442154
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 770442158}
-  - component: {fileID: 770442157}
-  - component: {fileID: 770442156}
-  - component: {fileID: 770442155}
-  m_Layer: 0
-  m_Name: GravJump Disable Trigger
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &770442155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 770442154}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3dcebd6de195baa459bb92c5afd92cb8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ability: 0
-  status: 1
---- !u!114 &770442156
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 770442154}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a5a4c533205db2f45b54e38db637e64b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  effect:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 770442155}
-        m_MethodName: ChangeAbility
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
---- !u!65 &770442157
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 770442154}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!4 &770442158
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 770442154}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -9.75, y: 2, z: -51.75}
-  m_LocalScale: {x: 1, y: 2, z: 2}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 16
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &822225071
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1586,6 +1500,31 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: jumpVelocity
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114100980628957524, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: jumpVelocityPerSecondHeld
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: gravityJumpMaxCharge
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: abilitySettings.Array.data[0].status
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
+        type: 3}
+      propertyPath: gravityJumpRegenTime
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
 --- !u!1 &1212737784
@@ -1606,7 +1545,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1212737785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1658,8 +1597,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 4.663227, y: 3.1472697, z: 0.7366829}
+  m_Center: {x: 0.15437317, y: -0.17153907, z: -0.13165855}
 --- !u!4 &1212737788
 Transform:
   m_ObjectHideFlags: 0
@@ -1668,11 +1607,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1212737784}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -15.75, y: 2, z: -51.75}
+  m_LocalPosition: {x: 16.56, y: -12.56, z: -33.5}
   m_LocalScale: {x: 1, y: 2, z: 2}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 17
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1315858731
 GameObject:
