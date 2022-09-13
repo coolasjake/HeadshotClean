@@ -1458,15 +1458,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4210383356121638, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.62
+      value: 17.91
       objectReference: {fileID: 0}
     - target: {fileID: 4210383356121638, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.8020401
+      value: -11.9
       objectReference: {fileID: 0}
     - target: {fileID: 4210383356121638, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -19.680706
+      value: -23.77
       objectReference: {fileID: 0}
     - target: {fileID: 4210383356121638, guid: 60ee08027849ba9498b68e338754cbe8, type: 3}
       propertyPath: m_LocalRotation.x
@@ -1513,7 +1513,7 @@ PrefabInstance:
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
       propertyPath: gravityJumpMaxCharge
-      value: 3
+      value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 114819942403559452, guid: 60ee08027849ba9498b68e338754cbe8,
         type: 3}
