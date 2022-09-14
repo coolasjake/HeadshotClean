@@ -453,9 +453,19 @@ public class Movement : Shootable {
 		//Play sounds or animations here.
 		transform.position = Location;
 		RB.velocity = Vector3.zero;
-	}
+    }
 
-	public override void Hit(float Damage) {
+    public void Teleport(Vector3 Location, float XRot, float YRot, bool ResetVel)
+    {
+        //Play sounds or animations here.
+        transform.position = Location;
+        _CameraAngle = YRot;
+        //transform.localRotation = Quaternion.AngleAxis(XRot, Vector3.forward);
+        if (ResetVel)
+            RB.velocity = Vector3.zero;
+    }
+
+    public override void Hit(float Damage) {
 		Health -= Damage;
 		HealthBar.value = Health / 100f;
 		if (Health <= 0 && !disableDeath) {

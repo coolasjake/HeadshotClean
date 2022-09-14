@@ -737,7 +737,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
     }
 
     /// <summary> Change gravity to the default for the scene. </summary>
-	private bool ResetToWorldGravity()
+	public bool ResetToWorldGravity()
     {
         if (gravityType != GravityType.Normal)
         {
