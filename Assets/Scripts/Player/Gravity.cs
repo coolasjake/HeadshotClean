@@ -298,7 +298,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
             GravitySFXPlayer = GetComponentInChildren<AudioSource>();
 
         //Find UI elements
-        GameObject GravityUI = UIManager.stat.LoadOrGetUI("Gravity");
+        //GameObject GravityUI = UIManager.stat.LoadOrGetUI("Gravity");
         //meter = GravityUI.GetComponentInChildren<ResourceMeter>();
         //dragonMeter = GravityUI.GetComponentInChildren<BarDisplay>();
         UIGyroscope = GetComponentInChildren<GravityRep>();
@@ -319,6 +319,10 @@ public class Gravity : MonoBehaviour//PlayerAbility
     {
         InputLogic();
         CustomGravityTick();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
     }
     #endregion
 
@@ -510,6 +514,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
                 {
                     return GravityShift(tempTargetWall);
                 }
+                print("Here");
             }
 
             //If the surface is too far away, call FlyingGravity.

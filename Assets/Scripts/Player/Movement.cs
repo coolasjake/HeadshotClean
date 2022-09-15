@@ -130,9 +130,9 @@ public class Movement : Shootable {
 	}
 
 	void Start () {
-		EnemyCounter.MaxBasicEnemies = FindObjectsOfType<BaseEnemy> ().Length;
-		EnemyCounter.MaxFollowingEnemies = FindObjectsOfType<MovingEnemy> ().Length;
-		EnemyCounter.UpdateScoreboard ();
+		//EnemyCounter.MaxBasicEnemies = FindObjectsOfType<BaseEnemy> ().Length;
+		//EnemyCounter.MaxFollowingEnemies = FindObjectsOfType<MovingEnemy> ().Length;
+		//EnemyCounter.UpdateScoreboard ();
 
 		MainCamera = GetComponentInChildren<Camera> ();
         if (CameraOrHolder == null)
@@ -238,12 +238,12 @@ public class Movement : Shootable {
         if (_CameraAngle > clamp || _CameraAngle < -clamp)
         {
             if (CameraWasWithinClamp)
-                _CameraAngle = Mathf.Clamp(_CameraAngle, -90, 90);
+                _CameraAngle = Mathf.Clamp(_CameraAngle, -clamp, clamp);
             else
             {
-                if (_CameraAngle > 90)
+                if (_CameraAngle > clamp)
                     _CameraAngle -= clampAdjustmentSpeed * Time.deltaTime;
-                if (_CameraAngle < -90)
+                if (_CameraAngle < -clamp)
                     _CameraAngle += clampAdjustmentSpeed * Time.deltaTime;
             }
         }

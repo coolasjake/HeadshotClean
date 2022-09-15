@@ -179,7 +179,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1186216186955244959
 RectTransform:
   m_ObjectHideFlags: 0
@@ -369,7 +369,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1185954770868644759
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1313,18 +1313,18 @@ MonoBehaviour:
   m_Text: 'CONTROLS:
 
 
-    Phase
-
-    Half / Full / Double Gravity
-
-    Unaligned
-    Gravity
+    Change Gravity
 
     Reset Gravity
 
-    Custom Gravity
+    Zero-G Jump
 
-    Laser Mode'
+    Super
+    Gravity
+
+    Moon Gravity
+
+    Time Slow'
 --- !u!1 &1399856376902723499
 GameObject:
   m_ObjectHideFlags: 0
@@ -2201,7 +2201,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1186636431927149703
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2329,7 +2329,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1186470342835436559
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3528,17 +3528,18 @@ MonoBehaviour:
   m_Text: '
 
 
-    E
+    F
 
-    X/F/Q
+    Hold then release C
 
-    SHIFT + X/F/Q
+    Space (while in air)
 
-    C
+    F + F
 
-    (Hold) Ctrl + F/C
+    Ctrl
+    + F + F
 
-    TAB
+    Shift
 
 '
 --- !u!1 &1400587550655696889
