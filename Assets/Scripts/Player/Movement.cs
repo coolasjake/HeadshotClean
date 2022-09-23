@@ -224,40 +224,48 @@ public class Movement : Shootable {
     private void UpdCamera()
     {
         //CAMERA CONTROL
-
-        //CAMERA X-ROTATION
-        //Clamp the angle to a range of -180 to 180 instead of 0 to 360 for easier maths.
-        if (_CameraAngle > 180 || _CameraAngle < -180)
-            _CameraAngle = ClampAngleTo180(_CameraAngle);
-
-        //Check if the camera was within the clamps before input (in case it was changed, eg by Gravity)
-        bool CameraWasWithinClamp = (_CameraAngle <= clamp) && (_CameraAngle >= -clamp);
-        //Apply the mouse input.
-        _CameraAngle -= Input.GetAxis("Mouse Y") * Sensitivity;
-        //Clamp the angle.
-        if (_CameraAngle > clamp || _CameraAngle < -clamp)
-        {
-            if (CameraWasWithinClamp)
-                _CameraAngle = Mathf.Clamp(_CameraAngle, -clamp, clamp);
-            else
-            {
-                if (_CameraAngle > clamp)
-                    _CameraAngle -= clampAdjustmentSpeed * Time.deltaTime;
-                if (_CameraAngle < -clamp)
-                    _CameraAngle += clampAdjustmentSpeed * Time.deltaTime;
-            }
-        }
-
-
-        Quaternion NewRot = new Quaternion();
-        NewRot.eulerAngles = new Vector3(_CameraAngle, CameraOrHolder.localRotation.y, 0);
-        CameraOrHolder.localRotation = NewRot;
+        CameraAngle -= Input.GetAxis("Mouse Y") * Sensitivity;
 
         //Rotate player
         float rotationX = -Input.GetAxis("Mouse X") * Sensitivity;
-        if (_CameraAngle.Outside(-90, 90))
+        if (CameraAngle.Outside(-90, 90))
             rotationX *= -1;
         transform.localRotation *= Quaternion.AngleAxis(rotationX, Vector3.forward);
+    }
+
+    public float CameraAngle
+    {
+        get { return _CameraAngle; }
+        set
+        {
+            //CAMERA X-ROTATION
+            //Clamp the angle to a range of -180 to 180 instead of 0 to 360 for easier maths.
+            if (_CameraAngle > 180 || _CameraAngle < -180)
+                _CameraAngle = ClampAngleTo180(_CameraAngle);
+
+            //Check if the camera was within the clamps before input (in case it was changed, eg by Gravity)
+            bool CameraWasWithinClamp = (_CameraAngle <= clamp) && (_CameraAngle >= -clamp);
+            //Apply the mouse input.
+            _CameraAngle = value;
+            //Clamp the angle.
+            if (_CameraAngle > clamp || _CameraAngle < -clamp)
+            {
+                if (CameraWasWithinClamp)
+                    _CameraAngle = Mathf.Clamp(_CameraAngle, -clamp, clamp);
+                else
+                {
+                    if (_CameraAngle > clamp)
+                        _CameraAngle -= clampAdjustmentSpeed * Time.deltaTime;
+                    if (_CameraAngle < -clamp)
+                        _CameraAngle += clampAdjustmentSpeed * Time.deltaTime;
+                }
+            }
+
+
+            Quaternion NewRot = new Quaternion();
+            NewRot.eulerAngles = new Vector3(_CameraAngle, CameraOrHolder.localRotation.y, 0);
+            CameraOrHolder.localRotation = NewRot;
+        }
     }
 
     protected float Sensitivity

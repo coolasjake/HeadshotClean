@@ -764,7 +764,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
         CustomIntuitiveSnapRotation(CustomGravity);
     }
 
-    private void CustomIntuitiveSnapRotation(Vector3 direction)
+    private void CustomIntuitiveSnapRotationTwo(Vector3 direction)
     {
         Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
         Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
@@ -780,6 +780,24 @@ public class Gravity : MonoBehaviour//PlayerAbility
         float Signed = Vector3.SignedAngle(OriginalFacing, PM.MainCamera.transform.forward, transform.right);
         PM._CameraAngle -= Signed;
         PM.MainCamera.transform.rotation = CameraPreRotation;
+    }
+
+    private void CustomIntuitiveSnapRotation(Vector3 direction)
+    {
+        Vector3 CameraPreRotation = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
+
+        //Rotate the players 'body'.
+        transform.localRotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.right);
+        transform.localRotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.forward);
+        Quaternion NewRot = new Quaternion();
+        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
+        transform.localRotation = NewRot;
+
+        float vertRot = Vector3.SignedAngle(PM.MainCamera.transform.forward, CameraPreRotation, PM.MainCamera.transform.right);
+        PM.CameraAngle += vertRot;
+
+        float horRot = Vector3.SignedAngle(PM.MainCamera.transform.forward, CameraPreRotation, transform.forward);
+        transform.localRotation *= Quaternion.AngleAxis(horRot, Vector3.forward);
     }
 
     /// <summary> Apply the gravity force (usually CurrentGravityMagnitude) to the player. </summary>
