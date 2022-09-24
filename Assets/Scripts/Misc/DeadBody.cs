@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DeadBody : DistinctObject {
+public class DeadBody : MonoBehaviour {
 
 	public float DestructionTime = 4f;
 

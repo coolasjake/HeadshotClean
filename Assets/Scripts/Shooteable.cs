@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Shootable : DistinctObject {
+public abstract class Shootable : MonoBehaviour {
 
 
     [Header("Shootable")]

@@ -55,7 +55,7 @@ public class LaserTurret : LaserMiner {
 		LastRefresh = Random.value * RefreshRate;
 		FP = GetComponentInChildren<FiringPoint> ();
 
-		GameObject DI = Instantiate (Resources.Load<GameObject> ("Prefabs/DetectionIndicator"), FindObjectOfType<Canvas> ().transform);
+		GameObject DI = Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/DetectionIndicator"), FindObjectOfType<Canvas> ().transform);
 		DI.GetComponent<DetectionIndicator> ().Target = transform;
 	}
 		

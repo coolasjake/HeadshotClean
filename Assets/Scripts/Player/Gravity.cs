@@ -808,8 +808,6 @@ public class Gravity : MonoBehaviour//PlayerAbility
                 BaseEnemy Enemy = col.transform.GetComponentInParent<BaseEnemy>();
                 if (Enemy)
                 {
-                    AchievementTracker.StompKills += 1;
-                    AchievementTracker.EnemyDied();
                     Enemy.Die();
                 }
             }

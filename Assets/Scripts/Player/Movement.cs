@@ -175,7 +175,7 @@ public class Movement : Shootable {
 
 		//transform.position = PlayerStartPosition;
 
-		Resources.Load<GameObject> ("Prefabs/DeadBody");
+		Resources.Load<GameObject> ("Prefabs/Enemies/DeadBody");
 	}
 
 	void Update () {
@@ -213,11 +213,9 @@ public class Movement : Shootable {
         if (_Grounded)
         {
             _LastGrounded = Time.time;
-            AchievementTracker.TouchedTheGround();
         }
         else
         {
-            AchievementTracker.InAir = true;
             _OnSoftWall = false;
         }
     }
@@ -428,7 +426,6 @@ public class Movement : Shootable {
             if (!Input.GetKeyDown(KeyCode.BackQuote))
             {
                 Menu.SetActive(true);
-                AchievementTracker.UpdateAchievements();
             }
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -495,31 +492,7 @@ public class Movement : Shootable {
 		}
 	}
 
-    /// <summary> Disables all abilities except the specified one. OBSOLETE. </summary>
-	public void DisableAbilities (PlayerAbility NotMe) {
-		foreach (PlayerAbility Ability in GetComponentsInChildren<PlayerAbility>()) {
-            if (Ability != NotMe)
-                Ability.Disable();
-		}
-	}
-
-    /// <summary> Enables all abilities on the player. OBSOLETE. </summary>
-	public void EnableAbilities () {
-		foreach (PlayerAbility Ability in GetComponentsInChildren<PlayerAbility>()) {
-			Ability.Enable();
-		}
-	}
-
     //MENU FUNCTIONS:
-
-	public void SetPhaseMode (Dropdown Option) {
-		if (Option.value == 0)
-			GetComponent<Phasing> ().Mode = InputMode.Tap;
-		else if (Option.value == 1)
-			GetComponent<Phasing> ().Mode = InputMode.Hold;
-		else
-			GetComponent<Phasing> ().Mode = InputMode.Toggle;
-	}
 
 	public void SetSensitivity (GameObject TextObject) {
 		userSensitivity = float.Parse(TextObject.GetComponent<Text>().text);

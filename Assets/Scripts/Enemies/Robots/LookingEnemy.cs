@@ -162,14 +162,14 @@ public abstract class LookingEnemy : BaseEnemy {
 		StartedSearching = Time.time;
 	}
 
-	public void DetectBody (DistinctObject Object) {
+	public void DetectBody (DeadBody Body) {
 		RaycastHit Hit;
 		bool CanSee = false;
-		if (Physics.Raycast (transform.position, (Object.transform.position - transform.position), out Hit)) {
-			if (Hit.transform.GetComponentInParent<DistinctObject> () == Object) {
-				if (Vector3.Angle (Head.transform.forward, Object.transform.position - Head.transform.position) < AlertDetectionAngle)
+		if (Physics.Raycast (transform.position, (Body.transform.position - transform.position), out Hit)) {
+			if (Hit.transform.GetComponentInParent<DeadBody> () == Body) {
+				if (Vector3.Angle (Head.transform.forward, Body.transform.position - Head.transform.position) < AlertDetectionAngle)
 					CanSee = true;
-				else if (Vector3.Distance (Object.transform.position, transform.position) < AutoDetectionDistance)
+				else if (Vector3.Distance (Body.transform.position, transform.position) < AutoDetectionDistance)
 					CanSee = true;
 			}
 		}
@@ -183,11 +183,9 @@ public abstract class LookingEnemy : BaseEnemy {
 	public override void Die() {
 		if (!Died) {
 			EnemyCounter.BasicEnemiesKilled += 1;
-			if (GetComponent<WhiteRobot> ())
-				EnemyCounter.WhiteRabbitFound = true;
 			EnemyCounter.UpdateScoreboard ();
 			Network.AlarmedBots -= 1;
-			Instantiate (Resources.Load<GameObject> ("Prefabs/DeadBody"), transform.position, transform.rotation);
+			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/DeadBody"), transform.position, transform.rotation);
 		}
 		Died = true;
 		Destroy (gameObject);

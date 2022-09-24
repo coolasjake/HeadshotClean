@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 public class DeathMenu : MonoBehaviour {
 
 	void Start () {
-		AchievementTracker.UpdateAchievements ();
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
 	}

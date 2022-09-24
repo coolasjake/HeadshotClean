@@ -30,19 +30,17 @@ public class BaseEnemy : Shootable {
 		//Sight will be stopped by:
 		//Default, Player, Ground.
 		RaycastLookingMask = 1 << 0 | 1 << 8 | 1 << 9 | 1 << 10 | 1 << 17;
-		if (Random.value < AwakenChance && !GetComponent<WhiteRobot> ()) {
-			Instantiate (Resources.Load<GameObject> ("Prefabs/Laser Enemy"), transform.position, new Quaternion ());
+		if (Random.value < AwakenChance) {
+			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/Laser Enemy"), transform.position, new Quaternion ());
 			Destroy (gameObject);
-		} else if (Random.value < TurretChance && !GetComponent<WhiteRobot> ()) {
-			Instantiate (Resources.Load<GameObject> ("Prefabs/Turret Enemy"), transform.position, new Quaternion ());
+		} else if (Random.value < TurretChance) {
+			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/Turret Enemy"), transform.position, new Quaternion ());
 			Destroy (gameObject);
 		}
 		SFXPlayer = GetComponent<AudioManager> ();
 	}
 
 	public void Headshot() {
-		AchievementTracker.GunKills += 1;
-		AchievementTracker.EnemyDied ();
 		Hit (3);
 		//Die ();
 	}
@@ -50,8 +48,6 @@ public class BaseEnemy : Shootable {
 	public override void Hit(float Damage) {
 		Health -= Damage;
 		if (Health <= 0) {
-			AchievementTracker.GunKills += 1;
-			AchievementTracker.EnemyDied ();
 			Die ();
 		}
 	}
@@ -59,10 +55,8 @@ public class BaseEnemy : Shootable {
 	public virtual void Die() {
 		if (!Died) {
 			EnemyCounter.BasicEnemiesKilled += 1;
-			if (GetComponent<WhiteRobot> ())
-				EnemyCounter.WhiteRabbitFound = true;
 			EnemyCounter.UpdateScoreboard ();
-			Instantiate (Resources.Load<GameObject> ("Prefabs/DeadBody"), transform.position, transform.rotation);
+			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/DeadBody"), transform.position, transform.rotation);
 		}
 		Died = true;
 		Destroy (gameObject);

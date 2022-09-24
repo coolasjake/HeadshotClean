@@ -5,10 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class Menu : MonoBehaviour {
 
-	void Start () {
-		AchievementTracker.UpdateAchievements ();
-	}
-
 	public void RestartProgram() {
 		SceneManager.LoadScene ("TestCity");
 	}

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Gun : PlayerAbility {
+public class Gun : MonoBehaviour {
 
 	//public LineRenderer Line;
 	public Transform GunModel;
@@ -25,17 +25,15 @@ public class Gun : PlayerAbility {
 
 	void Start () {
 		SFXPlayer = GetComponent<AudioManager> ();
-		if (Disabled)
-			HideGun ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetButton ("Fire") && !Disabled)
+		if (Input.GetButton ("Fire"))
 			WannaShoot = true;
 		if (Input.GetKeyDown (KeyCode.Tab))
 			Laser = !Laser;
-		if (Time.time - LastShot > RecoilTime && Input.GetMouseButton (0) && !Disabled && !WannaShoot)
+		if (Time.time - LastShot > RecoilTime && Input.GetMouseButton (0) && !WannaShoot)
 			WannaShoot = true;
 		Frames += 1;
 		//Debug.Log ("Average FPS: " + Frames / Time.time);
@@ -58,7 +56,7 @@ public class Gun : PlayerAbility {
 			GunModel.localRotation = GunRotation;
 		}
 
-		if (Laser && !Disabled) {
+		if (Laser) {
 			//Tracking mode, call hit on target every update.
 			RaycastHit Hit;
 
@@ -130,18 +128,6 @@ public class Gun : PlayerAbility {
 		}
 		WannaShoot = false;
 	}
-
-    public override void Disable()
-    {
-        base.Disable();
-        HideGun();
-    }
-
-    public override void Enable()
-    {
-        base.Enable();
-        RevealGun();
-    }
 
     private void HideGun () {
 		GunModel.gameObject.SetActive (false);
