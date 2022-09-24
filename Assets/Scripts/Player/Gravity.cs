@@ -587,6 +587,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
             if (MoonGravityModifier)
                 newMultiplier = 0.5f / currentGravityMultipliers;
             ChangeGravityMagnitude(newMultiplier);
+            StartFallingMoveCameraCoroutine();
             return true;
         }
         return false;
@@ -761,43 +762,19 @@ public class Gravity : MonoBehaviour//PlayerAbility
     /// NOTE: (accuracy is usually impossible since the position of the camera moves, and players focus is often different from their aim). </summary>
     private void IntuitiveSnapRotation()
     {
-        CustomIntuitiveSnapRotation(CustomGravity);
+        //CustomIntuitiveSnapRotation(CustomGravity);
+        TestSnapRotation(CustomGravity);
     }
 
-    private void CustomIntuitiveSnapRotationTwo(Vector3 direction)
+    private void TestSnapRotation(Vector3 direction)
     {
-        Quaternion CameraPreRotation = PM.MainCamera.transform.rotation;
-        Vector3 OriginalFacing = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
+        Vector3 originalCamForward = PM.MainCamera.transform.forward;
+        Vector3 originalCamRight = PM.MainCamera.transform.right;
 
-        //Rotate the players 'body'.
-        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.right);
-        transform.rotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.forward);
-        Quaternion NewRot = new Quaternion();
-        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
-        transform.localRotation = NewRot;
+        transform.localRotation = Quaternion.LookRotation(direction, transform.up);
 
-        //Calculate the angle difference between the two rotations, then save the 'number of full rotations' it represents.
-        float Signed = Vector3.SignedAngle(OriginalFacing, PM.MainCamera.transform.forward, transform.right);
-        PM._CameraAngle -= Signed;
-        PM.MainCamera.transform.rotation = CameraPreRotation;
-    }
-
-    private void CustomIntuitiveSnapRotation(Vector3 direction)
-    {
-        Vector3 CameraPreRotation = PM.MainCamera.transform.forward; //Remember that forward is down (the feet of the player) to let LookRotation work.
-
-        //Rotate the players 'body'.
-        transform.localRotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.right);
-        transform.localRotation = Quaternion.LookRotation(direction, GetComponentInChildren<GravityReference>().transform.forward);
-        Quaternion NewRot = new Quaternion();
-        NewRot.eulerAngles = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z + 90);
-        transform.localRotation = NewRot;
-
-        float vertRot = Vector3.SignedAngle(PM.MainCamera.transform.forward, CameraPreRotation, PM.MainCamera.transform.right);
+        float vertRot = Vector3.SignedAngle(PM.MainCamera.transform.forward, originalCamForward, originalCamRight);
         PM.CameraAngle += vertRot;
-
-        float horRot = Vector3.SignedAngle(PM.MainCamera.transform.forward, CameraPreRotation, transform.forward);
-        transform.localRotation *= Quaternion.AngleAxis(horRot, Vector3.forward);
     }
 
     /// <summary> Apply the gravity force (usually CurrentGravityMagnitude) to the player. </summary>
@@ -885,16 +862,24 @@ public class Gravity : MonoBehaviour//PlayerAbility
             return;
         _moveCameraCoroutine = StartCoroutine(MoveCameraUp(false, expectedFallTime));
     }
-
+    
     private IEnumerator MoveCameraUp(bool collisionVersion = true, float expectedDuration = 1)
     {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
         float startTime = Time.time;
         float totalVerticalInput = 0;
-        float fallingVersionSpeed = Utility.UnsignedDifference(PM._CameraAngle, 0) / expectedDuration;
+        float fallingVersionSpeed = 1;
+        if (collisionVersion == false)
+        {
+            float clampedDuration = Mathf.Min(maxAutoCameraDur, expectedDuration);
+            float fallingDelay = expectedDuration - clampedDuration;
+            fallingVersionSpeed = Utility.UnsignedDifference(PM._CameraAngle, 0) / clampedDuration;
+            yield return new WaitForSeconds(fallingDelay);
+            startTime = Time.time;
+        }
         while (PM._CameraAngle.FurtherFromZero(0.1f))
         {
-            if (Time.time > startTime + Mathf.Max(maxAutoCameraDur, expectedDuration))
+            if (Time.time > startTime + Mathf.Min(maxAutoCameraDur, expectedDuration))
                 yield break; //Break if the routine has been running for too long
 
             if (stopAutoCameraThreshold > 0)

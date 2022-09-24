@@ -30,6 +30,7 @@ public class Movement : Shootable {
 	public Camera MainCamera;
     [Header("References")]
     public Transform CameraOrHolder;
+    public Transform RotationBody;
     public Camera DeathCamera;
 	protected Rigidbody RB;
 	private Transform Body;
@@ -307,8 +308,8 @@ public class Movement : Shootable {
         //--------------------------MOVEMENT PHYSICS + INPUTS--------------------------//
         //INPUT
         Vector3 desiredDirection = new Vector3();
-        desiredDirection += transform.up * Input.GetAxis("Vertical");
-        desiredDirection += transform.right * Input.GetAxis("Horizontal");
+        desiredDirection += RotationBody.transform.forward * Input.GetAxis("Vertical");
+        desiredDirection += RotationBody.transform.right * Input.GetAxis("Horizontal");
 
         desiredDirection.Normalize();
 

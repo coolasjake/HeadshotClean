@@ -1528,7 +1528,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1410529612892250}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: -0.5, y: 0.5, z: -0.5, w: 0.5}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1539,7 +1539,7 @@ Transform:
   - {fileID: 4209380579236496}
   m_Father: {fileID: 4210383356121638}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: -90}
 --- !u!114 &114444837998537362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6371,6 +6371,7 @@ MonoBehaviour:
   FULargestDeltaLastSecond: 0
   LateralVelocityBeforeFriction: 0
   CameraOrHolder: {fileID: 0}
+  RotationBody: {fileID: 4482876731186464}
   DeathCamera: {fileID: 0}
   SFXPlayer: {fileID: 0}
   ImpactEffect: {fileID: 0}
@@ -6379,14 +6380,14 @@ MonoBehaviour:
   clamp: 89.99
   clampAdjustmentSpeed: 180
   userSensitivity: 1
-  maxSpeed: 4
+  maxSpeed: 6
   acceleration: 20
   stoppingForce: 500
   frictionForce: 100
-  airControlFactor: 0.5
-  jumpVelocity: 4
-  jumpVelocityPerSecondHeld: 30
-  maxJumpTime: 0.2
+  airControlFactor: 0.1
+  jumpVelocity: 5
+  jumpVelocityPerSecondHeld: 20
+  maxJumpTime: 0.1
   jumpLeniency: 0.1
   playerSphereSize: 2
   playerWaistSize: 0.5
@@ -6423,7 +6424,7 @@ MonoBehaviour:
   abilitySettings:
   - name: GravityJump
     ability: 0
-    status: 0
+    status: 1
     settingOne: 0
   - name: GravityShift
     ability: 1
@@ -6461,10 +6462,10 @@ MonoBehaviour:
     ability: 9
     status: 0
     settingOne: 0
-  flyDistance: 2
+  flyDistance: 3
   superGravityWindow: 0.2
   maxGravityMultipliers: 3
-  gravityJumpMaxCharge: 0.5
+  gravityJumpMaxCharge: 6
   gravityJumpRegenTime: 3
   gravJumpRegenDelay: 0.5
   impactVelocity: 10
@@ -6534,9 +6535,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  stopAutoCameraThreshold: 0
+  stopAutoCameraThreshold: 20
   onlyStopForDown: 1
-  maxAutoCameraDur: 2
+  maxAutoCameraDur: 3
   usedFixedSlowFactor: 1
   timeSlowFactor:
     serializedVersion: 2
@@ -6563,6 +6564,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   fixedTimeSlowFactor: 0.5
+  debugObjects: 1
 --- !u!54 &54659051475382338
 Rigidbody:
   m_ObjectHideFlags: 0
