@@ -11,14 +11,11 @@ public class FiringPoint : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		DangerLight = GetComponentInChildren<Light> ();
-		DangerLight.enabled = false;
-		if (GetComponentsInChildren<Light> ().Length > 1) {
-			AlertLight = GetComponentsInChildren<Light> () [1];
-			AlertLight.enabled = false;
-		}
-		EffectLine = GetComponentInChildren<LineRenderer> ();
-		EffectLine.enabled = false;
-		//ParticleEffect = GetComponentInChildren<ParticleSystem> ();
+        if (DangerLight)
+		    DangerLight.enabled = false;
+        if (AlertLight)
+            AlertLight.enabled = false;
+        if (EffectLine)
+            EffectLine.enabled = false;
 	}
 }

@@ -472,9 +472,9 @@ public class Movement : Shootable {
     }
 
     public override void Hit(float Damage) {
-		Health -= Damage;
-		HealthBar.value = Health / 100f;
-		if (Health <= 0 && !disableDeath) {
+		_health -= Damage;
+		HealthBar.value = _health / 100f;
+		if (_health <= 0 && !disableDeath) {
 			DeathCamera.transform.position = MainCamera.transform.position;
 			DeathCamera.transform.rotation = MainCamera.transform.rotation;
 
@@ -483,8 +483,8 @@ public class Movement : Shootable {
 			Rot.eulerAngles = new Vector3 (90, 180, 135);
 			transform.rotation = Rot;
 			_CameraAngle = 0;
-			Health = MaxHealth;
-			HealthBar.value = Health / 100f;
+			_health = maxHealth;
+			HealthBar.value = _health / 100f;
 			RB.velocity = Vector3.zero;
 			//Debug.Log ("YOU DIED");
 			//Cursor.lockState = CursorLockMode.None;

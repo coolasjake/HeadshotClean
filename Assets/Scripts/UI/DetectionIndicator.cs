@@ -34,7 +34,7 @@ public class DetectionIndicator : MonoBehaviour {
 		}
 
 		if (EnemyScript.State == AIState.Working && EnemyScript.DetectionProgress > 0) {
-			transform.localScale = new Vector3 (1, EnemyScript.DetectionProgress, 1);
+			transform.localScale = new Vector3 (1, EnemyScript.DetectionProgress / EnemyScript.DetectionDifficulty, 1);
 			ImageReference.color = Color.green;
 		} else if (EnemyScript.State == AIState.Searching) {
 			transform.localScale = new Vector3 (1, 1, 1);

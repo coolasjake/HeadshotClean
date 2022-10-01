@@ -7,41 +7,36 @@ using UnityEngine.AI;
 public abstract class MovingEnemy : LookingEnemy {
 
 	//public Movement Target;
+    [SerializeField]
 	private bool Disabled = false;
 
 	protected NavMeshAgent AgentComponent;
+    protected Rigidbody RB;
 	protected float LastRefresh = 0;
-	//protected Transform Head;
-	//protected float LastSawPlayer = 0;
 	protected Vector3 RestLocation;
-	//protected float StartedSeeingPlayer = 0;
-	//protected bool CanSeePlayer = false;
-
-	protected bool CreepyMode = false;
-	[Range(0, 1)]
-	public static float CreepyChance = 0.15f;
 	public static bool PlaySounds = false;
-	public static float WalkingHereChance = 0.1f;
 	//public static float ForgetTime = 10;
-	/// <summary>
-	/// The refresh rate for pathfinding.
-	/// </summary>
+	/// <summary>  The refresh rate for pathfinding. </summary>
 	public static float RefreshRate = 1f;
+    public float navPointSize;
+    protected Vector3 moveTarget;
 
 
 	// Use this for initialization
 	void Start () {
-		LEInitialise ();
-		LastRefresh = Random.value * RefreshRate;
-		RestLocation = transform.position;
-		AgentComponent = GetComponent<NavMeshAgent> ();
-		if (Random.value < WalkingHereChance)
-			GetComponent<AudioSource> ().clip = Resources.Load<AudioClip> ("Sounds/WalkingHere");
-		if (Random.value < CreepyChance) {
-			CreepyMode = true;
-			GetComponent<AudioSource> ().clip = Resources.Load<AudioClip> ("Sounds/Helooo");
-		}
+        MEInitialize();
 	}
+
+    protected void MEInitialize()
+    {
+        LEInitialise();
+        _path = new NavMeshPath();
+        LastRefresh = Random.value * RefreshRate;
+        RestLocation = transform.position;
+        AgentComponent = GetComponent<NavMeshAgent>();
+        moveTarget = transform.position;
+        RB = GetComponent<Rigidbody>();
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -49,7 +44,9 @@ public abstract class MovingEnemy : LookingEnemy {
 	}
 
 	public void MovingEnemyUpdate () {
-		
+		if (PauseManager.Paused)
+            return;
+
 		DetectPlayer ();
 
 		RotateHead ();
@@ -57,44 +54,54 @@ public abstract class MovingEnemy : LookingEnemy {
 		//Skip all checks and motion (usually so another script can control them exclusively).
 		if (Freeze)
 			return;
+    }
 
-		/*
-		if (PlayerVisibility > 0.5f ) {//|| DetectionProgress > 1) { //TryToLookAtPlayer) {
-			//Turn to face the player (lerp relative to PV).
-			Head.transform.rotation = Quaternion.RotateTowards (Head.transform.rotation, Quaternion.LookRotation (PlayerTarget.transform.position - Head.transform.position), (90 + (90 * PlayerVisibility)) * Time.deltaTime);
-		} else if (State == AIState.Searching || State == AIState.Alarmed) {
-			//Turn to face the players assumed position.
-			Head.transform.rotation = Quaternion.RotateTowards (Head.transform.rotation, Quaternion.LookRotation (LastPlayerPosition - Head.transform.position), (90 * Time.deltaTime));
-		}  else {
-			//Turn to face forwards.
-			Head.transform.rotation = Quaternion.RotateTowards (Head.transform.rotation, Quaternion.LookRotation (transform.forward), (90 * Time.deltaTime));
-		}
+    protected NavMeshPath _path;
+    protected int _nextPathPoint = 0;
+    protected bool GetPath(Vector3 targetPos)
+    {
+        _nextPathPoint = 0;
+        return NavMesh.CalculatePath(transform.position, targetPos, NavMesh.AllAreas, _path);
+    }
 
-		//If the refresh delay is finished (to reduce resources used):
-		if (Time.time > LastRefresh + RefreshRate) {
-			//If the maximum follow time has expired, go back to the bots starting position, make CanSeePlayer false, and reset the head.
-			//Creepy mode makes the bot do the opposite in this section to the non-creepy bot.
-			if (Time.time > LastSawPlayer + ForgetTime ^ CreepyMode) {
-				if (!Disabled)
-					AgentComponent.SetDestination (RestLocation);
-				if (!CreepyMode)
-					Head.rotation = new Quaternion ();
-			} else {
-				//If the bot hasn't forgotten yet, go to the players follow point (directly beneath it). [CHANGE TO 'LAST SIGHTING POINT']
-				LastRefresh = Time.time;
-				if (!Disabled)
-					AgentComponent.SetDestination (LastPlayerPosition);
-				//CanSeePlayer = true;
-			}
-		}
-		*/
+    protected Vector3 NextPoint
+    {
+        get
+        {
+            if (_path == null || _nextPathPoint >= _path.corners.Length)
+                return transform.position + transform.forward;
 
-	}
+            return _path.corners[_nextPathPoint];
+        }
+    }
 
-	public bool UpdateDestination (Vector3 Destination) {
-		if (!Disabled)
-			AgentComponent.SetDestination (Destination);
-		return AgentComponent.pathStatus == NavMeshPathStatus.PathComplete;
+    protected void UpdateNextPoint()
+    {
+        if (Vector3.SqrMagnitude((NextPoint - transform.position).FixedY(0)) < navPointSize * navPointSize)
+        {
+            _nextPathPoint += 1;
+        }
+    }
+
+    protected bool WithinRange(Vector3 start, Vector3 end, float range)
+    {
+        return (Vector3.SqrMagnitude(start - end) < range * range);
+    }
+
+    protected bool ReachedPoint(Vector3 start, Vector3 end, float range)
+    {
+        return WithinRange(start.FixedY(0), end.FixedY(0), range);
+    }
+
+    public bool UpdateDestination (Vector3 Destination)
+    {
+        moveTarget = Destination;
+        if (!Disabled)
+        {
+            AgentComponent.SetDestination(Destination);
+            return AgentComponent.pathStatus == NavMeshPathStatus.PathComplete;
+        }
+        return GetPath(Destination);
 	}
 
 	public void DisableAgentMovement () {
@@ -108,9 +115,7 @@ public abstract class MovingEnemy : LookingEnemy {
 	}
 
 	public override void Die() {
-		if (CreepyMode)
-			EnemyCounter.CuriousEnemiesKilled += 1;
-		EnemyCounter.FollowingEnemiesKilled += 1;
+        EnemyCounter.FollowingEnemiesKilled += 1;
 		base.Die ();
 	}
 

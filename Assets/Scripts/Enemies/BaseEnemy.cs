@@ -13,30 +13,16 @@ public enum AIState {
 }
 
 public class BaseEnemy : Shootable {
-
-	private static float AwakenChance = 0.1f;
-	private static float TurretChance = 0.4f;
-
-	protected bool Died = false;
-	protected int RaycastShootingMask;
-	protected int RaycastLookingMask;
+	protected bool died = false;
+    [Header("Base")]
+    [SerializeField]
+	protected LayerMask raycastShootingMask;
+    [SerializeField]
+    protected LayerMask raycastLookingMask;
 
 	protected AudioManager SFXPlayer;
 
 	void Start () {
-		//Laser will be stopped by:
-		//Default, Player, Ground, Window.
-		RaycastShootingMask = 1 << 0 | 1 << 8 | 1 << 10 | 1 << 11;
-		//Sight will be stopped by:
-		//Default, Player, Ground.
-		RaycastLookingMask = 1 << 0 | 1 << 8 | 1 << 9 | 1 << 10 | 1 << 17;
-		if (Random.value < AwakenChance) {
-			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/Laser Enemy"), transform.position, new Quaternion ());
-			Destroy (gameObject);
-		} else if (Random.value < TurretChance) {
-			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/Turret Enemy"), transform.position, new Quaternion ());
-			Destroy (gameObject);
-		}
 		SFXPlayer = GetComponent<AudioManager> ();
 	}
 
@@ -46,19 +32,19 @@ public class BaseEnemy : Shootable {
 	}
 
 	public override void Hit(float Damage) {
-		Health -= Damage;
-		if (Health <= 0) {
+		_health -= Damage;
+		if (_health <= 0) {
 			Die ();
 		}
 	}
 
 	public virtual void Die() {
-		if (!Died) {
+		if (!died) {
 			EnemyCounter.BasicEnemiesKilled += 1;
 			EnemyCounter.UpdateScoreboard ();
 			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/DeadBody"), transform.position, transform.rotation);
 		}
-		Died = true;
+		died = true;
 		Destroy (gameObject);
 	}
 }

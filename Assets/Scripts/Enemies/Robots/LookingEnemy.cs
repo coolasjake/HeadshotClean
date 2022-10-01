@@ -4,10 +4,11 @@ using UnityEngine;
 
 public abstract class LookingEnemy : BaseEnemy {
 
+    [Header("Looking Enemy")]
 	public AIState State = AIState.Working;
 
 	//protected float LastRefresh = 0;
-	protected Transform Head;
+	public Transform Head;
 	protected float LastSawPlayer = 0;
 	/// <summary> The players last position for the bot to look at (not move to, as it will often be high in the air). </summary>
 	protected Vector3 LastPlayerPosition;
@@ -21,7 +22,7 @@ public abstract class LookingEnemy : BaseEnemy {
 	protected bool LookAround = false;
 	protected float LookAroundStarted = 0;
 	private Vector3 LookAroundDirection = new Vector3();
-	/// <summary> Rate at which player should be detected (from 0 - 1). 0 = Cannot see player, 1 = Player is 'obvious'. </summary>
+	/// <summary> Rate at which player will be detected (from 0 - 1). 0 = Cannot see player, 1 = Player is 'obvious'. </summary>
 	protected float PlayerVisibility = 0;
 
 	/// <summary> CURRENTLY NOT IN USE! </summary>
@@ -42,10 +43,13 @@ public abstract class LookingEnemy : BaseEnemy {
 	public static float AutoDetectionDistance = 5;
 	/// <summary> Until the player has been out of sight for this ammount of time, the AI will still be able to access their location, creating the illusion that it can guess their most likely position. </summary>
 	public static float CanGuessPositionTime = 0.3f;
-	//[System.NonSerialized]
+	[System.NonSerialized]
+    /// <summary> How close the enemy is to detecting the player - increased by being in the enemys view cone, speed based on distance. </summary>
 	public float DetectionProgress = 0;
-	/// <summary> Range from which a Bot-to-Bot alarm will alert other AI (Radius). </summary>
-	public static float AlarmRange = 10;
+    /// <summary> How easy it is for this bot to detect the player. The value will roughly translate to time, but detection is dependant on angles, LOS and distance. </summary>
+	public float DetectionDifficulty = 2f;
+    /// <summary> Range from which a Bot-to-Bot alarm will alert other AI (Radius). </summary>
+    public static float AlarmRange = 10;
 	/// <summary> Freezes the AI's head (i.e. when they are charging an attack). </summary>
 	protected bool Freeze = false;
 
@@ -55,7 +59,8 @@ public abstract class LookingEnemy : BaseEnemy {
 
 	protected void LEInitialise () {
 		LastSawPlayer = -ForgetTime;
-		Head = GetComponentInChildren<Head> ().transform;
+        if (Head == null)
+		    Head = GetComponentInChildren<Head> ().transform;
 		SFXPlayer = GetComponent<AudioManager> ();
 	}
 
@@ -72,14 +77,14 @@ public abstract class LookingEnemy : BaseEnemy {
 		Movement P2;
 		Movement P = null;
 		bool NoHit = true; //Starts here, should be a local variable.
-		if (Physics.Raycast (Head.transform.position, (Movement.ThePlayer.transform.position - transform.position), out Hit1, 600, RaycastLookingMask)) {
+		if (Physics.Raycast (Head.transform.position, (Movement.ThePlayer.transform.position - transform.position), out Hit1, 600, raycastLookingMask)) {
 			P1 = Hit1.transform.GetComponentInParent<Movement> ();
 			if (P1) {
 				NoHit = false;
 				P = P1;
 			}
 		}
-		if (Physics.Raycast (Head.transform.position, (Movement.ThePlayer.MainCamera.transform.position - Head.transform.position), out Hit2, 600, RaycastLookingMask)) {
+		if (Physics.Raycast (Head.transform.position, (Movement.ThePlayer.MainCamera.transform.position - Head.transform.position), out Hit2, 600, raycastLookingMask)) {
 			P2 = Hit2.transform.GetComponentInParent<Movement> ();
 			if (P2) {
 				NoHit = false;
@@ -92,10 +97,12 @@ public abstract class LookingEnemy : BaseEnemy {
 				HaveLOSToPlayer = true;
 				float AngleToPlayer = Vector3.Angle (Head.transform.forward, Movement.ThePlayer.transform.position - Head.transform.position);
 				if (AngleToPlayer < ObviousAngle) {
+                    //If the player is within the 'Obvious' cone, set player visibility relative to distance plus 0.5f (PlayerDetection of 1 equals instant detection)
 					DetectingPlayer = true;
 					PlayerVisibility = 0.5f + (1 - (Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
 					//PlayerVisibility = 1;
-				} else if (AngleToPlayer < DetectionAngle || (DetectionProgress > 0.5f && AngleToPlayer < AlertDetectionAngle)) {
+				} else if (AngleToPlayer < DetectionAngle || (DetectionProgress > DetectionDifficulty * 0.25f && AngleToPlayer < AlertDetectionAngle)) {
+                    //If the player is within the detection cone, or the AI is 'suspicious' (Progress > 0.5) and they are within the Alert cone
 					if (Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) > MaxDetectionDistance)
 						PlayerVisibility = 0;
 					else {
@@ -118,13 +125,13 @@ public abstract class LookingEnemy : BaseEnemy {
 			LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
 		}
 
-		if (DetectionProgress < 2 && DetectingPlayer)
+		if (DetectionProgress < DetectionDifficulty && DetectingPlayer)
 			DetectionProgress += PlayerVisibility * Time.deltaTime;
 		else if (DetectionProgress > 0 && !DetectingPlayer && PlayerVisibility == 0 && (State == AIState.Working || State == AIState.Searching))
 			DetectionProgress -= Time.deltaTime * LooseIntrestMagnitude;
 	}
 
-	protected void RotateHead () {
+	protected virtual void RotateHead () {
 		if (Freeze)
 			return;
 		if (PlayerVisibility > 0.5f ) {
@@ -158,7 +165,7 @@ public abstract class LookingEnemy : BaseEnemy {
 
 	public void Alert () {
 		SeePlayer ();
-		DetectionProgress = 2.1f;
+		DetectionProgress = DetectionDifficulty * 1.1f;
 		StartedSearching = Time.time;
 	}
 
@@ -174,20 +181,20 @@ public abstract class LookingEnemy : BaseEnemy {
 			}
 		}
 		if (CanSee) {
-			DetectionProgress = 2f;
+			DetectionProgress = DetectionDifficulty;
 			PlayerVisibility = 0.4f;
 			SeePlayer ();
 		}
 	}
 
 	public override void Die() {
-		if (!Died) {
+		if (!died) {
 			EnemyCounter.BasicEnemiesKilled += 1;
 			EnemyCounter.UpdateScoreboard ();
 			Network.AlarmedBots -= 1;
 			Instantiate (Resources.Load<GameObject> ("Prefabs/Enemies/DeadBody"), transform.position, transform.rotation);
 		}
-		Died = true;
+		died = true;
 		Destroy (gameObject);
 	}
 

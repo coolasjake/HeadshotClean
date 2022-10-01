@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CrazyEnemy : LaserMiner {
+public class CrazyEnemy : ShootingEnemy {
 
 	// Use this for initialization
 	void Start () {
 		//Laser will be stopped by:
 		//Default, Player, Ground, Window.
-		RaycastShootingMask = 1 << 0 | 1 << 8 | 1 << 10 | 1 << 11;
+		raycastShootingMask = 1 << 0 | 1 << 8 | 1 << 10 | 1 << 11;
 		//Sight will be stopped by:
 		//Default, Player, Ground, OpaqueGrating.
-		RaycastLookingMask = 1 << 0 | 1 << 8 | 1 << 10 | 1 << 17;
+		raycastLookingMask = 1 << 0 | 1 << 8 | 1 << 10 | 1 << 17;
 
 		State = AIState.Searching;
-		Head = GetComponentInChildren<Head> ().transform;
+        if (Head == null)
+            Head = GetComponentInChildren<Head> ().transform;
 		FP = GetComponentInChildren<FiringPoint> ();
 		FiringDelayTimer = Time.time + Random.Range (2f, 20f);
 
@@ -75,7 +76,7 @@ public class CrazyEnemy : LaserMiner {
 			Head.transform.rotation = Quaternion.LerpUnclamped (StartHeadRotation, StartPlayerDirection, RotationFactor);
 
 			RaycastHit Hit;
-			if (Physics.Raycast (FP.transform.position - FP.transform.up, -FP.transform.up, out Hit, 600, RaycastShootingMask)) {
+			if (Physics.Raycast (FP.transform.position - FP.transform.up, -FP.transform.up, out Hit, 600, raycastShootingMask)) {
 				//Line.transform.localPosition = new Vector3 (0, -2, 0);
 				Vector3 LinePoint = FP.EffectLine.transform.InverseTransformPoint (Hit.point);
 				FP.EffectLine.SetPosition (1, LinePoint);//new Vector3(0, -Vector3.Distance(FP.transform.position, Hit.point), 0));
