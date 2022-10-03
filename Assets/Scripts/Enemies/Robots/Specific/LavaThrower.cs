@@ -17,10 +17,6 @@ public class LavaThrower : ShootingEnemy
     
     [SerializeField]
     private List<Transform> testPatrolPoints;
-    [SerializeField]
-    private Transform testStart;
-    [SerializeField]
-    private Transform testEnd;
     private int nextPatrolPoint;
 
     [SerializeField]
@@ -62,27 +58,31 @@ public class LavaThrower : ShootingEnemy
         //StateMachine();
         Working();
         Move();
+        RotateHead();
+
+        if (Input.GetKeyDown(KeyCode.B))
+            LaunchLava();
     }
 
     /// <summary> Called every update. Handles generating paths, rotating to face points and applying movement forces. </summary>
     private void Move()
     {
+        if (ReachedPoint(transform.position, NextPoint, navPointSize))
+            _nextPathPoint += 1;
+
         //moveTarget is set by the state machine functions
-        if (ReachedPoint(transform.position, moveTarget, 2f) && RB.velocity.magnitude > moveSpeed * 0.1f)
+        if (ReachedPoint(transform.position, moveTarget, navPointSize) && RB.velocity.magnitude > moveSpeed * 0.1f)
         {
             AccelerateToVelocity(Vector3.zero);
             return;
         }
-
-        if (ReachedPoint(transform.position.FixedY(0), NextPoint.FixedY(0), navPointSize))
-            _nextPathPoint += 1;
 
         Vector3 targetDir = NextPoint - transform.position;
         float angleToTarget = Vector3.SignedAngle(transform.forward, targetDir, transform.up);
         debugAngle = angleToTarget;
         if (angleToTarget > canMoveAngle)
         {//Rotate
-            print("Rotating");
+            AccelerateToVelocity(Vector3.zero);
             float maxTurnThisFrame = turnSpeed * Time.deltaTime;
             float amountToTurn = Mathf.Clamp(angleToTarget, -maxTurnThisFrame, maxTurnThisFrame);
             transform.Rotate(0, amountToTurn, 0);
@@ -103,8 +103,8 @@ public class LavaThrower : ShootingEnemy
     /// <summary> Called by Staring and Charging states. Rotates the head/turret so that a fired projectile would land near the target. </summary>
     protected override void RotateHead()
     {
-        Vector3 targetDir = transform.forward;
-        if (PlayerVisibility > 0.5f)
+        Vector3 targetDir = transform.position - moveTarget;
+        if (PlayerVisibility > 0.5f || true)
             targetDir = transform.position - Movement.ThePlayer.transform.position;
 
         float horizontalAngle = Vector3.SignedAngle(transform.forward, targetDir, Vector3.up);
@@ -117,7 +117,7 @@ public class LavaThrower : ShootingEnemy
         float verticalAngle = Vector3.SignedAngle(transform.forward, targetDir, Vector3.right);
 
         float currentVAngle = turretHorizontalTransform.localRotation.eulerAngles.x;
-        verticalAngle = Mathf.MoveTowardsAngle(currentVAngle, verticalAngle, turretSpeed);
+        verticalAngle = Mathf.MoveTowardsAngle(currentVAngle, verticalAngle, turretSpeed * Time.deltaTime);
         Quaternion newVRot = Quaternion.Euler(verticalAngle, 0, 0);
         turretVerticalTransform.localRotation = newVRot;
     }
@@ -126,7 +126,7 @@ public class LavaThrower : ShootingEnemy
     private void LaunchLava()
     {
         GameObject GO = Instantiate(lavaProjectile, firePoint.position, turretVerticalTransform.rotation);
-        GO.GetComponent<Rigidbody>().velocity = turretVerticalTransform.forward * lavaVelocity;
+        GO.GetComponent<Rigidbody>().velocity = firePoint.forward * lavaVelocity;
     }
 
     /// <summary> Drop lava projectiles around body and then Die. </summary>
@@ -150,7 +150,6 @@ public class LavaThrower : ShootingEnemy
         if (Time.time > LastRefresh + RefreshRate)
         {
             UpdateDestination(testPatrolPoints[nextPatrolPoint].position);
-            print("Path after update: " + _path.corners.Length);
             LastRefresh = Time.time;
         }
 
