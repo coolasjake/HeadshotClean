@@ -129,7 +129,14 @@ public abstract class LookingEnemy : BaseEnemy {
 			DetectionProgress += PlayerVisibility * Time.deltaTime;
 		else if (DetectionProgress > 0 && !DetectingPlayer && PlayerVisibility == 0 && (State == AIState.Working || State == AIState.Searching))
 			DetectionProgress -= Time.deltaTime * LooseIntrestMagnitude;
-	}
+
+
+        if (PlayerVisibility > 0.5f || Time.time < LastSawPlayer + CanGuessPositionTime)
+        {
+            LastPlayerPosition = Movement.ThePlayer.transform.position;
+            LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
+        }
+    }
 
 	protected virtual void RotateHead () {
 		if (Freeze)

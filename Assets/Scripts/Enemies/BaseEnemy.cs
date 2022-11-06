@@ -9,7 +9,8 @@ public enum AIState {
 	Charging,
 	Firing,
 	Searching,
-	Working
+	Working,
+    Special
 }
 
 public class BaseEnemy : Shootable {

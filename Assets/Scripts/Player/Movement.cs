@@ -24,6 +24,16 @@ public class Movement : Shootable {
 
 	//--->Static
 	public static Vector3 PlayerStartPosition = new Vector3(7, 5, 95);
+    public static Vector3 CameraPos
+    {
+        get
+        {
+            if (ThePlayer.MainCamera != null)
+                return ThePlayer.MainCamera.transform.position;
+            
+            return ThePlayer.transform.position;
+        }
+    }
 
     //--->Stored references
     [System.NonSerialized]

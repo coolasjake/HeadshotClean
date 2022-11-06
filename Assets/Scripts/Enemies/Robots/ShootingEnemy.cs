@@ -83,11 +83,6 @@ public class ShootingEnemy : MovingEnemy
         DetectPlayer ();
 		RotateHead ();
 
-		if (PlayerVisibility > 0.5f || Time.time < LastSawPlayer + CanGuessPositionTime) {
-			LastPlayerPosition = Movement.ThePlayer.transform.position;
-			LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
-		}
-
 		if (State == AIState.Working)
 			Working ();
 

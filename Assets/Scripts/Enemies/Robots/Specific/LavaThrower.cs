@@ -97,7 +97,7 @@ public class LavaThrower : ShootingEnemy
     private void AccelerateToVelocity(Vector3 targetVel)
     {
         Vector3 difference = targetVel.FixedY(0) - RB.velocity;
-        RB.AddForce(difference.normalized * moveForce);
+        RB.AddForce(difference.normalized * moveForce * Time.deltaTime);
     }
 
     /// <summary> Called by Staring and Charging states. Rotates the head/turret so that a fired projectile would land near the target. </summary>
@@ -114,7 +114,7 @@ public class LavaThrower : ShootingEnemy
         Quaternion newHRot = Quaternion.Euler(0, horizontalAngle, 0);
         turretHorizontalTransform.localRotation = newHRot;
 
-        float verticalAngle = Vector3.SignedAngle(transform.forward, targetDir, Vector3.right);
+        float verticalAngle = Vector3.SignedAngle(transform.forward, targetDir, transform.right);
 
         float currentVAngle = turretHorizontalTransform.localRotation.eulerAngles.x;
         verticalAngle = Mathf.MoveTowardsAngle(currentVAngle, verticalAngle, turretSpeed * Time.deltaTime);

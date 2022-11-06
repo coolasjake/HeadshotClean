@@ -9,12 +9,13 @@ public class LavaBall : MonoBehaviour
     public LayerMask raycastLayers = new LayerMask();
     public float maxPuddleDist = 10;
 
-    private bool stoppleaseImbeggingyou = false;
+    private bool stopMultipleCollisions = false;
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (stoppleaseImbeggingyou)
+        if (stopMultipleCollisions)
             return;
+
         RaycastHit hit;
         if (Physics.Raycast(transform.position, Vector3.down, out hit, maxPuddleDist, raycastLayers))
         {
@@ -37,9 +38,7 @@ public class LavaBall : MonoBehaviour
             }
 
             GO.GetComponent<TeleportWall>().Exit = exit;
-            stoppleaseImbeggingyou = true;
-
-            gameObject.SetActive(false);
+            stopMultipleCollisions = true;
         }
     }
 
