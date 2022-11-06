@@ -119,18 +119,14 @@ public class FrameworkTest : EnemyFramework
 
     private void AimTurret()
     {
-        Vector3 targetDir = detection.LastPlayerPosition - transform.position;
-        float targetTurretAngle = Vector3.SignedAngle(transform.forward, targetDir, Vector3.up);
+        Vector3 projectileVel = (detection.LastPlayerPosition - transform.position).normalized * lavaVelocity;
+        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection.LastPlayerPosition, Vector3.zero, out projectileVel))
+        {
+            float targetTurretAngle = Vector3.SignedAngle(transform.forward, projectileVel, Vector3.up);
+            float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
 
-        float relativeHeight = detection.LastPlayerPosition.y - firePoint.position.y;
-        if (detection.LastPlayerPosition.y < firePoint.position.y)
-            relativeHeight = firePoint.position.y - detection.LastPlayerPosition.y;
-        float gravity = Physics.gravity.magnitude;
-        float startingVel = lavaVelocity;
-        turretAngle = Mathf.Asin(Mathf.Sqrt(2 * gravity * relativeHeight) / startingVel);
-        turretAngle = turretAngle * (180f / Mathf.PI);
-
-        MoveTurretToAngles(targetTurretAngle, turretAngle);
+            MoveTurretToAngles(targetTurretAngle, targetGunAngle);
+        }
     }
 
     private float debugHorAngle = 0;
@@ -163,7 +159,11 @@ public class FrameworkTest : EnemyFramework
     private void LaunchLava()
     {
         GameObject GO = Instantiate(lavaProjectile, firePoint.position, firePoint.rotation);
-        GO.GetComponent<Rigidbody>().velocity = firePoint.forward * lavaVelocity;
+        Vector3 projectileVel = firePoint.forward * lavaVelocity;
+        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection.LastPlayerPosition, Vector3.zero, out projectileVel))
+        {
+            GO.GetComponent<Rigidbody>().velocity = projectileVel;
+        }
     }
 
     private void OnDrawGizmos()

@@ -442,7 +442,7 @@ public class fts {
     /// </summary>
     /// <param name="proj_pos"> The starting point of the projectile. </param>
     /// <param name="lateral_speed"> The desired constant speed of the projectile if the vertical component is removed. </param>
-    /// <param name="gravity"> The expected gravity on the projectile. </param>
+    /// <param name="gravity"> The magnitude of the downwards (negative y) force on the projectile. </param>
     /// <param name="target"> The target point to have the arc intersect with. </param>
     /// <param name="target_velocity"> The velocty of the target. </param>
     /// <param name="fire_velocity"> The out value for the starting velocity of the projectile. </param>
