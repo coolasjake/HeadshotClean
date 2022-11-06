@@ -75,7 +75,7 @@ public class LavaBall : MonoBehaviour
             if (scale > 1)
                 scale = 1;
             inverse = 1 - scale;
-            lavaPuddle.localScale = new Vector3(scale, scale, scale);
+            lavaPuddle.localScale = new Vector3(scale, (inverse * 0.5f) + 0.5f, scale);
             transform.localScale = new Vector3(inverse, inverse, inverse);
             yield return wait;
         }

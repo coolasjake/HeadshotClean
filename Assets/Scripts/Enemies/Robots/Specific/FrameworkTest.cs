@@ -129,13 +129,7 @@ public class FrameworkTest : EnemyFramework
             float targetTurretAngle = Vector3.SignedAngle(transform.forward, dirToTarget.FixedY(transform.forward.y), Vector3.up);
             float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
 
-            Quaternion newHRot = Quaternion.Euler(0, targetTurretAngle, 0);
-            turretTransform.localRotation = newHRot;
-
-            Quaternion newVRot = Quaternion.Euler(targetGunAngle, 0, 0);
-            gunTransform.localRotation = newVRot;
-
-            //MoveTurretToAngles(targetTurretAngle, targetGunAngle);
+            MoveTurretToAngles(targetTurretAngle, targetGunAngle);
         }
     }
 
