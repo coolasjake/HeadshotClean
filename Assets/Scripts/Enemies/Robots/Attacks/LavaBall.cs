@@ -47,10 +47,11 @@ public class LavaBall : MonoBehaviour
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
         lavaPuddle.localScale = new Vector3(0, 0, 0);
 
+        Rigidbody RB = GetComponent<Rigidbody>();
+        float velocity = Mathf.Abs(RB.velocity.y) + 1f;
+
         Destroy(GetComponent<Rigidbody>());
         Destroy(GetComponent<Collider>());
-
-        float velocity = 1f;
 
         while (transform.position != point)
         {

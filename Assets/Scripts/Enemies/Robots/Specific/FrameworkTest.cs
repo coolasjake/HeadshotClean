@@ -100,7 +100,7 @@ public class FrameworkTest : EnemyFramework
         Vector3 horTargetDir = movement.moveTarget - transform.position;
         float targetTurretAngle = Vector3.SignedAngle(transform.forward, horTargetDir, Vector3.up);
 
-        Vector3 gunTargetDir = movement.moveTarget - gunTransform.position;
+        Vector3 gunTargetDir = (movement.moveTarget + new Vector3(0, gunTransform.localPosition.y, 0)) - gunTransform.position;
         float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, gunTargetDir, turretTransform.right);
 
         MoveTurretToAngles(targetTurretAngle, targetGunAngle);
@@ -117,15 +117,25 @@ public class FrameworkTest : EnemyFramework
         MoveTurretToAngles(targetTurretAngle, targetGunAngle);
     }
 
+    Vector3 debugProjVel = Vector3.zero;
     private void AimTurret()
     {
+        Vector3 dirToTarget = detection.LastPlayerPosition - transform.position;
         Vector3 projectileVel = (detection.LastPlayerPosition - transform.position).normalized * lavaVelocity;
         if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection.LastPlayerPosition, Vector3.zero, out projectileVel))
         {
-            float targetTurretAngle = Vector3.SignedAngle(transform.forward, projectileVel, Vector3.up);
+            debugProjVel = projectileVel;
+
+            float targetTurretAngle = Vector3.SignedAngle(transform.forward, dirToTarget.FixedY(transform.forward.y), Vector3.up);
             float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
 
-            MoveTurretToAngles(targetTurretAngle, targetGunAngle);
+            Quaternion newHRot = Quaternion.Euler(0, targetTurretAngle, 0);
+            turretTransform.localRotation = newHRot;
+
+            Quaternion newVRot = Quaternion.Euler(targetGunAngle, 0, 0);
+            gunTransform.localRotation = newVRot;
+
+            //MoveTurretToAngles(targetTurretAngle, targetGunAngle);
         }
     }
 
@@ -168,6 +178,7 @@ public class FrameworkTest : EnemyFramework
 
     private void OnDrawGizmos()
     {
+        //Draw turret and gun desired angles
         Vector3 starting = turretTransform.forward;
         Quaternion rotation = new Quaternion();
         rotation = Quaternion.AngleAxis(debugHorAngle, -Vector3.up);
@@ -179,6 +190,12 @@ public class FrameworkTest : EnemyFramework
         Gizmos.DrawLine(turretTransform.position, turretTransform.position + hor * 4f);
         Gizmos.color = Color.red;
         Gizmos.DrawLine(turretTransform.position, turretTransform.position + vert * 3f);
+
+        //Draw firing point direction and projectile velocity
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(firePoint.position, firePoint.position + firePoint.forward * 3f);
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(firePoint.position, firePoint.position + debugProjVel.normalized * 4f);
 
         if (showPathGizmo)
         {
