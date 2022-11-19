@@ -108,7 +108,9 @@ public class FrameworkTest : EnemyFramework
 
     private void LookAtLastPlayerPos()
     {
-        Vector3 horTargetDir = detection.LastPlayerPosition - transform.position;
+        //float targetTurretAngle = Vector3.SignedAngle(transform.forward, dirToTarget.FixedY(transform.forward.y), Vector3.up);
+        //float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
+        Vector3 horTargetDir = detection.LastPlayerPosition.FixedY(0) - transform.position.FixedY(0);
         float targetTurretAngle = Vector3.SignedAngle(transform.forward, horTargetDir, Vector3.up);
 
         Vector3 gunTargetDir = detection.LastPlayerPosition - gunTransform.position;
