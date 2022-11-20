@@ -54,7 +54,7 @@ public abstract class EnemyFramework : MonoBehaviour
         public LayerMask raycastLookingMask;
 
         [Tooltip("Make sure the 'forward' vector of the head aligns with its eye-line, as it defines the default detection cone.")]
-        public Transform Head;
+        public Transform head;
         protected float LastSawPlayer = -1000;
         /// <summary> The players last position for the bot to look at (not move to, as it will often be high in the air). </summary>
         [HideInInspector]
@@ -102,12 +102,12 @@ public abstract class EnemyFramework : MonoBehaviour
         {
             //If a raycast from head to center, or head to head hits the player return true.
             RaycastHit Hit;
-            if (Physics.Raycast(Head.transform.position, (Movement.ThePlayer.transform.position - Head.transform.position), out Hit, 600, raycastLookingMask))
+            if (Physics.Raycast(head.position, (Movement.ThePlayer.transform.position - head.position), out Hit, 600, raycastLookingMask))
             {
                 if (Hit.transform.CompareTag("Player"))
                     return true;
             }
-            if (Physics.Raycast(Head.transform.position, (Movement.ThePlayer.MainCamera.transform.position - Head.transform.position), out Hit, 600, raycastLookingMask))
+            if (Physics.Raycast(head.position, (Movement.ThePlayer.MainCamera.transform.position - head.position), out Hit, 600, raycastLookingMask))
             {
                 if (Hit.transform.CompareTag("Player"))
                     return true;
@@ -120,24 +120,24 @@ public abstract class EnemyFramework : MonoBehaviour
             //Only called if the player is already in LOS
 
             float playerVisibility = 0f;
-            float AngleToPlayer = Vector3.Angle(Head.transform.forward, Movement.ThePlayer.transform.position - Head.transform.position);
+            float AngleToPlayer = Vector3.Angle(head.forward, Movement.ThePlayer.transform.position - head.position);
             if (AngleToPlayer < ObviousAngle)
             {
                 //If the player is within the 'Obvious' angle, set player visibility relative to distance plus 0.5f
-                float playerDist = Vector3.Distance(Movement.ThePlayer.transform.position, Head.transform.position);
+                float playerDist = Vector3.Distance(Movement.ThePlayer.transform.position, head.position);
                 playerVisibility = 0.5f + (1 - (playerDist / MaxDetectionDistance)) * 0.5f;
             }
             else if (AngleToPlayer < DetectionAngle || (DetectionProgress > DetectionDifficulty * 0.25f && AngleToPlayer < AlertDetectionAngle))
             {
                 //If the player is within the detection angle, set player visibility relative to distance, plus a bonus based on how close the angle is to the Obvious angle
-                float playerDist = Vector3.Distance(Movement.ThePlayer.transform.position, Head.transform.position);
+                float playerDist = Vector3.Distance(Movement.ThePlayer.transform.position, head.position);
                 if (playerDist < MaxDetectionDistance)
                 {
                     playerVisibility = (1 - (playerDist / MaxDetectionDistance)) * 0.5f;
                     playerVisibility += ((AngleToPlayer - ObviousAngle) / (DetectionAngle - ObviousAngle)) * 0.5f;
                 }
             }
-            else if (Vector3.Distance(Movement.ThePlayer.transform.position, Head.transform.position) < AutoDetectionDistance)
+            else if (Vector3.Distance(Movement.ThePlayer.transform.position, head.position) < AutoDetectionDistance)
             {
                 playerVisibility = 0.2f;
             }

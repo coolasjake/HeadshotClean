@@ -33,8 +33,9 @@ public class EFDetectionIndicator : MonoBehaviour {
 			return;
 		}
 
-		if (EnemyScript.stateMachine.state == AIState.Working && EnemyScript.detection.DetectionProgress > 0) {
-			transform.localScale = new Vector3 (1, EnemyScript.detection.DetectionProgress / EnemyScript.detection.DetectionDifficulty, 1);
+		if (EnemyScript.stateMachine.state == AIState.Working) {
+            float verticalSize = Mathf.Max(0.2f, EnemyScript.detection.DetectionProgress / EnemyScript.detection.DetectionDifficulty);
+            transform.localScale = new Vector3 (1, verticalSize, 1);
 			ImageReference.color = Color.green;
 		} else if (EnemyScript.stateMachine.state == AIState.Searching) {
 			transform.localScale = new Vector3 (1, 1, 1);
@@ -49,7 +50,7 @@ public class EFDetectionIndicator : MonoBehaviour {
 			transform.localScale = new Vector3 (2, 2, 1);
 			ImageReference.color = Color.black;
 		} else {
-			ImageReference.enabled = false;
+			//ImageReference.enabled = false;
 			return;
 		}
 
