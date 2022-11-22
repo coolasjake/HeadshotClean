@@ -31,7 +31,7 @@ public class MiningDroid : EnemyFramework
     {
         base.Alarmed();
 
-        if (detection.PlayerVisibility == 0)
+        if (detection._playerVisibility == 0)
             StartLookingAround();
         else
             LookAround = false;
@@ -41,12 +41,12 @@ public class MiningDroid : EnemyFramework
     {
         base.Searching();
 
-        if (detection.PlayerVisibility == 0)
+        if (detection._playerVisibility == 0)
             StartLookingAround();
         else
             LookAround = false;
 
-        if ((Vector3.Distance(transform.position, detection.LastPlayerGroundedPosition) < 5))
+        if ((Vector3.Distance(transform.position, detection._lastPlayerGroundedPosition) < 5))
         {
             StartLookingAround();
         }
@@ -91,7 +91,7 @@ public class MiningDroid : EnemyFramework
     private void Fire()
     {
         //Rotate by: Time since this started firing, divided by half of the fire duration.
-        float RotationFactor = (Time.time - stateMachine.startedFiring) / (stateMachine.fireDuration * 0.5f);
+        float RotationFactor = (Time.time - stateMachine._startedFiring) / (stateMachine.fireDuration * 0.5f);
         detection.head.rotation = Quaternion.LerpUnclamped(HeadRotationBeforeFiring, PlayerDirectionBeforeFiring, RotationFactor);
 
         RaycastHit Hit;
@@ -131,7 +131,7 @@ public class MiningDroid : EnemyFramework
     private void FacePlayer()
     {
         Quaternion targetRot = Quaternion.LookRotation(Movement.ThePlayer.MainCamera.transform.position - detection.head.position);
-        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 + (90 * detection.PlayerVisibility)) * Time.deltaTime);
+        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 + (90 * detection._playerVisibility)) * Time.deltaTime);
     }
 
     private void FaceTarget(Vector3 targetPos)
@@ -143,7 +143,7 @@ public class MiningDroid : EnemyFramework
 
     private void DoHeadRotation()
     {
-        if (detection.PlayerVisibility > 0.5f)
+        if (detection._playerVisibility > 0.5f)
         {
             //Turn to face the player (lerp relative to PV).
             FacePlayer();
@@ -157,7 +157,7 @@ public class MiningDroid : EnemyFramework
             else
                 //Turn to face the players assumed position.
                 detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation,
-                    Quaternion.LookRotation(detection.LastPlayerPosition - detection.head.position), (90 * Time.deltaTime));
+                    Quaternion.LookRotation(detection._lastPlayerPosition - detection.head.position), (90 * Time.deltaTime));
         }
         else
         {

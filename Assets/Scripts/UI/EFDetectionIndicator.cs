@@ -34,7 +34,7 @@ public class EFDetectionIndicator : MonoBehaviour {
 		}
 
 		if (EnemyScript.stateMachine.state == AIState.Working) {
-            float verticalSize = Mathf.Max(0.2f, EnemyScript.detection.DetectionProgress / EnemyScript.detection.DetectionDifficulty);
+            float verticalSize = Mathf.Max(0.2f, EnemyScript.detection._detectionProgress / EnemyScript.detection.detectionDifficulty);
             transform.localScale = new Vector3 (1, verticalSize, 1);
 			ImageReference.color = Color.green;
 		} else if (EnemyScript.stateMachine.state == AIState.Searching) {

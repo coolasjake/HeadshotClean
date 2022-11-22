@@ -24,7 +24,7 @@ class TestEnemy : EnemyFramework
     {
         base.Alarmed();
 
-        if (detection.PlayerVisibility == 0)
+        if (detection._playerVisibility == 0)
             StartLookingAround();
         else
             LookAround = false;
@@ -34,12 +34,12 @@ class TestEnemy : EnemyFramework
     {
         base.Searching();
 
-        if (detection.PlayerVisibility == 0)
+        if (detection._playerVisibility == 0)
             StartLookingAround();
         else
             LookAround = false;
 
-        if ((Vector3.Distance(transform.position, detection.LastPlayerGroundedPosition) < 5))
+        if ((Vector3.Distance(transform.position, detection._lastPlayerGroundedPosition) < 5))
         {
             StartLookingAround();
         }
@@ -85,7 +85,7 @@ class TestEnemy : EnemyFramework
     private void Fire()
     {
         //Rotate by: Time since this started firing, divided by half of the fire duration.
-        float RotationFactor = (Time.time - stateMachine.startedFiring) / (stateMachine.fireDuration * 0.5f);
+        float RotationFactor = (Time.time - stateMachine._startedFiring) / (stateMachine.fireDuration * 0.5f);
         head.transform.rotation = Quaternion.LerpUnclamped(HeadRotationBeforeFiring, PlayerDirectionBeforeFiring, RotationFactor);
 
         RaycastHit Hit;
@@ -125,7 +125,7 @@ class TestEnemy : EnemyFramework
     private void FacePlayer()
     {
         Quaternion targetRot = Quaternion.LookRotation(Movement.ThePlayer.MainCamera.transform.position - head.transform.position);
-        head.transform.rotation = Quaternion.RotateTowards(head.transform.rotation, targetRot, (90 + (90 * detection.PlayerVisibility)) * Time.deltaTime);
+        head.transform.rotation = Quaternion.RotateTowards(head.transform.rotation, targetRot, (90 + (90 * detection._playerVisibility)) * Time.deltaTime);
     }
 
     private void FaceTarget(Vector3 targetPos)
@@ -137,7 +137,7 @@ class TestEnemy : EnemyFramework
 
     private void DoHeadRotation()
     {
-        if (detection.PlayerVisibility > 0.5f)
+        if (detection._playerVisibility > 0.5f)
         {
             //Turn to face the player (lerp relative to PV).
             FacePlayer();
@@ -150,7 +150,7 @@ class TestEnemy : EnemyFramework
             }
             else
                 //Turn to face the players assumed position.
-                head.transform.rotation = Quaternion.RotateTowards(head.transform.rotation, Quaternion.LookRotation(detection.LastPlayerPosition - head.transform.position), (90 * Time.deltaTime));
+                head.transform.rotation = Quaternion.RotateTowards(head.transform.rotation, Quaternion.LookRotation(detection._lastPlayerPosition - head.transform.position), (90 * Time.deltaTime));
         }
         else
         {

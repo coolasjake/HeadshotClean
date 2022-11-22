@@ -64,10 +64,10 @@ public class FrameworkTest : EnemyFramework
             movement.ChangeMoveTarget(testPatrolPoints[nextPatrolPoint].position);
         }
 
-        if (Time.time > movement.LastRefresh + movement.RefreshRate)
+        if (Time.time > movement._lastRefresh + movement.refreshRate)
         {
             movement.ChangeMoveTarget(testPatrolPoints[nextPatrolPoint].position);
-            movement.LastRefresh = Time.time;
+            movement._lastRefresh = Time.time;
         }
 
         LookAtMoveTarget();
@@ -97,10 +97,10 @@ public class FrameworkTest : EnemyFramework
     /// <summary> Called by Staring and Charging states. Rotates the head/turret so that a fired projectile would land near the target. </summary>
     private void LookAtMoveTarget()
     {
-        Vector3 horTargetDir = movement.moveTarget - transform.position;
+        Vector3 horTargetDir = movement._moveTarget - transform.position;
         float targetTurretAngle = Vector3.SignedAngle(transform.forward, horTargetDir, Vector3.up);
 
-        Vector3 gunTargetDir = (movement.moveTarget + new Vector3(0, gunTransform.localPosition.y, 0)) - gunTransform.position;
+        Vector3 gunTargetDir = (movement._moveTarget + new Vector3(0, gunTransform.localPosition.y, 0)) - gunTransform.position;
         float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, gunTargetDir, turretTransform.right);
 
         MoveTurretToAngles(targetTurretAngle, targetGunAngle);
@@ -110,10 +110,10 @@ public class FrameworkTest : EnemyFramework
     {
         //float targetTurretAngle = Vector3.SignedAngle(transform.forward, dirToTarget.FixedY(transform.forward.y), Vector3.up);
         //float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
-        Vector3 horTargetDir = detection.LastPlayerPosition.FixedY(0) - transform.position.FixedY(0);
+        Vector3 horTargetDir = detection._lastPlayerPosition.FixedY(0) - transform.position.FixedY(0);
         float targetTurretAngle = Vector3.SignedAngle(transform.forward, horTargetDir, Vector3.up);
 
-        Vector3 gunTargetDir = detection.LastPlayerPosition - gunTransform.position;
+        Vector3 gunTargetDir = detection._lastPlayerPosition - gunTransform.position;
         float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, gunTargetDir, turretTransform.right);
 
         MoveTurretToAngles(targetTurretAngle, targetGunAngle);
@@ -122,9 +122,9 @@ public class FrameworkTest : EnemyFramework
     Vector3 debugProjVel = Vector3.zero;
     private void AimTurret()
     {
-        Vector3 dirToTarget = detection.LastPlayerPosition - transform.position;
-        Vector3 projectileVel = (detection.LastPlayerPosition - transform.position).normalized * lavaVelocity;
-        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection.LastPlayerPosition, Vector3.zero, out projectileVel))
+        Vector3 dirToTarget = detection._lastPlayerPosition - transform.position;
+        Vector3 projectileVel = (detection._lastPlayerPosition - transform.position).normalized * lavaVelocity;
+        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection._lastPlayerPosition, Vector3.zero, out projectileVel))
         {
             debugProjVel = projectileVel;
 
@@ -166,7 +166,7 @@ public class FrameworkTest : EnemyFramework
     {
         GameObject GO = Instantiate(lavaProjectile, firePoint.position, firePoint.rotation);
         Vector3 projectileVel = firePoint.forward * lavaVelocity;
-        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection.LastPlayerPosition, Vector3.zero, out projectileVel))
+        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection._lastPlayerPosition, Vector3.zero, out projectileVel))
         {
             GO.GetComponent<Rigidbody>().velocity = projectileVel;
         }
