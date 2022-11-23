@@ -65,8 +65,6 @@ public abstract class EnemyFramework : MonoBehaviour
         public Transform head;
 
 
-        /// <summary> How quickly the AI will lose 'suspision' (DetectionProgress), relative to the normal gain (default = 1/s). </summary>
-        public float looseIntrestMagnitude = 0.1f;
         /// <summary> The maximum angle in degrees on either side the AIs facing (so 45deg is a 90deg cone in total), from which it can detect the player. </summary>
         public float detectionAngle = 45;
         /// <summary> The angle (in any direction) where the player is 'obvious', resulting in very rapid detection (usually milliseconds, but varies based on distance). </summary>
@@ -74,13 +72,15 @@ public abstract class EnemyFramework : MonoBehaviour
         /// <summary> The distance from which the AI will begin to detect the player, even if they are directly behind them. (Stops them from looking stupid when you walk behind them) </summary>
         public float autoDetectionDistance = 5;
         /// <summary> Until the player has been out of sight for this ammount of time, the AI will still be able to access their location, creating the illusion that it can guess their most likely position. </summary>
-        public static float canGuessPositionTime = 0.3f;
+        public float canGuessPositionTime = 0.3f;
         /// <summary> The enemy will not detect the player at all from this distance, unless they are within the obvious angle. Used when factoring distance into visibility. </summary>
-        public static float maxDetectionDistance = 300;
-        /// <summary> The angle (in any direction) where the AI will begin to detect the player (and perform actions like turning its head) if it is already suspicious (DetectionProgress > 0.5f). </summary>
+        public float maxDetectionDistance = 300;
+        /// <summary> The angle (in any direction) where the AI will begin to detect the player (and perform actions like turning its head) if it is already suspicious (DetectionProgress > 1/4). </summary>
         public static float alertDetectionAngle = 120;
         /// <summary> How easy it is for this bot to detect the player. The value will roughly translate to time, but detection is dependant on angles, LOS and distance. </summary>
         public float detectionDifficulty = 2f;
+        /// <summary> How quickly the AI will lose 'suspision' (DetectionProgress), relative to the normal gain (default = 1/s). </summary>
+        public float looseIntrestMagnitude = 0.1f;
 
 
         /// <summary> The last time the player was in LOS, so that the duration of searches can be checked. </summary>
@@ -530,23 +530,22 @@ public abstract class EnemyFramework : MonoBehaviour
         {
             return WithinRange(start.FixedY(0), end.FixedY(0), navPointSize);
         }
+
+        public float SignedHorAngleToTarget(Vector3 targetPos)
+        {
+            Vector3 targetDir = targetPos.FixedY(0) - enemyTransform.position.FixedY(0);
+            return Vector3.SignedAngle(enemyTransform.forward, targetDir, enemyTransform.up);
+        }
     }
 
     protected virtual void MovementUpdate()
     {
-        if (movement.ReachedPoint(transform.position, movement.NextPoint))
-            movement._nextPathPoint += 1;
+        UpdateNextPoint();
 
-        float angleToPoint = SignedHorAngleToTarget(movement.NextPoint);
+        float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
         TurnByAngle(angleToPoint);
         if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
             MoveTowardsTarget(movement.NextPoint);
-    }
-
-    protected virtual float SignedHorAngleToTarget(Vector3 targetPos)
-    {
-        Vector3 targetDir = targetPos.FixedY(0) - transform.position.FixedY(0);
-        return Vector3.SignedAngle(transform.forward, targetDir, transform.up);
     }
 
     protected virtual void TurnByAngle(float signedAngle)

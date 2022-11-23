@@ -37,11 +37,10 @@ public class FrameworkTest : EnemyFramework
 
     protected override void MovementUpdate()
     {
-        if (movement.ReachedPoint(transform.position, movement.NextPoint))
-            movement._nextPathPoint += 1;
+        UpdateNextPoint();
 
         //float angleToPoint = SignedHorAngleToTarget(movement.NextPoint);
-        angleToPoint = SignedHorAngleToTarget(movement.NextPoint);
+        angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
         if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
         {
             MoveTowardsTarget(movement.NextPoint);

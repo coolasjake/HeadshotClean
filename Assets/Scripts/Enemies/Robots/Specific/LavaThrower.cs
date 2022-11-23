@@ -3,188 +3,215 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class LavaThrower : ShootingEnemy
+public class LavaThrower : EnemyFramework
 {
     [Header("Lava Thrower")]
     [SerializeField]
-    private Transform turretHorizontalTransform;
+    private Transform turretTransform;
     [SerializeField]
-    private Transform turretVerticalTransform;
+    private Transform gunTransform;
     [SerializeField]
     private Transform firePoint;
     [SerializeField]
     private GameObject lavaProjectile;
-    
-    [SerializeField]
-    private List<Transform> testPatrolPoints;
-    private int nextPatrolPoint;
 
     [SerializeField]
     private float turretSpeed = 30f;
     [SerializeField]
+    private float turretMaxAngle = 30f;
+    [SerializeField]
+    private float gunSpeed = 30f;
+    [SerializeField]
+    private float gunMaxAngle = 30f;
+    [SerializeField]
     private float lavaVelocity = 10f;
 
     [SerializeField]
-    private float turnSpeed = 30f;
-    [SerializeField]
-    private float canMoveAngle = 5f;
-    [SerializeField]
-    private float moveSpeed = 2f;
-    [SerializeField]
-    private float moveForce = 2f;
+    private List<Transform> testPatrolPoints;
+    private int nextPatrolPoint;
 
     public bool showPathGizmo = true;
 
-    public float debugAngle = 0;
+    public float angleToPoint = 0;
 
-    //ToDo:
-    /* - Move() function, moves along path to moveTarget, using NextPoint etc
-     * - Aim(), rotates head/turret to aim at player (or generic target)
-     * - LaunchLava() function, launches lava projectile prefab
-     * - Damage states, effect how actions (e.g. move) happen
-     * - Explode(), creates lava around self and dies
-     * - Die(), does not create lava
-     */
+    private float turretAngle = 0;
 
-    // Start is called before the first frame update
-    void Start()
+    protected override void MovementUpdate()
     {
-        ShootingEnemyInitialize();
-    }
+        UpdateNextPoint();
 
-    // Update is called once per frame
-    void Update()
-    {
-        //StateMachine();
-        Working();
-        Move();
-        RotateHead();
-
-        if (Input.GetKeyDown(KeyCode.B))
-            LaunchLava();
-    }
-
-    /// <summary> Called every update. Handles generating paths, rotating to face points and applying movement forces. </summary>
-    private void Move()
-    {
-        if (ReachedPoint(transform.position, NextPoint, navPointSize))
-            _nextPathPoint += 1;
-
-        //moveTarget is set by the state machine functions
-        if (ReachedPoint(transform.position, moveTarget, navPointSize) && RB.velocity.magnitude > moveSpeed * 0.1f)
+        //float angleToPoint = SignedHorAngleToTarget(movement.NextPoint);
+        angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
+        if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
         {
-            AccelerateToVelocity(Vector3.zero);
-            return;
-        }
-
-        Vector3 targetDir = NextPoint - transform.position;
-        float angleToTarget = Vector3.SignedAngle(transform.forward, targetDir, transform.up);
-        debugAngle = angleToTarget;
-        if (angleToTarget > canMoveAngle)
-        {//Rotate
-            AccelerateToVelocity(Vector3.zero);
-            float maxTurnThisFrame = turnSpeed * Time.deltaTime;
-            float amountToTurn = Mathf.Clamp(angleToTarget, -maxTurnThisFrame, maxTurnThisFrame);
-            transform.Rotate(0, amountToTurn, 0);
+            MoveTowardsTarget(movement.NextPoint);
         }
         else
-        {//Move
-            Vector3 targetVel = targetDir.normalized.FixedY(0) * moveSpeed;
-            AccelerateToVelocity(targetVel);
+        {
+            AccelerateToVelocity(Vector3.zero);
+            if (movement.RB.velocity.sqrMagnitude < 0.1f)
+                TurnByAngle(angleToPoint);
         }
-    }
-
-    private void AccelerateToVelocity(Vector3 targetVel)
-    {
-        Vector3 difference = targetVel.FixedY(0) - RB.velocity;
-        RB.AddForce(difference.normalized * moveForce * Time.deltaTime);
-    }
-
-    /// <summary> Called by Staring and Charging states. Rotates the head/turret so that a fired projectile would land near the target. </summary>
-    protected override void RotateHead()
-    {
-        Vector3 targetDir = transform.position - moveTarget;
-        if (PlayerVisibility > 0.5f || true)
-            targetDir = transform.position - Movement.ThePlayer.transform.position;
-
-        float horizontalAngle = Vector3.SignedAngle(transform.forward, targetDir, Vector3.up);
-
-        float currentHAngle = turretHorizontalTransform.localRotation.eulerAngles.y;
-        horizontalAngle = Mathf.MoveTowardsAngle(currentHAngle, horizontalAngle, turretSpeed * Time.deltaTime);
-        Quaternion newHRot = Quaternion.Euler(0, horizontalAngle, 0);
-        turretHorizontalTransform.localRotation = newHRot;
-
-        float verticalAngle = Vector3.SignedAngle(transform.forward, targetDir, transform.right);
-
-        float currentVAngle = turretHorizontalTransform.localRotation.eulerAngles.x;
-        verticalAngle = Mathf.MoveTowardsAngle(currentVAngle, verticalAngle, turretSpeed * Time.deltaTime);
-        Quaternion newVRot = Quaternion.Euler(verticalAngle, 0, 0);
-        turretVerticalTransform.localRotation = newVRot;
-    }
-    
-    /// <summary> Called by Firing state. Instantiates a lava projectile with velocity defined by turret direction. </summary>
-    private void LaunchLava()
-    {
-        GameObject GO = Instantiate(lavaProjectile, firePoint.position, turretVerticalTransform.rotation);
-        GO.GetComponent<Rigidbody>().velocity = firePoint.forward * lavaVelocity;
-    }
-
-    /// <summary> Drop lava projectiles around body and then Die. </summary>
-    private void Explode()
-    {
-        Die();
-    }
-
-    public override void Die()
-    {
-
     }
 
     protected override void Working()
     {
-        //If end of path is not near target and refresh has cooled down
-        //  GetPath(target.position);
-        if (ReachedPoint(transform.position, testPatrolPoints[nextPatrolPoint].position, navPointSize))
-            nextPatrolPoint = (nextPatrolPoint + 1) % testPatrolPoints.Count;
+        base.Working();
 
-        if (Time.time > LastRefresh + RefreshRate)
+        if (movement.ReachedPoint(transform.position, testPatrolPoints[nextPatrolPoint].position))
         {
-            UpdateDestination(testPatrolPoints[nextPatrolPoint].position);
-            LastRefresh = Time.time;
+            nextPatrolPoint = (nextPatrolPoint + 1) % testPatrolPoints.Count;
+            movement.ChangeMoveTarget(testPatrolPoints[nextPatrolPoint].position);
         }
 
-        base.Working();
+        if (Time.time > movement._lastRefresh + movement.refreshRate)
+        {
+            movement.ChangeMoveTarget(testPatrolPoints[nextPatrolPoint].position);
+            movement._lastRefresh = Time.time;
+        }
+
+        LookAtMoveTarget();
     }
 
-    private void OnDrawGizmosSelected()
+    protected override void Searching()
     {
+        base.Searching();
+
+        LookAtLastPlayerPos();
     }
-    
+
+    protected override void Staring()
+    {
+        base.Staring();
+
+        LookAtLastPlayerPos();
+    }
+
+    protected override void Charging()
+    {
+        base.Charging();
+
+        AimTurret();
+    }
+
+    /// <summary> Called by Staring and Charging states. Rotates the head/turret so that a fired projectile would land near the target. </summary>
+    private void LookAtMoveTarget()
+    {
+        Vector3 horTargetDir = movement._moveTarget - transform.position;
+        float targetTurretAngle = Vector3.SignedAngle(transform.forward, horTargetDir, Vector3.up);
+
+        Vector3 gunTargetDir = (movement._moveTarget + new Vector3(0, gunTransform.localPosition.y, 0)) - gunTransform.position;
+        float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, gunTargetDir, turretTransform.right);
+
+        MoveTurretToAngles(targetTurretAngle, targetGunAngle);
+    }
+
+    private void LookAtLastPlayerPos()
+    {
+        //float targetTurretAngle = Vector3.SignedAngle(transform.forward, dirToTarget.FixedY(transform.forward.y), Vector3.up);
+        //float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
+        Vector3 horTargetDir = detection._lastPlayerPosition.FixedY(0) - transform.position.FixedY(0);
+        float targetTurretAngle = Vector3.SignedAngle(transform.forward, horTargetDir, Vector3.up);
+
+        Vector3 gunTargetDir = detection._lastPlayerPosition - gunTransform.position;
+        float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, gunTargetDir, turretTransform.right);
+
+        MoveTurretToAngles(targetTurretAngle, targetGunAngle);
+    }
+
+    Vector3 debugProjVel = Vector3.zero;
+    private void AimTurret()
+    {
+        Vector3 dirToTarget = detection._lastPlayerPosition - transform.position;
+        Vector3 projectileVel = (detection._lastPlayerPosition - transform.position).normalized * lavaVelocity;
+        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection._lastPlayerPosition, Vector3.zero, out projectileVel))
+        {
+            debugProjVel = projectileVel;
+
+            float targetTurretAngle = Vector3.SignedAngle(transform.forward, dirToTarget.FixedY(transform.forward.y), Vector3.up);
+            float targetGunAngle = Vector3.SignedAngle(turretTransform.forward, projectileVel, turretTransform.right);
+
+            MoveTurretToAngles(targetTurretAngle, targetGunAngle);
+        }
+    }
+
+    private float debugHorAngle = 0;
+    private float debugVertAngle = 0;
+    private void MoveTurretToAngles(float horizontal, float vertical)
+    {
+        debugHorAngle = horizontal;
+        debugVertAngle = vertical;
+
+        float currentTurretAngle = turretTransform.localRotation.eulerAngles.y;
+        horizontal = Mathf.Clamp(horizontal, -turretMaxAngle, turretMaxAngle);
+        horizontal = Mathf.MoveTowardsAngle(currentTurretAngle, horizontal, turretSpeed * Time.deltaTime);
+        Quaternion newHRot = Quaternion.Euler(0, horizontal, 0);
+        turretTransform.localRotation = newHRot;
+
+        float currentGunAngle = gunTransform.localRotation.eulerAngles.x;
+        vertical = Mathf.Clamp(vertical, -gunMaxAngle, gunMaxAngle);
+        vertical = Mathf.MoveTowardsAngle(currentGunAngle, vertical, gunSpeed * Time.deltaTime);
+        Quaternion newVRot = Quaternion.Euler(vertical, 0, 0);
+        gunTransform.localRotation = newVRot;
+    }
+
+    protected override void StartFiring()
+    {
+        base.StartFiring();
+        LaunchLava();
+    }
+
+    /// <summary> Called by Firing state. Instantiates a lava projectile with velocity defined by turret direction. </summary>
+    private void LaunchLava()
+    {
+        GameObject GO = Instantiate(lavaProjectile, firePoint.position, firePoint.rotation);
+        Vector3 projectileVel = firePoint.forward * lavaVelocity;
+        if (fts.solve_ballistic_arc_lateral(firePoint.position, lavaVelocity, Physics.gravity.magnitude, detection._lastPlayerPosition, Vector3.zero, out projectileVel))
+        {
+            GO.GetComponent<Rigidbody>().velocity = projectileVel;
+        }
+    }
+
     private void OnDrawGizmos()
     {
+        //Draw turret and gun desired angles
+        Vector3 starting = turretTransform.forward;
+        Quaternion rotation = new Quaternion();
+        rotation = Quaternion.AngleAxis(debugHorAngle, -Vector3.up);
+        Vector3 hor = (rotation * starting);
+        rotation = Quaternion.AngleAxis(debugVertAngle, gunTransform.right);
+        Vector3 vert = (rotation * starting);
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(turretTransform.position, turretTransform.position + hor * 4f);
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(turretTransform.position, turretTransform.position + vert * 3f);
+
+        //Draw firing point direction and projectile velocity
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(firePoint.position, firePoint.position + firePoint.forward * 3f);
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(firePoint.position, firePoint.position + debugProjVel.normalized * 4f);
+
         if (showPathGizmo)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawLine(transform.position, transform.position + transform.forward);
-            Gizmos.color = Color.red;
-            Vector3 targetDir = NextPoint - transform.position;
-            Gizmos.DrawLine(transform.position, transform.position + targetDir);
-            Gizmos.DrawSphere(NextPoint, navPointSize);
 
             Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(testPatrolPoints[nextPatrolPoint].position, navPointSize);
+            Gizmos.DrawSphere(testPatrolPoints[nextPatrolPoint].position, movement.navPointSize);
             Gizmos.DrawLine(transform.position, testPatrolPoints[nextPatrolPoint].position);
-            if (_path == null)
+            if (movement._path == null)
                 return;
-            if (_path.corners != null && _path.corners.Length > 1)
+            if (movement._path.corners != null && movement._path.corners.Length > 1)
             {
                 Gizmos.color = Color.gray;
-                Gizmos.DrawSphere(_path.corners[0], navPointSize);
+                Gizmos.DrawSphere(movement._path.corners[0], movement.navPointSize);
                 Gizmos.color = Color.white;
-                for (int i = 1; i < _path.corners.Length; ++i)
+                for (int i = 1; i < movement._path.corners.Length; ++i)
                 {
-                    Gizmos.DrawLine(_path.corners[i - 1], _path.corners[i]);
-                    Gizmos.DrawSphere(_path.corners[i], navPointSize);
+                    Gizmos.DrawLine(movement._path.corners[i - 1], movement._path.corners[i]);
+                    Gizmos.DrawSphere(movement._path.corners[i], movement.navPointSize);
                 }
             }
         }
