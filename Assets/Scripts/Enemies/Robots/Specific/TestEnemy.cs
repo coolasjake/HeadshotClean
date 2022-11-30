@@ -85,7 +85,7 @@ class TestEnemy : EnemyFramework
     private void Fire()
     {
         //Rotate by: Time since this started firing, divided by half of the fire duration.
-        float RotationFactor = (Time.time - stateMachine._startedFiring) / (stateMachine.fireDuration * 0.5f);
+        float RotationFactor = (Time.time - combatAndStates._startedFiring) / (combatAndStates.fireDuration * 0.5f);
         head.transform.rotation = Quaternion.LerpUnclamped(HeadRotationBeforeFiring, PlayerDirectionBeforeFiring, RotationFactor);
 
         RaycastHit Hit;
@@ -142,7 +142,7 @@ class TestEnemy : EnemyFramework
             //Turn to face the player (lerp relative to PV).
             FacePlayer();
         }
-        else if (stateMachine.state == AIState.Searching || stateMachine.state == AIState.Alarmed)
+        else if (combatAndStates.state == AIState.Searching || combatAndStates.state == AIState.Alarmed)
         {
             if (LookAround)
             {

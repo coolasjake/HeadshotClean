@@ -9,22 +9,49 @@ public class MiningDroid : EnemyFramework
     public Light firingLight;
     public LayerMask raycastShootingMask;
 
-    private bool LookAround = false;
-    private float LookAroundStarted = -1000;
-    private Vector3 LookAroundDirection = Vector3.zero;
+    public Transform shoulders;
+    public Transform box;
+    [Range(0, 180)]
+    public float maxBoxAngle = 75;
+    [Range(0, -180)]
+    public float minBoxAngle = -75;
+    //public float shoulderRotSpeed;
+    public float boxRotSpeed = 90;
 
-    public float LaserDPS = 1f;
-    private bool Freeze = false;
+    private bool _lookAround = false;
+    private float _lookAroundStarted = -1000;
+    private Vector3 _lookAroundDirection = Vector3.zero;
+
+    public float _laserDPS = 1f;
+    private bool _freeze = false;
     
-    private Vector3 startTargetLocation;
-    private Vector3 endTargetLocation;
-    private Vector3 LastDecalPoint = new Vector3();
+    private Vector3 _startTargetLocation;
+    private Vector3 _endTargetLocation;
+    private Vector3 _lastDecalPoint = new Vector3();
 
     protected override void StateMachineUpdate()
     {
         base.StateMachineUpdate();
 
         DoHeadRotation();
+    }
+
+    protected override void MovementUpdate()
+    {
+        if (combatAndStates.state == AIState.Firing)
+            return;
+
+        if (combatAndStates.state == AIState.Charging)
+            AimBoxAtTarget(_startTargetLocation);
+        else
+        {
+            UpdateNextPoint();
+
+            float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
+            TurnByAngle(angleToPoint);
+            if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
+                MoveTowardsTarget(movement.NextPoint);
+        }
     }
 
     #region Head Rotation
@@ -35,9 +62,9 @@ public class MiningDroid : EnemyFramework
             //Turn to face the player (lerp relative to PV).
             FacePlayer();
         }
-        else if (stateMachine.state == AIState.Searching || stateMachine.state == AIState.Alarmed)
+        else if (combatAndStates.state == AIState.Searching || combatAndStates.state == AIState.Alarmed)
         {
-            if (LookAround)
+            if (_lookAround)
             {
                 LookForPlayer(transform);
             }
@@ -55,14 +82,14 @@ public class MiningDroid : EnemyFramework
 
     private void LookForPlayer(Transform body)
     {
-        if (Time.time > LookAroundStarted + 0.8f)
+        if (Time.time > _lookAroundStarted + 0.8f)
         {
-            LookAroundStarted = Time.time;
-            LookAroundDirection = body.forward;
-            LookAroundDirection += body.right * (Random.value - 0.5f) * 5;
-            LookAroundDirection += body.up * (Random.value - 0.5f) * 3;
+            _lookAroundStarted = Time.time;
+            _lookAroundDirection = body.forward;
+            _lookAroundDirection += body.right * (Random.value - 0.5f) * 5;
+            _lookAroundDirection += body.up * (Random.value - 0.5f) * 3;
         }
-        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(LookAroundDirection), (90 * Time.deltaTime));
+        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(_lookAroundDirection), (90 * Time.deltaTime));
     }
 
     private void FacePlayer()
@@ -80,10 +107,10 @@ public class MiningDroid : EnemyFramework
 
     public void StartLookingAround()
     {
-        if (LookAround == false)
+        if (_lookAround == false)
         {
-            LookAroundStarted = Time.time - 0.8f;
-            LookAround = true;
+            _lookAroundStarted = Time.time - 0.8f;
+            _lookAround = true;
         }
     }
     #endregion
@@ -103,7 +130,7 @@ public class MiningDroid : EnemyFramework
         if (detection._playerVisibility == 0)
             StartLookingAround();
         else
-            LookAround = false;
+            _lookAround = false;
     }
 
     protected override void Searching()
@@ -113,7 +140,7 @@ public class MiningDroid : EnemyFramework
         if (detection._playerVisibility == 0)
             StartLookingAround();
         else
-            LookAround = false;
+            _lookAround = false;
 
         if ((Vector3.Distance(transform.position, detection._lastPlayerGroundedPosition) < 5))
         {
@@ -126,8 +153,8 @@ public class MiningDroid : EnemyFramework
         base.StartCharging();
 
         firingLight.enabled = true;
-        Freeze = true;
-        startTargetLocation = detection._lastPlayerPosition;
+        _freeze = true;
+        _startTargetLocation = detection._lastPlayerPosition;
         //SFXPlayer.PlaySound("Charge", 1, 15, 30, 1, 1, false);
     }
 
@@ -137,7 +164,7 @@ public class MiningDroid : EnemyFramework
         
         laserLine.enabled = true;
         //FP.ParticleEffect.Play ();
-        endTargetLocation = detection._lastPlayerPosition;
+        _endTargetLocation = detection._lastPlayerPosition;
         //SFXPlayer.PlaySound("Fire", 1, 15, 30, 1, 1, false);
     }
 
@@ -147,7 +174,7 @@ public class MiningDroid : EnemyFramework
 
         firingLight.enabled = false;
         laserLine.enabled = false;
-        Freeze = false;
+        _freeze = false;
     }
 
     protected override void Firing()
@@ -160,8 +187,9 @@ public class MiningDroid : EnemyFramework
 
     private void Fire()
     {
-        float t = (Time.time - stateMachine._startedFiring) / stateMachine.fireDuration;
-        PointLaserAtTarget(Vector3.Lerp(startTargetLocation, endTargetLocation, t));
+        float t = (Time.time - combatAndStates._startedFiring) / (combatAndStates.fireDuration * 0.5f);
+        //float t = (Time.time - stateMachine._startedFiring) / stateMachine.fireDuration;
+        PointLaserAtTarget(Vector3.LerpUnclamped(_startTargetLocation, _endTargetLocation, t));
 
         RaycastHit Hit;
         if (Physics.Raycast(firingPoint.position - firingPoint.forward, firingPoint.forward, out Hit, 600, raycastShootingMask))
@@ -171,26 +199,44 @@ public class MiningDroid : EnemyFramework
 
             Shootable SH = Hit.collider.GetComponentInParent<Shootable>();
             if (SH)
-                SH.Hit(LaserDPS * Time.deltaTime);
+                SH.Hit(_laserDPS * Time.deltaTime);
             else if (Time.timeScale > 0)
                 SpawnBurnDecal(Hit);
         }
     }
 
-    private void PointLaserAtTarget(Vector3 target)
+    private void PointLaserAtTarget(Vector3 targetPos)
     {
-        float angleToPoint = movement.SignedHorAngleToTarget(target);
+        //print("target = " + targetPos + ", start = " + _startTargetLocation + ", end = " + _endTargetLocation);
+
+        float angleToPoint = movement.SignedHorAngleToTarget(targetPos);
         TurnByAngle(angleToPoint);
 
-        //TODO: Angle box/arms here
+        AimBoxAtTarget(targetPos);
+    }
+    
+    private void AimBoxAtTarget(Vector3 targetPos)
+    {
+        Vector3 targetDir = targetPos - firingPoint.position;
+        float targetHeightDiff = targetDir.y;
+        float targetLatDist = targetDir.FixedY(0).magnitude;
+        Vector3 inLineTargetDir = (transform.forward * targetLatDist) + new Vector3(0, targetDir.y, 0);
+        float desiredBoxAngle = Vector3.SignedAngle(transform.forward, inLineTargetDir, firingPoint.right);
+        desiredBoxAngle = Mathf.Clamp(desiredBoxAngle, minBoxAngle, maxBoxAngle);
+
+        Quaternion rot = new Quaternion();
+        rot.eulerAngles = new Vector3(desiredBoxAngle, 0, 0);
+        box.localRotation = rot;
+
+        //TODO: factor in rotation speed?
     }
 
     private void SpawnBurnDecal(RaycastHit Hit)
     {
         Quaternion DecalRotation = Quaternion.LookRotation(Hit.normal);
         GameObject LaserBurn;
-        LastDecalPoint = Hit.point + (Hit.normal * 0.001f);
-        LaserBurn = Instantiate(Resources.Load<GameObject>("Prefabs/LaserBurn"), LastDecalPoint, DecalRotation);
+        _lastDecalPoint = Hit.point + (Hit.normal * 0.001f);
+        LaserBurn = Instantiate(Resources.Load<GameObject>("Prefabs/LaserBurn"), _lastDecalPoint, DecalRotation);
     }
 }
 

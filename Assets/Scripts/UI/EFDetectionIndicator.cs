@@ -33,20 +33,20 @@ public class EFDetectionIndicator : MonoBehaviour {
 			return;
 		}
 
-		if (EnemyScript.stateMachine.state == AIState.Working) {
+		if (EnemyScript.combatAndStates.state == AIState.Working) {
             float verticalSize = Mathf.Max(0.2f, EnemyScript.detection._detectionProgress / EnemyScript.detection.detectionDifficulty);
             transform.localScale = new Vector3 (1, verticalSize, 1);
 			ImageReference.color = Color.green;
-		} else if (EnemyScript.stateMachine.state == AIState.Searching) {
+		} else if (EnemyScript.combatAndStates.state == AIState.Searching) {
 			transform.localScale = new Vector3 (1, 1, 1);
 			ImageReference.color = Color.magenta;
-		} else if (EnemyScript.stateMachine.state == AIState.Staring) {
+		} else if (EnemyScript.combatAndStates.state == AIState.Staring) {
 			transform.localScale = new Vector3 (1, 1, 1);
 			ImageReference.color = Color.yellow;
-		} else if (EnemyScript.stateMachine.state == AIState.Charging || EnemyScript.stateMachine.state == AIState.Firing) {
+		} else if (EnemyScript.combatAndStates.state == AIState.Charging || EnemyScript.combatAndStates.state == AIState.Firing) {
 			transform.localScale = new Vector3 (1, 1, 1);
 			ImageReference.color = Color.red;
-		} else if (EnemyScript.stateMachine.state == AIState.Alarmed) {
+		} else if (EnemyScript.combatAndStates.state == AIState.Alarmed) {
 			transform.localScale = new Vector3 (2, 2, 1);
 			ImageReference.color = Color.black;
 		} else {

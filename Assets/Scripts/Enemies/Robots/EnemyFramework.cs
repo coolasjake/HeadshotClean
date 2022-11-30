@@ -12,7 +12,7 @@ public abstract class EnemyFramework : MonoBehaviour
 {
     [Header("Base Enemy Framework:")]
     public EnemyDetection detection = new EnemyDetection();
-    public StateMachine stateMachine = new StateMachine();
+    public StateMachine combatAndStates = new StateMachine();
     public EnemyMovement movement = new EnemyMovement();
     public AudioManager SFXPlayer;
 
@@ -22,7 +22,7 @@ public abstract class EnemyFramework : MonoBehaviour
     void Start()
     {
         movement.Initialize(transform, GetComponent<Rigidbody>());
-        stateMachine.startChargingDelay += (Random.value - 0.5f);
+        combatAndStates.startChargingDelay += (Random.value - 0.5f);
 
         CreateDetectionIndicator();
     }
@@ -44,7 +44,7 @@ public abstract class EnemyFramework : MonoBehaviour
         if (PauseManager.Paused)
             return;
 
-        bool canLooseInterest = (stateMachine.state == AIState.Working || stateMachine.state == AIState.Searching);
+        bool canLooseInterest = (combatAndStates.state == AIState.Working || combatAndStates.state == AIState.Searching);
         detection.DetectPlayer(canLooseInterest);
 
         StateMachineUpdate();
@@ -230,8 +230,7 @@ public abstract class EnemyFramework : MonoBehaviour
         public float DPS = 50;
         /// <summary> Range from which a Bot-to-Bot alarm will alert other AI (Radius). </summary>
         public float alarmRange = 10;
-
-        //private int RaycastMask;
+        
         /// <summary> 'Counter' which stops the enemy from firing too often, but is not cheesed by temporary loss of LOS. </summary>
         [HideInInspector]
         public float _firingDelayTimer;
@@ -258,22 +257,22 @@ public abstract class EnemyFramework : MonoBehaviour
 
     protected virtual void StateMachineUpdate()
     {
-        if (stateMachine.state == AIState.Working)
+        if (combatAndStates.state == AIState.Working)
             Working();
 
-        if (stateMachine.state == AIState.Alarmed)
+        if (combatAndStates.state == AIState.Alarmed)
             Alarmed();
 
-        if (stateMachine.state == AIState.Staring)
+        if (combatAndStates.state == AIState.Staring)
             Staring();
 
-        if (stateMachine.state == AIState.Searching)
+        if (combatAndStates.state == AIState.Searching)
             Searching();
 
-        if (stateMachine.state == AIState.Charging)
+        if (combatAndStates.state == AIState.Charging)
             Charging();
 
-        if (stateMachine.state == AIState.Firing)
+        if (combatAndStates.state == AIState.Firing)
             Firing();
     }
 
@@ -314,13 +313,13 @@ public abstract class EnemyFramework : MonoBehaviour
     /// <summary> Warns nearby bots that the player is near, at the cost of a delayed reaction. Occurs when player is obvious and an alarm hasn't been raised for a while. </summary>
     protected virtual void Alarmed()
     {
-        if (Time.time > stateMachine._startedAlarm + stateMachine.alarmDuration)
+        if (Time.time > combatAndStates._startedAlarm + combatAndStates.alarmDuration)
         {
             //Find nearby enemies, put them in searching mode and give them the players location.
             //Needs fixing HERE
             foreach (LookingEnemy Bot in FindObjectsOfType<LookingEnemy>())
             {
-                if (Vector3.Distance(Bot.transform.position, transform.position) < stateMachine.alarmRange)
+                if (Vector3.Distance(Bot.transform.position, transform.position) < combatAndStates.alarmRange)
                     Bot.SoundAlarm(detection._lastPlayerPosition, detection._lastPlayerGroundedPosition);
             }
             StartStaring();
@@ -344,8 +343,8 @@ public abstract class EnemyFramework : MonoBehaviour
                 StartStaring();
             }
         }
-        else if ((Vector3.Distance(transform.position, detection._lastPlayerGroundedPosition) < 5 && Time.time > detection._startedSearching + stateMachine.minSearchDuration)
-            || Time.time > detection._startedSearching + stateMachine.maxSearchDuration)
+        else if ((Vector3.Distance(transform.position, detection._lastPlayerGroundedPosition) < 5 && Time.time > detection._startedSearching + combatAndStates.minSearchDuration)
+            || Time.time > detection._startedSearching + combatAndStates.maxSearchDuration)
         {
             StartWorking();
         }
@@ -361,8 +360,8 @@ public abstract class EnemyFramework : MonoBehaviour
         }
         else
         {
-            stateMachine._firingDelayTimer -= Time.deltaTime;
-            if (stateMachine._firingDelayTimer <= 0 && Time.time > stateMachine._stoppedFiring + stateMachine.fireCooldown)
+            combatAndStates._firingDelayTimer -= Time.deltaTime;
+            if (combatAndStates._firingDelayTimer <= 0 && Time.time > combatAndStates._stoppedFiring + combatAndStates.fireCooldown)
             {
                 StartCharging();
             }
@@ -376,7 +375,7 @@ public abstract class EnemyFramework : MonoBehaviour
     /// <summary> The AI is 'powering up' its attack; this freezes it (including head movement), and causes lights and sounds to appear. This is NOT cancelled by losing LOS. Note: designed for the Laser Enemies, may not work well for others. </summary>
     protected virtual void Charging()
     {
-        if (Time.time >= stateMachine._startedCharging + stateMachine.chargeTime)
+        if (Time.time >= combatAndStates._startedCharging + combatAndStates.chargeTime)
         {
             StartFiring();
         }
@@ -388,7 +387,7 @@ public abstract class EnemyFramework : MonoBehaviour
     /// </summary>
     protected virtual void Firing()
     {
-        if (Time.time >= stateMachine._startedFiring + stateMachine.fireDuration)
+        if (Time.time >= combatAndStates._startedFiring + combatAndStates.fireDuration)
         {
             StopFiring();
         }
@@ -398,48 +397,48 @@ public abstract class EnemyFramework : MonoBehaviour
     #region StateChanges
     protected virtual void StartWorking()
     {
-        stateMachine.state = AIState.Working;
+        combatAndStates.state = AIState.Working;
         movement.ChangeMoveTarget(movement.restLocation);
         detection._detectionProgress = detection.detectionDifficulty * 0.75f;
-        stateMachine._firingDelayTimer = stateMachine.startChargingDelay;
+        combatAndStates._firingDelayTimer = combatAndStates.startChargingDelay;
         Network.AlarmedBots -= 1;
     }
 
     protected virtual void StartAlarmed()
     {
-        stateMachine.state = AIState.Alarmed;
-        stateMachine._startedAlarm = Time.time;
+        combatAndStates.state = AIState.Alarmed;
+        combatAndStates._startedAlarm = Time.time;
     }
 
     protected virtual void StartSearching()
     {
-        stateMachine.state = AIState.Searching;
+        combatAndStates.state = AIState.Searching;
         detection._startedSearching = Time.time;
     }
 
     protected virtual void StartStaring()
     {
-        stateMachine.state = AIState.Staring;
-        stateMachine._firingDelayTimer = stateMachine.startChargingDelay;
+        combatAndStates.state = AIState.Staring;
+        combatAndStates._firingDelayTimer = combatAndStates.startChargingDelay;
     }
 
     protected virtual void StartCharging()
     {
-        stateMachine.state = AIState.Charging;
-        stateMachine._startedCharging = Time.time;
+        combatAndStates.state = AIState.Charging;
+        combatAndStates._startedCharging = Time.time;
     }
 
     protected virtual void StartFiring()
     {
-        stateMachine.state = AIState.Firing;
-        stateMachine._startedFiring = Time.time;
+        combatAndStates.state = AIState.Firing;
+        combatAndStates._startedFiring = Time.time;
     }
 
     protected virtual void StopFiring()
     {
         //Stop Firing
-        stateMachine.state = AIState.Staring;
-        stateMachine._stoppedFiring = Time.time;
+        combatAndStates.state = AIState.Staring;
+        combatAndStates._stoppedFiring = Time.time;
     }
     #endregion
     #endregion
