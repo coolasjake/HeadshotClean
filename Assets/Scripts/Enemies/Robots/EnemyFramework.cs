@@ -25,6 +25,13 @@ public abstract class EnemyFramework : MonoBehaviour
         combatAndStates.startChargingDelay += (Random.value - 0.5f);
 
         CreateDetectionIndicator();
+
+        EFStart();
+    }
+
+    protected virtual void EFStart()
+    {
+
     }
 
     protected virtual void CreateDetectionIndicator()
@@ -454,14 +461,22 @@ public abstract class EnemyFramework : MonoBehaviour
         /// <summary> The default position of the enemy, which they will return to if the player cannot be found (usually the starting position). </summary>
         [HideInInspector]
         public Vector3 restLocation;
+        
+        public bool showPathGizmo = true;
+
+        [Space]
         /// <summary> Turn speed in degrees per second of the enemies body. </summary>
         public float turnSpeed = 30f;
         /// <summary> Move speed of the enemy. </summary>
-        public float moveSpeed = 2f;
+        public float moveSpeed = 5f;
         /// <summary> Acceleration rate of this enemy. </summary>
-        public float acceleration = 2f;
+        public float acceleration = 100f;
         /// <summary> Multiplier to the acceleration rate when reducing speed instead of increasing it. </summary>
+        [Min(0)]
         public float brakingMultiplier = 1f;
+        /// <summary> Multiplier for the acceleration added when turning. Formula is [force + force * (1 - Cosθ) * turningEffectiveness], meaning 1 = on rails, 0 = on ice. </summary>
+        [Range(0, 1)]
+        public float turningEffectiveness = 0.5f;
         /// <summary> Max rate that expensive calculations (such as pathfinding) can be performed. </summary>
         public float refreshRate = 1f;
         /// <summary> The distance from a point in the nav-path at which the enemy moves to the next point. </summary>
@@ -520,14 +535,9 @@ public abstract class EnemyFramework : MonoBehaviour
             }
         }
 
-        public bool WithinRange(Vector3 start, Vector3 end, float range)
+        public bool ReachedPoint(Vector3 current, Vector3 target)
         {
-            return (Vector3.SqrMagnitude(start - end) < range * range);
-        }
-
-        public bool ReachedPoint(Vector3 start, Vector3 end)
-        {
-            return WithinRange(start.FixedY(0), end.FixedY(0), navPointSize);
+            return Utility.WithinRange(current.FixedY(0), target.FixedY(0), navPointSize);
         }
 
         public float SignedHorAngleToTarget(Vector3 targetPos)
@@ -567,15 +577,39 @@ public abstract class EnemyFramework : MonoBehaviour
         float force = movement.acceleration * movement.RB.mass * Time.deltaTime;
         if (targetVel.FixedY(0).sqrMagnitude < movement.RB.velocity.FixedY(0).sqrMagnitude)
             force = force * movement.brakingMultiplier;
-        force = Mathf.Min(force, difference.magnitude);
+        else if (movement.turningEffectiveness > 0)
+            force += force * (1 - Mathf.Cos(Vector3.Angle(targetVel.FixedY(0), movement.RB.velocity.FixedY(0)))) * movement.turningEffectiveness;
+        force = Mathf.Min(force, difference.magnitude * movement.RB.mass / Time.fixedDeltaTime);
         movement.RB.AddForce(difference.normalized * force);
     }
 
     protected void UpdateNextPoint()
     {
-        if (Vector3.SqrMagnitude((movement.NextPoint - transform.position).FixedY(0)) < movement.navPointSize * movement.navPointSize)
+        if (movement.ReachedPoint(movement.NextPoint, transform.position))
         {
             movement._nextPathPoint += 1;
+        }
+    }
+    #endregion
+
+    #region Gizmos
+    private void OnDrawGizmos()
+    {
+        if (movement.showPathGizmo)
+        {
+            if (movement._path == null)
+                return;
+            if (movement._path.corners != null && movement._path.corners.Length > 1)
+            {
+                Gizmos.color = Color.gray;
+                Gizmos.DrawSphere(movement._path.corners[0], movement.navPointSize);
+                Gizmos.color = Color.white;
+                for (int i = 1; i < movement._path.corners.Length; ++i)
+                {
+                    Gizmos.DrawLine(movement._path.corners[i - 1], movement._path.corners[i]);
+                    Gizmos.DrawSphere(movement._path.corners[i], movement.navPointSize);
+                }
+            }
         }
     }
     #endregion

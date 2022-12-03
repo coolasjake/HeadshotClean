@@ -139,6 +139,11 @@ public static class Utility
     {
         return new Vector3Int(Mathf.FloorToInt(v1.x * v2.x), Mathf.FloorToInt(v1.y * v2.y), Mathf.FloorToInt(v1.z * v2.z));
     }
+    
+    public static bool WithinRange(Vector3 pointA, Vector3 pointB, float range)
+    {
+        return (Vector3.SqrMagnitude(pointA - pointB) < range * range);
+    }
 }
 
 public class Mean

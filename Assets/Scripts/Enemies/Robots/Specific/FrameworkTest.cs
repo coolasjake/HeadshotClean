@@ -29,10 +29,6 @@ public class FrameworkTest : EnemyFramework
     private List<Transform> testPatrolPoints;
     private int nextPatrolPoint;
 
-    public bool showPathGizmo = true;
-
-    public float angleToPoint = 0;
-
     private float turretAngle = 0;
 
     protected override void MovementUpdate()
@@ -40,7 +36,7 @@ public class FrameworkTest : EnemyFramework
         UpdateNextPoint();
 
         //float angleToPoint = SignedHorAngleToTarget(movement.NextPoint);
-        angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
+        float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
         if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
         {
             MoveTowardsTarget(movement.NextPoint);
@@ -191,28 +187,5 @@ public class FrameworkTest : EnemyFramework
         Gizmos.DrawLine(firePoint.position, firePoint.position + firePoint.forward * 3f);
         Gizmos.color = Color.blue;
         Gizmos.DrawLine(firePoint.position, firePoint.position + debugProjVel.normalized * 4f);
-
-        if (showPathGizmo)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, transform.position + transform.forward);
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(testPatrolPoints[nextPatrolPoint].position, movement.navPointSize);
-            Gizmos.DrawLine(transform.position, testPatrolPoints[nextPatrolPoint].position);
-            if (movement._path == null)
-                return;
-            if (movement._path.corners != null && movement._path.corners.Length > 1)
-            {
-                Gizmos.color = Color.gray;
-                Gizmos.DrawSphere(movement._path.corners[0], movement.navPointSize);
-                Gizmos.color = Color.white;
-                for (int i = 1; i < movement._path.corners.Length; ++i)
-                {
-                    Gizmos.DrawLine(movement._path.corners[i - 1], movement._path.corners[i]);
-                    Gizmos.DrawSphere(movement._path.corners[i], movement.navPointSize);
-                }
-            }
-        }
     }
 }
