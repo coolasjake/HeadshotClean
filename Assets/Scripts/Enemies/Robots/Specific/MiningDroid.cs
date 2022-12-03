@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class MiningDroid : EnemyFramework
 {
+    [Header("Mining Droid Settings")]
     public Transform firingPoint;
     public LineRenderer laserLine;
     public Light firingLight;
@@ -18,16 +19,31 @@ public class MiningDroid : EnemyFramework
     //public float shoulderRotSpeed;
     public float boxRotSpeed = 90;
 
+    public List<Transform> miningTargets = new List<Transform>();
+    public float miningMaxDistance = 20f;
+    public float miningMinDistance = 5f;
+    private int _currentTarget = 0;
+
     private bool _lookAround = false;
     private float _lookAroundStarted = -1000;
     private Vector3 _lookAroundDirection = Vector3.zero;
 
     public float _laserDPS = 1f;
+    private bool _stabilise = false;
     private bool _freeze = false;
     
     private Vector3 _startTargetLocation;
     private Vector3 _endTargetLocation;
     private Vector3 _lastDecalPoint = new Vector3();
+
+    private WorkStates workState = WorkStates.moving;
+
+    #region EnemyFramework Overrides
+    protected override void EFStart()
+    {
+        firingLight.enabled = false;
+        laserLine.enabled = false;
+    }
 
     protected override void StateMachineUpdate()
     {
@@ -38,6 +54,17 @@ public class MiningDroid : EnemyFramework
 
     protected override void MovementUpdate()
     {
+        if (_freeze)
+            _stabilise = true;
+
+        if (_stabilise)
+        {
+            AccelerateToVelocity(Vector3.zero);
+            if (movement.RB.velocity.sqrMagnitude < 0.1f)
+                _stabilise = false;
+        }
+
+
         if (combatAndStates.state == AIState.Firing)
             return;
 
@@ -49,70 +76,75 @@ public class MiningDroid : EnemyFramework
 
             float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
             TurnByAngle(angleToPoint);
-            if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
-                MoveTowardsTarget(movement.NextPoint);
-        }
-    }
+            MoveTowardsTarget(movement.NextPoint);
 
-    #region Head Rotation
-    private void DoHeadRotation()
-    {
-        if (detection._playerVisibility > 0.5f)
-        {
-            //Turn to face the player (lerp relative to PV).
-            FacePlayer();
-        }
-        else if (combatAndStates.state == AIState.Searching || combatAndStates.state == AIState.Alarmed)
-        {
-            if (_lookAround)
+            /*
+            if (movement._nextPathPoint == 0)
+                movement._nextPathPoint += 1;
+
+            if (movement.ReachedPoint(transform.position, movement.NextPoint))
             {
-                LookForPlayer(transform);
+                if (movement.RB.velocity.sqrMagnitude < 0.1f)
+                {
+                    _stabilise = false;
+                    movement._nextPathPoint += 1;
+                }
+                else
+                    _stabilise = true;
             }
             else
-                //Turn to face the players assumed position.
-                detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation,
-                    Quaternion.LookRotation(detection._lastPlayerPosition - detection.head.position), (90 * Time.deltaTime));
+            {
+                float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
+                TurnByAngle(angleToPoint);
+                if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
+                    MoveTowardsTarget(movement.NextPoint);
+            }
+            */
         }
-        else
+    }
+    #endregion
+
+    #region Work Sub-States
+    private enum WorkStates
+    {
+        moving,
+        charging,
+        firing
+    }
+
+    private void WorkStateMachine()
+    {
+        if (workState == WorkStates.moving)
         {
-            //Turn to face forwards.
-            detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(transform.forward), (90 * Time.deltaTime));
+            WorkMoving();
         }
-    }
-
-    private void LookForPlayer(Transform body)
-    {
-        if (Time.time > _lookAroundStarted + 0.8f)
+        if (workState == WorkStates.charging)
         {
-            _lookAroundStarted = Time.time;
-            _lookAroundDirection = body.forward;
-            _lookAroundDirection += body.right * (Random.value - 0.5f) * 5;
-            _lookAroundDirection += body.up * (Random.value - 0.5f) * 3;
+            WorkCharging();
         }
-        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(_lookAroundDirection), (90 * Time.deltaTime));
-    }
-
-    private void FacePlayer()
-    {
-        Quaternion targetRot = Quaternion.LookRotation(Movement.ThePlayer.MainCamera.transform.position - detection.head.position);
-        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 + (90 * detection._playerVisibility)) * Time.deltaTime);
-    }
-
-    private void FaceTarget(Vector3 targetPos)
-    {
-        Vector3 targetDir = targetPos - detection.head.position;
-        Quaternion targetRot = Quaternion.LookRotation(targetDir);
-        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 * Time.deltaTime));
-    }
-
-    public void StartLookingAround()
-    {
-        if (_lookAround == false)
+        if (workState == WorkStates.firing)
         {
-            _lookAroundStarted = Time.time - 0.8f;
-            _lookAround = true;
+            WorkCharging();
         }
     }
+
+    private void WorkMoving()
+    {
+        //if refreshRate
+        //  if less than miningDistance from next target
+        //      
+    }
+
+    private void WorkCharging()
+    {
+
+    }
+
+    private void WorkFiring()
+    {
+
+    }
+
     #endregion
 
     #region State Overrides
@@ -185,6 +217,7 @@ public class MiningDroid : EnemyFramework
     }
     #endregion
 
+    #region Laser
     private void Fire()
     {
         float t = (Time.time - combatAndStates._startedFiring) / (combatAndStates.fireDuration * 0.5f);
@@ -238,6 +271,68 @@ public class MiningDroid : EnemyFramework
         _lastDecalPoint = Hit.point + (Hit.normal * 0.001f);
         LaserBurn = Instantiate(Resources.Load<GameObject>("Prefabs/LaserBurn"), _lastDecalPoint, DecalRotation);
     }
+    #endregion
+
+    #region Head Rotation
+    private void DoHeadRotation()
+    {
+        if (detection._playerVisibility > 0.5f)
+        {
+            //Turn to face the player (lerp relative to PV).
+            FacePlayer();
+        }
+        else if (combatAndStates.state == AIState.Searching || combatAndStates.state == AIState.Alarmed)
+        {
+            if (_lookAround)
+            {
+                LookForPlayer(transform);
+            }
+            else
+                //Turn to face the players assumed position.
+                detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation,
+                    Quaternion.LookRotation(detection._lastPlayerPosition - detection.head.position), (90 * Time.deltaTime));
+        }
+        else
+        {
+            //Turn to face forwards.
+            detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(transform.forward), (90 * Time.deltaTime));
+        }
+    }
+
+    private void LookForPlayer(Transform body)
+    {
+        if (Time.time > _lookAroundStarted + 0.8f)
+        {
+            _lookAroundStarted = Time.time;
+            _lookAroundDirection = body.forward;
+            _lookAroundDirection += body.right * (Random.value - 0.5f) * 5;
+            _lookAroundDirection += body.up * (Random.value - 0.5f) * 3;
+        }
+        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(_lookAroundDirection), (90 * Time.deltaTime));
+    }
+
+    private void FacePlayer()
+    {
+        Quaternion targetRot = Quaternion.LookRotation(Movement.ThePlayer.MainCamera.transform.position - detection.head.position);
+        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 + (90 * detection._playerVisibility)) * Time.deltaTime);
+    }
+
+    private void FaceTarget(Vector3 targetPos)
+    {
+        Vector3 targetDir = targetPos - detection.head.position;
+        Quaternion targetRot = Quaternion.LookRotation(targetDir);
+        detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 * Time.deltaTime));
+    }
+
+    public void StartLookingAround()
+    {
+        if (_lookAround == false)
+        {
+            _lookAroundStarted = Time.time - 0.8f;
+            _lookAround = true;
+        }
+    }
+    #endregion
 }
 
 /* TODO:
