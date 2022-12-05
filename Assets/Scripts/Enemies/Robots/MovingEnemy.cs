@@ -120,7 +120,7 @@ public abstract class MovingEnemy : LookingEnemy {
 	}
 
 	void OnCollisionEnter (Collision Col) {
-		if (Col.transform.GetComponent<Movement> ()) {
+		if (Col.transform.GetComponent<PlayerMovement> ()) {
 			EnemyCounter.HitsTaken += 1;
 			EnemyCounter.UpdateScoreboard ();
 			if (PlaySounds)

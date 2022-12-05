@@ -30,9 +30,9 @@ public class ActionRecorder : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.P)) {
 			if (Recording) {
 				Play ();
-				GetComponent<Movement> ().enabled = false;
+				GetComponent<PlayerMovement> ().enabled = false;
 			} else if (Playing) {
-				GetComponent<Movement> ().enabled = true;
+				GetComponent<PlayerMovement> ().enabled = true;
 				Playing = false;
 			} else {
 				Recording = true;

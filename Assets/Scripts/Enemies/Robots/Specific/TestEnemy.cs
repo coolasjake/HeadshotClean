@@ -62,7 +62,7 @@ class TestEnemy : EnemyFramework
         FP.EffectLine.enabled = true;
         //FP.ParticleEffect.Play ();
         HeadRotationBeforeFiring = head.transform.rotation;
-        PlayerDirectionBeforeFiring = Quaternion.LookRotation(Movement.ThePlayer.transform.position - head.transform.position);
+        PlayerDirectionBeforeFiring = Quaternion.LookRotation(PlayerMovement.ThePlayer.transform.position - head.transform.position);
         SFXPlayer.PlaySound("Fire", 1, 15, 30, 1, 1, false);
     }
 
@@ -124,7 +124,7 @@ class TestEnemy : EnemyFramework
 
     private void FacePlayer()
     {
-        Quaternion targetRot = Quaternion.LookRotation(Movement.ThePlayer.MainCamera.transform.position - head.transform.position);
+        Quaternion targetRot = Quaternion.LookRotation(PlayerMovement.ThePlayer.MainCamera.transform.position - head.transform.position);
         head.transform.rotation = Quaternion.RotateTowards(head.transform.rotation, targetRot, (90 + (90 * detection._playerVisibility)) * Time.deltaTime);
     }
 

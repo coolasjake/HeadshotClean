@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Movement))]
+[RequireComponent(typeof(PlayerMovement))]
 public class Gravity : MonoBehaviour//PlayerAbility
 {
     #region Auto References
     private Rigidbody RB;
-    private Movement PM;
+    private PlayerMovement PM;
     private GravityRep UIGyroscope;
     private GravityRep UINormalGravity;
     /// <summary> Reference to the object that shows where gravity has been shifted to. </summary>
@@ -288,7 +288,7 @@ public class Gravity : MonoBehaviour//PlayerAbility
     {
         //Find player components
         RB = GetComponent<Rigidbody>();
-        PM = GetComponent<Movement>();
+        PM = GetComponent<PlayerMovement>();
         PM.collisionEvent += GravityCollision;
 
         circle = Instantiate(gravityCirclePrefab).GetComponent<GravityCircle>();

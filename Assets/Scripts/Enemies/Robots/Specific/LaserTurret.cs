@@ -70,8 +70,8 @@ public class LaserTurret : ShootingEnemy {
 		RotateHead ();
 
 		if (PlayerVisibility > 0.5f || Time.time < LastSawPlayer + CanGuessPositionTime) {
-			LastPlayerPosition = Movement.ThePlayer.transform.position;
-			LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
+			LastPlayerPosition = PlayerMovement.ThePlayer.transform.position;
+			LastPlayerGroundedPosition = PlayerMovement.ThePlayer._AIFollowPoint;
 		}
 
 		if (State == AIState.Working)

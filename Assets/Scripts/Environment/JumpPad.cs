@@ -32,7 +32,7 @@ public class JumpPad : MonoBehaviour {
 	}
 
 	void OnTriggerEnter (Collider col) {
-		Movement Player = col.gameObject.GetComponentInParent<Movement> ();
+		PlayerMovement Player = col.gameObject.GetComponentInParent<PlayerMovement> ();
 		if (Player) {
             JumpSpeed = Mathf.Sqrt(2 * Physics.gravity.magnitude * Height);
             Player.GetComponent<Rigidbody> ().velocity = transform.up * JumpSpeed;

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-public class Movement : Shootable {
+public class PlayerMovement : Shootable {
 
 	//--->Debug
     [Header("Debug")]
@@ -20,7 +20,7 @@ public class Movement : Shootable {
     public float LateralVelocityBeforeFriction;
 
 	//--->Singleton
-	public static Movement ThePlayer;
+	public static PlayerMovement ThePlayer;
 
 	//--->Static
 	public static Vector3 PlayerStartPosition = new Vector3(7, 5, 95);

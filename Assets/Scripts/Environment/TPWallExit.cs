@@ -20,10 +20,10 @@ public class TPWallExit : MonoBehaviour {
 
     public void TeleportPlayer()
     {
-        Gravity gravScript = Movement.ThePlayer.GetComponent<Gravity>();
+        Gravity gravScript = PlayerMovement.ThePlayer.GetComponent<Gravity>();
         if (gravScript)
             gravScript.ResetToWorldGravity();
-        Movement.ThePlayer.Teleport(TeleportLocation, Rotation.x, Rotation.y, DeleteVelocity);
+        PlayerMovement.ThePlayer.Teleport(TeleportLocation, Rotation.x, Rotation.y, DeleteVelocity);
     }
 
 	public Vector3 TeleportLocation {

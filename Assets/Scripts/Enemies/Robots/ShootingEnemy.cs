@@ -216,7 +216,7 @@ public class ShootingEnemy : MovingEnemy
 			FP.EffectLine.enabled = true;
 			//FP.ParticleEffect.Play ();
 			StartHeadRotation = Head.transform.rotation;
-			StartPlayerDirection = Quaternion.LookRotation (Movement.ThePlayer.transform.position - Head.transform.position);
+			StartPlayerDirection = Quaternion.LookRotation (PlayerMovement.ThePlayer.transform.position - Head.transform.position);
 			if (PlayerVisibility == 0)
 				StartPlayerDirection = Quaternion.LookRotation (Head.transform.right * (Random.value - 0.5f) - Head.transform.up * 0.1f);
 			SFXPlayer.PlaySound ("Fire", 1, 15, 30, 1, 1, false);

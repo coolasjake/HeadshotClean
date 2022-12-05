@@ -18,7 +18,7 @@ public class DeathMenu : MonoBehaviour {
 	}
 
 	public void RestartProgram() {
-		Movement.PlayerStartPosition = new Vector3 (3, 90.5f, 82);
+		PlayerMovement.PlayerStartPosition = new Vector3 (3, 90.5f, 82);
 		SceneManager.LoadScene ("TestCity");
 	}
 

@@ -313,7 +313,7 @@ public class MiningDroid : EnemyFramework
 
     private void FacePlayer()
     {
-        Quaternion targetRot = Quaternion.LookRotation(Movement.ThePlayer.MainCamera.transform.position - detection.head.position);
+        Quaternion targetRot = Quaternion.LookRotation(PlayerMovement.ThePlayer.MainCamera.transform.position - detection.head.position);
         detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, targetRot, (90 + (90 * detection._playerVisibility)) * Time.deltaTime);
     }
 

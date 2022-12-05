@@ -7,7 +7,7 @@ public class Spikes : MonoBehaviour {
 	private float LastHit = -5;
 
 	void OnTriggerEnter (Collider col) {
-		Movement Player = col.gameObject.GetComponentInParent<Movement> ();
+		PlayerMovement Player = col.gameObject.GetComponentInParent<PlayerMovement> ();
 		if (Player && Time.time > LastHit + 0.1f) {
 			LastHit = Time.time;
 			Player.Kill ();

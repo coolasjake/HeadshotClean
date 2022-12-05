@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TestPlayer : Movement {
+public class TestPlayer : PlayerMovement {
 
 	//public static Movement ThePlayer;
 

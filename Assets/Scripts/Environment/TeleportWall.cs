@@ -7,14 +7,14 @@ public class TeleportWall : MonoBehaviour {
 	public TPWallExit Exit;
 
 	void OnCollisionEnter (Collision col) {
-		Movement P = col.gameObject.GetComponentInParent<Movement> ();
+		PlayerMovement P = col.gameObject.GetComponentInParent<PlayerMovement> ();
         if (P)
             Exit.TeleportPlayer();
 	}
 
     void OnTriggerEnter(Collider other)
     {
-        Movement P = other.gameObject.GetComponentInParent<Movement>();
+        PlayerMovement P = other.gameObject.GetComponentInParent<PlayerMovement>();
         if (P)
             Exit.TeleportPlayer();
     }

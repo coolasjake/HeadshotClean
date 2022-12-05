@@ -8,7 +8,7 @@ public class AreaSegmentTrigger : MonoBehaviour {
 	public List<GameObject> ObjectsToLoad = new List<GameObject>();
 
 	void OnTriggerEnter (Collider col) {
-		Movement Player = col.gameObject.GetComponentInParent<Movement> ();
+		PlayerMovement Player = col.gameObject.GetComponentInParent<PlayerMovement> ();
 		if (Player) {
 			foreach (GameObject GO in ObjectsToUnload)
 				GO.SetActive (false);

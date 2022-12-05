@@ -73,42 +73,42 @@ public abstract class LookingEnemy : BaseEnemy {
 		//If a raycast from head to center, or head to head hits the player, set the time the player was last seen to now, and indicate that the player can be seen currently.
 		RaycastHit Hit1;
 		RaycastHit Hit2;
-		Movement P1;
-		Movement P2;
-		Movement P = null;
+		PlayerMovement P1;
+		PlayerMovement P2;
+		PlayerMovement P = null;
 		bool NoHit = true; //Starts here, should be a local variable.
-		if (Physics.Raycast (Head.transform.position, (Movement.ThePlayer.transform.position - transform.position), out Hit1, 600, raycastLookingMask)) {
-			P1 = Hit1.transform.GetComponentInParent<Movement> ();
+		if (Physics.Raycast (Head.transform.position, (PlayerMovement.ThePlayer.transform.position - transform.position), out Hit1, 600, raycastLookingMask)) {
+			P1 = Hit1.transform.GetComponentInParent<PlayerMovement> ();
 			if (P1) {
 				NoHit = false;
 				P = P1;
 			}
 		}
-		if (Physics.Raycast (Head.transform.position, (Movement.ThePlayer.MainCamera.transform.position - Head.transform.position), out Hit2, 600, raycastLookingMask)) {
-			P2 = Hit2.transform.GetComponentInParent<Movement> ();
+		if (Physics.Raycast (Head.transform.position, (PlayerMovement.ThePlayer.MainCamera.transform.position - Head.transform.position), out Hit2, 600, raycastLookingMask)) {
+			P2 = Hit2.transform.GetComponentInParent<PlayerMovement> ();
 			if (P2) {
 				NoHit = false;
 				P = P2;
 			}
 		}
 		
-		if (!Movement.ThePlayer._Invisible) {
+		if (!PlayerMovement.ThePlayer._Invisible) {
 			if (!NoHit) {
 				HaveLOSToPlayer = true;
-				float AngleToPlayer = Vector3.Angle (Head.transform.forward, Movement.ThePlayer.transform.position - Head.transform.position);
+				float AngleToPlayer = Vector3.Angle (Head.transform.forward, PlayerMovement.ThePlayer.transform.position - Head.transform.position);
 				if (AngleToPlayer < ObviousAngle) {
                     //If the player is within the 'Obvious' cone, set player visibility relative to distance plus 0.5f (PlayerDetection of 1 equals instant detection)
 					DetectingPlayer = true;
-					PlayerVisibility = 0.5f + (1 - (Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
+					PlayerVisibility = 0.5f + (1 - (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
 					//PlayerVisibility = 1;
 				} else if (AngleToPlayer < DetectionAngle || (DetectionProgress > DetectionDifficulty * 0.25f && AngleToPlayer < AlertDetectionAngle)) {
                     //If the player is within the detection cone, or the AI is 'suspicious' (Progress > 0.5) and they are within the Alert cone
-					if (Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) > MaxDetectionDistance)
+					if (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) > MaxDetectionDistance)
 						PlayerVisibility = 0;
 					else {
 						//The player is within the bots 'vision'.
 						DetectingPlayer = true;
-						PlayerVisibility = (1 - (Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
+						PlayerVisibility = (1 - (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
 						PlayerVisibility += ((AngleToPlayer - ObviousAngle) / (DetectionAngle - ObviousAngle)) / 2;
 					}
 				}
@@ -118,11 +118,11 @@ public abstract class LookingEnemy : BaseEnemy {
 		if (PlayerVisibility == 1) {
 			LastSawPlayer = Time.time;
 			DetectingPlayer = true;
-		} else if (PlayerVisibility == 0 && !NoHit && Vector3.Distance (Movement.ThePlayer.transform.position, transform.position) < AutoDetectionDistance) {
+		} else if (PlayerVisibility == 0 && !NoHit && Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) < AutoDetectionDistance) {
 			DetectingPlayer = true;
 			PlayerVisibility = 0.2f;
-			LastPlayerPosition = Movement.ThePlayer._AIFollowPoint + new Vector3 (0, Head.transform.position.y - 0.5f, 0); //Make the AI look at eye level rather than the ground.
-			LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
+			LastPlayerPosition = PlayerMovement.ThePlayer._AIFollowPoint + new Vector3 (0, Head.transform.position.y - 0.5f, 0); //Make the AI look at eye level rather than the ground.
+			LastPlayerGroundedPosition = PlayerMovement.ThePlayer._AIFollowPoint;
 		}
 
 		if (DetectionProgress < DetectionDifficulty && DetectingPlayer)
@@ -133,8 +133,8 @@ public abstract class LookingEnemy : BaseEnemy {
 
         if (PlayerVisibility > 0.5f || Time.time < LastSawPlayer + CanGuessPositionTime)
         {
-            LastPlayerPosition = Movement.ThePlayer.transform.position;
-            LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
+            LastPlayerPosition = PlayerMovement.ThePlayer.transform.position;
+            LastPlayerGroundedPosition = PlayerMovement.ThePlayer._AIFollowPoint;
         }
     }
 
@@ -143,7 +143,7 @@ public abstract class LookingEnemy : BaseEnemy {
 			return;
 		if (PlayerVisibility > 0.5f ) {
 			//Turn to face the player (lerp relative to PV).
-			Head.transform.rotation = Quaternion.RotateTowards (Head.transform.rotation, Quaternion.LookRotation (Movement.ThePlayer.transform.position - Head.transform.position), (90 + (90 * PlayerVisibility)) * Time.deltaTime);
+			Head.transform.rotation = Quaternion.RotateTowards (Head.transform.rotation, Quaternion.LookRotation (PlayerMovement.ThePlayer.transform.position - Head.transform.position), (90 + (90 * PlayerVisibility)) * Time.deltaTime);
 		} else if (State == AIState.Searching || State == AIState.Alarmed) {
 			if (LookAround) {
 				if (Time.time > LookAroundStarted + 0.8f) {
@@ -213,7 +213,7 @@ public abstract class LookingEnemy : BaseEnemy {
 	}
 
 	private void SeePlayer () {
-		LastPlayerPosition = Movement.ThePlayer.transform.position;
-		LastPlayerGroundedPosition = Movement.ThePlayer._AIFollowPoint;
+		LastPlayerPosition = PlayerMovement.ThePlayer.transform.position;
+		LastPlayerGroundedPosition = PlayerMovement.ThePlayer._AIFollowPoint;
 	}
 }
