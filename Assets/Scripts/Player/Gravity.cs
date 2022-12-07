@@ -724,7 +724,12 @@ public class Gravity : MonoBehaviour//PlayerAbility
         else if (VectorsAreSimilar(NewGravity, Physics.gravity))
         {
             //If the new gravity is less than 10% different from the normal gravity, set gravity to normal.
-            return ResetToWorldGravity();
+            if (gravityType != GravityType.Normal)
+            {
+                ResetToWorldGravity();
+                return true;
+            }
+            return false;
         }
         else if (VectorsAreSimilar(NewGravity, CustomGravity))
         {
@@ -743,18 +748,13 @@ public class Gravity : MonoBehaviour//PlayerAbility
     }
 
     /// <summary> Change gravity to the default for the scene. </summary>
-	public bool ResetToWorldGravity()
+	public void ResetToWorldGravity()
     {
-        if (gravityType != GravityType.Normal)
-        {
-            gravityType = GravityType.Normal;
-            RB.useGravity = true;
-            CustomGravity = Physics.gravity;
+        gravityType = GravityType.Normal;
+        RB.useGravity = true;
+        CustomGravity = Physics.gravity;
 
-            IntuitiveSnapRotation();
-            return true;
-        }
-        return false;
+        IntuitiveSnapRotation();
     }
 
     /// <summary> Change the rotation of the players body so that the 'feet' are pointing 'down' relative to the current gravity direction,
