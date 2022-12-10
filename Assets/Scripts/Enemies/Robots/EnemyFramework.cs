@@ -8,7 +8,7 @@ using UnityEngine.AI;
 /// but does not enforce the use of any of them.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public abstract class EnemyFramework : MonoBehaviour
+public abstract class EnemyFramework : Shootable
 {
     [Header("Base Enemy Framework:")]
     public EnemyDetection detection = new EnemyDetection();
@@ -29,10 +29,7 @@ public abstract class EnemyFramework : MonoBehaviour
         EFStart();
     }
 
-    protected virtual void EFStart()
-    {
-
-    }
+    protected virtual void EFStart() { }
 
     protected virtual void CreateDetectionIndicator()
     {

@@ -232,7 +232,7 @@ public class MiningDroid : EnemyFramework
 
             Shootable SH = Hit.collider.GetComponentInParent<Shootable>();
             if (SH)
-                SH.Hit(_laserDPS * Time.deltaTime);
+                SH.Hit(_laserDPS * Time.deltaTime, name, Hit.collider.name);
             else if (Time.timeScale > 0)
                 SpawnBurnDecal(Hit);
         }

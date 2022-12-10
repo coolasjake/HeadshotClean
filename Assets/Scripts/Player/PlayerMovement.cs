@@ -5,9 +5,10 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-public class PlayerMovement : Shootable {
+public class PlayerMovement : MonoBehaviour {
 
-	//--->Debug
+    #region Variables
+    //--->Debug
     [Header("Debug")]
 	public string DebugString = "Default";
     public Vector2 PlaneVelocity = new Vector2 ();
@@ -51,11 +52,11 @@ public class PlayerMovement : Shootable {
     [HideInInspector]
 	public AudioManager SFXPlayer;
 	public ParticleSystem ImpactEffect;
-	private Slider HealthBar;
 
 	//--->Private values
 	private bool _onSomething = false;
 	private bool _paused = false;
+    private bool _movementEnabled = true;
 	private bool _crouching = false;
 	private bool _unCrouching = false;
 	private float _alteredMaxSpeed = 3;
@@ -77,8 +78,8 @@ public class PlayerMovement : Shootable {
     [System.NonSerialized]
     public float _LastGrounded = -1;
     /// <summary> Disables player movement for this frame only. </summary>
-    [System.NonSerialized]
-	public bool _DisableMovement = false;
+    //[System.NonSerialized]
+	//public bool _DisableMovement = false;
 	[System.NonSerialized]
 	public bool _DisableMouseInput = false;  //Disables the movement of the camera, so that the Gravity script can move it smoothly.
     [System.NonSerialized]
@@ -134,9 +135,9 @@ public class PlayerMovement : Shootable {
 	public float playerSphereSize = 2;
 	/// <summary> The radius of the players capsule collider. </summary>
 	public float playerWaistSize = 0.5f;
+    #endregion
 
-
-	void Awake () {
+    void Awake () {
 		ThePlayer = this; //Initialize singleton so that AI and (some) abilities can reference this script.
 	}
 
@@ -153,7 +154,6 @@ public class PlayerMovement : Shootable {
         GameObject GameUI = UIManager.stat.LoadOrGetUI("Shooter");
         Menu = MenuUI.GetComponentInChildren<Menu>().gameObject;
 		Menu.SetActive (false);
-		HealthBar = GameUI.GetComponentInChildren<Slider> ();
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 		Time.timeScale = 1;
@@ -198,7 +198,7 @@ public class PlayerMovement : Shootable {
         if (Input.GetKeyDown(KeyCode.BackQuote) || Input.GetKeyDown(KeyCode.Escape))
             Pause();
 
-        if (_paused)
+        if (_paused || _movementEnabled == false)
             return;
 
         UpdCamera();
@@ -391,7 +391,7 @@ public class PlayerMovement : Shootable {
 
         DebugString = "Not";
         //If standing on a surface, and the player is not trying to move or jump, or if movement is disabled, slow movement.
-        if ((_Grounded && _onSomething && (desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")) || _DisableMovement))
+        if (_Grounded && _onSomething && (desiredDirection.magnitude < 0.01f && !Input.GetButton("Jump")))
         {
 
             Vector3 NewVelocity = RB.velocity;
@@ -426,7 +426,6 @@ public class PlayerMovement : Shootable {
             //Move the player the chosen direction (could move to fixed update to regulate speed).
             RB.velocity += FinalVelocityChange;// * Time.deltaTime;
         }
-        _DisableMovement = false;
     }
 
     public void Pause() {
@@ -450,14 +449,14 @@ public class PlayerMovement : Shootable {
         }
     }
 
-	public void Crouch () {
+	private void Crouch () {
 		_crouching = true;
 		Body.localScale = new Vector3 (1, 0.5f, 1);
 		Body.localPosition = new Vector3 (0, -0.5f, 0);
 		MainCamera.transform.localPosition = new Vector3 (0, -0.08f, 0.226f);
 	}
 
-	public void UnCrouch () {
+	private void UnCrouch () {
 		_crouching = false;
 		_unCrouching = true;
 		Body.localScale = new Vector3 (1, 1, 1);
@@ -465,7 +464,19 @@ public class PlayerMovement : Shootable {
 		MainCamera.transform.localPosition = new Vector3 (0, 0.42f, 0.226f);
 	}
 
-	public void Teleport (Vector3 Location) {
+    public void EnableMovement()
+    {
+        _movementEnabled = true;
+        RB.isKinematic = false;
+    }
+
+    public void DisableMovement()
+    {
+        _movementEnabled = false;
+        RB.isKinematic = true;
+    }
+
+    public void Teleport (Vector3 Location) {
 		//Play sounds or animations here.
 		transform.position = Location;
 		RB.velocity = Vector3.zero;
@@ -481,27 +492,6 @@ public class PlayerMovement : Shootable {
             RB.velocity = Vector3.zero;
     }
 
-    public override void Hit(float Damage) {
-		_health -= Damage;
-		HealthBar.value = _health / 100f;
-		if (_health <= 0 && !disableDeath) {
-			DeathCamera.transform.position = MainCamera.transform.position;
-			DeathCamera.transform.rotation = MainCamera.transform.rotation;
-
-			transform.position = new Vector3 (14.9f, -51.59f, 14.9f);
-			Quaternion Rot = new Quaternion ();
-			Rot.eulerAngles = new Vector3 (90, 180, 135);
-			transform.rotation = Rot;
-			_CameraAngle = 0;
-			_health = maxHealth;
-			HealthBar.value = _health / 100f;
-			RB.velocity = Vector3.zero;
-			//Debug.Log ("YOU DIED");
-			//Cursor.lockState = CursorLockMode.None;
-			//SceneManager.LoadScene ("Death");
-		}
-	}
-
     //MENU FUNCTIONS:
 
 	public void SetSensitivity (GameObject TextObject) {
@@ -509,7 +499,7 @@ public class PlayerMovement : Shootable {
 		DisplaySensitivity ();
 	}
 
-	public void DisplaySensitivity () {
+	private void DisplaySensitivity () {
 		Menu.GetComponentsInChildren<MenuDisplayText>()[0].text = "Sensitivity = " + userSensitivity;
 	}
 
@@ -518,7 +508,7 @@ public class PlayerMovement : Shootable {
 		DisplayVolume ();
 	}
 
-	public void DisplayVolume () {
+	private void DisplayVolume () {
 		Menu.GetComponentsInChildren<MenuDisplayText>()[1].text = "Volume = " + (AudioListener.volume * 10);
 	}
 

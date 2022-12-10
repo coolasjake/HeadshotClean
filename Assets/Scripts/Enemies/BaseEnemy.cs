@@ -33,10 +33,7 @@ public class BaseEnemy : Shootable {
 	}
 
 	public override void Hit(float Damage) {
-		_health -= Damage;
-		if (_health <= 0) {
-			Die ();
-		}
+		Die ();
 	}
 
 	public virtual void Die() {

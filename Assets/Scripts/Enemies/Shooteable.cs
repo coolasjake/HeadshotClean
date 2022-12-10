@@ -1,27 +1,60 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-public abstract class Shootable : MonoBehaviour {
-
-
+public abstract class Shootable : MonoBehaviour
+{
     [Header("Shootable")]
-    protected float _health = 1;
-    [SerializeField]
-	protected float maxHealth = 1;
+    public List<HitArea> hitAreas = new List<HitArea>();
 
-    private void Start()
+    /// <summary> DEPRECIATED </summary>
+    public virtual void Hit(float damage)
     {
-        _health = maxHealth;
+
     }
 
-    public virtual void Hit (float Damage) {
-		_health -= Damage;
-		if (_health <= 0)
-			Destroy (gameObject);
-	}
+    public virtual void Hit (float damage, string attacker, string areaName) {
+        foreach (HitArea area in hitAreas)
+        {
+            if (area.name == areaName)
+            {
+                area.Hit(damage, attacker);
+            }
+        }
+    }
 
-	public void Kill () {
-		Hit (_health + 1);
-	}
+    [System.Serializable]
+    public class HitArea
+    {
+        [Tooltip("This must match the name of the gameObject that the collider is on to work.")]
+        public string name = "Default";
+        public float maxHealth = 50f;
+        public float Health { get; private set; } = 0;
+        public bool handleDamage = true;
+        public delegate void HitEvent(float Damage, string Attacker);
+        public HitEvent OnHit;
+        public delegate void AreaDestroyEvent(string Attacker);
+        public AreaDestroyEvent OnDestroy;
+
+        public HitArea ()
+        {
+            Health = maxHealth;
+        }
+
+        public void Hit(float damage, string attacker)
+        {
+            OnHit?.Invoke(damage, attacker);
+            if (handleDamage == false)
+                return;
+            Health -= damage;
+            if (Health <= 0)
+                Destroy(attacker);
+        }
+
+        public void Destroy(string attacker)
+        {
+            OnDestroy?.Invoke(attacker);
+        }
+    }
 }

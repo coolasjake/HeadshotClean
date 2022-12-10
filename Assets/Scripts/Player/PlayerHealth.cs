@@ -6,12 +6,13 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(PlayerMovement))]
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : Shootable
 {
-
+    [Header("Health Settings")]
     public List<HealthChunk> healthChunks = new List<HealthChunk>();
     private int currentChunk = 0;
 
+    [Header("Death Settings")]
     public DeathOutcome outcome = DeathOutcome.gameOver;
     public enum DeathOutcome
     {
@@ -21,14 +22,17 @@ public class PlayerHealth : MonoBehaviour
         gameOver,
     }
 
-    public RespawnPoint spawnPoint;
+    public SpawnPoint spawnPoint;
     private Vector3 startingPos;
     public string gameOverScene = "GameOver";
     public string restartScene = "Restart";
 
     public UnityEvent OnDeath = new UnityEvent();
 
+    public UnityEvent OnRespawn = new UnityEvent();
+
     public float deathAnimationTime = 3f;
+    private bool _doingDeathAnimation = false;
 
     private PlayerMovement movement;
 
@@ -40,17 +44,24 @@ public class PlayerHealth : MonoBehaviour
         startingPos = transform.position;
     }
 
-    private void Kill(string killerName)
+    public void Kill(string killerName)
     {
-        DeathAnimationThenOutcome();
+        print("Player Died");
+        StartCoroutine(DeathAnimationThenOutcome());
     }
 
     private IEnumerator DeathAnimationThenOutcome()
     {
+        if (_doingDeathAnimation)
+            yield break;
+
+        _doingDeathAnimation = true;
         OnDeath.Invoke();
-        WaitForSeconds wait = new WaitForSeconds(invulnerabilityEndTime - Time.time);
+        WaitForSeconds wait = new WaitForSeconds(deathAnimationTime);
         yield return wait;
 
+
+        _doingDeathAnimation = false;
         switch (outcome)
         {
             case DeathOutcome.respawn:
@@ -58,6 +69,7 @@ public class PlayerHealth : MonoBehaviour
                     movement.Teleport(spawnPoint.TeleportLocation, spawnPoint.Rotation.x, spawnPoint.Rotation.y, spawnPoint.DeleteVelocity);
                 else
                     movement.Teleport(startingPos);
+                OnRespawn.Invoke();
                 break;
             case DeathOutcome.loadCheckpoint:
                 //TODO: checkpoint system
@@ -71,7 +83,7 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    private void Hit(float damage, string attackerName)
+    public void Hit(float damage, string attackerName)
     {
         while (damage > 0 && currentChunk < healthChunks.Count)
         {

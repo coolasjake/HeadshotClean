@@ -6,11 +6,13 @@ public class Spikes : MonoBehaviour {
 
 	private float LastHit = -5;
 
-	void OnTriggerEnter (Collider col) {
-		PlayerMovement Player = col.gameObject.GetComponentInParent<PlayerMovement> ();
-		if (Player && Time.time > LastHit + 0.1f) {
-			LastHit = Time.time;
-			Player.Kill ();
-		}
-	}
+	void OnTriggerEnter (Collider col)
+    {
+        if (col.gameObject.CompareTag("Player"))
+        {
+            PlayerHealth P = col.gameObject.GetComponent<PlayerHealth>();
+            if (P)
+                P.Kill("Spikes");
+        }
+    }
 }
