@@ -37,10 +37,9 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     //--->Stored references
-    [System.NonSerialized]
-	public Camera MainCamera;
     [Header("References")]
-    public Transform CameraOrHolder;
+    public Camera MainCamera;
+    public Transform CameraTransform;
     public Transform RotationBody;
     public Camera DeathCamera;
 	protected Rigidbody RB;
@@ -142,16 +141,13 @@ public class PlayerMovement : MonoBehaviour {
 	}
 
 	void Start () {
-		//EnemyCounter.MaxBasicEnemies = FindObjectsOfType<BaseEnemy> ().Length;
-		//EnemyCounter.MaxFollowingEnemies = FindObjectsOfType<MovingEnemy> ().Length;
-		//EnemyCounter.UpdateScoreboard ();
-
-		MainCamera = GetComponentInChildren<Camera> ();
-        if (CameraOrHolder == null)
-            CameraOrHolder = MainCamera.transform;
+        if (MainCamera == null)
+		    MainCamera = GetComponentInChildren<Camera> ();
+        if (CameraTransform == null)
+            CameraTransform = MainCamera.transform;
         //C = FindObjectOfType<Canvas> ();
         GameObject MenuUI = UIManager.stat.LoadOrGetUI("Menu");
-        GameObject GameUI = UIManager.stat.LoadOrGetUI("Shooter");
+        //GameObject GameUI = UIManager.stat.LoadOrGetUI("Shooter");
         Menu = MenuUI.GetComponentInChildren<Menu>().gameObject;
 		Menu.SetActive (false);
 		Cursor.lockState = CursorLockMode.Locked;
@@ -272,8 +268,8 @@ public class PlayerMovement : MonoBehaviour {
 
 
             Quaternion NewRot = new Quaternion();
-            NewRot.eulerAngles = new Vector3(_CameraAngle, CameraOrHolder.localRotation.y, 0);
-            CameraOrHolder.localRotation = NewRot;
+            NewRot.eulerAngles = new Vector3(_CameraAngle, CameraTransform.localRotation.y, 0);
+            CameraTransform.localRotation = NewRot;
         }
     }
 

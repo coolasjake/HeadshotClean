@@ -230,6 +230,7 @@ public class MiningDroid : EnemyFramework
             Vector3 LinePoint = laserLine.transform.InverseTransformPoint(Hit.point);
             laserLine.SetPosition(1, LinePoint);
 
+            //Check tag HERE
             Shootable SH = Hit.collider.GetComponentInParent<Shootable>();
             if (SH)
                 SH.Hit(_laserDPS * Time.deltaTime, name, Hit.collider.name);

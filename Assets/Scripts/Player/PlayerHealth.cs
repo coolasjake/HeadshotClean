@@ -70,6 +70,7 @@ public class PlayerHealth : Shootable
                 else
                     movement.Teleport(startingPos);
                 OnRespawn.Invoke();
+                RestoreHealth();
                 break;
             case DeathOutcome.loadCheckpoint:
                 //TODO: checkpoint system
@@ -83,8 +84,20 @@ public class PlayerHealth : Shootable
         }
     }
 
+    public void RestoreHealth()
+    {
+        foreach (HealthChunk chunk in healthChunks)
+        {
+            chunk.Health = chunk.maxHealth;
+            chunk.UpdateUI();
+        }
+    }
+
     public void Hit(float damage, string attackerName)
     {
+        if (_doingDeathAnimation)
+            return;
+        
         while (damage > 0 && currentChunk < healthChunks.Count)
         {
             if (Time.time < invulnerabilityEndTime)
@@ -95,10 +108,13 @@ public class PlayerHealth : Shootable
             if (healthChunks[currentChunk].Hit(ref damage))
             {
                 if (currentChunk == healthChunks.Count - 1)
+                {
                     Kill(attackerName);
+                    return;
+                }
                 else
                 {
-                    float newInvulDur = Mathf.Max(invulnerabilityEndTime, healthChunks[currentChunk].invulnerabilityDuration);
+                    float newInvulDur = Mathf.Max(invulnerabilityEndTime - Time.time, healthChunks[currentChunk].invulnerabilityDuration);
                     invulnerabilityEndTime = Time.time + newInvulDur;
                     ShowInvulnerability();
                     currentChunk += 1;
@@ -131,9 +147,10 @@ public class PlayerHealth : Shootable
     {
         public string name = "Unnamed Chunk";
         public float maxHealth = 50f;
-        public float Health { get; private set; } = 0;
+        public float Health { get; set; } = 0;
         public Image UIBar;
         public bool overflowDamage = false;
+        [Min(0)]
         public float invulnerabilityDuration = 1f;
         public UnityEvent breakEffects = new UnityEvent();
 
@@ -151,7 +168,9 @@ public class PlayerHealth : Shootable
         /// <returns> True if the chunk was destroyed. </returns>
         public bool Hit(ref float damage)
         {
+            print("health before = " + Health);
             Health -= damage;
+            print("health after = " + Health);
             UpdateUI();
             if (Health <= 0)
             {
@@ -161,6 +180,8 @@ public class PlayerHealth : Shootable
                 Break();
                 return true;
             }
+            else
+                damage = 0;
             return false;
         }
 

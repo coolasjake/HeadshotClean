@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(PlayerMovement))]
-public class Gravity : MonoBehaviour//PlayerAbility
+public class Gravity : MonoBehaviour
 {
     #region Auto References
     private Rigidbody RB;

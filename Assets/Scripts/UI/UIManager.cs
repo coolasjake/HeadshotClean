@@ -31,13 +31,5 @@ public class UIManager : MonoBehaviour
 
         if (canvas == null)
             canvas = FindObjectOfType<Canvas>();
-
-        TestLoad();
-    }
-
-    private void TestLoad()
-    {
-        LoadOrGetUI("Menu");
-        LoadOrGetUI("Shooter");
     }
 }
