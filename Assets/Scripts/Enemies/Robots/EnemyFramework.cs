@@ -15,9 +15,7 @@ public abstract class EnemyFramework : Shootable
     public StateMachine combatAndStates = new StateMachine();
     public EnemyMovement movement = new EnemyMovement();
     public AudioManager SFXPlayer;
-
-
-
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -61,6 +59,9 @@ public abstract class EnemyFramework : Shootable
     public class EnemyDetection
     {
         #region Detection Vars
+        public bool showDetectionGizmos = false;
+        [Space]
+
         /// <summary> The mask used for detection raycasts. </summary>
         public LayerMask raycastLookingMask;
 
@@ -80,7 +81,7 @@ public abstract class EnemyFramework : Shootable
         /// <summary> The enemy will not detect the player at all from this distance, unless they are within the obvious angle. Used when factoring distance into visibility. </summary>
         public float maxDetectionDistance = 300;
         /// <summary> The angle (in any direction) where the AI will begin to detect the player (and perform actions like turning its head) if it is already suspicious (DetectionProgress > 1/4). </summary>
-        public static float alertDetectionAngle = 120;
+        public float alertDetectionAngle = 60;
         /// <summary> How easy it is for this bot to detect the player. The value will roughly translate to time, but detection is dependant on angles, LOS and distance. </summary>
         public float detectionDifficulty = 2f;
         /// <summary> How quickly the AI will lose 'suspision' (DetectionProgress), relative to the normal gain (default = 1/s). </summary>
@@ -139,6 +140,8 @@ public abstract class EnemyFramework : Shootable
             }
             else if (AngleToPlayer < detectionAngle || (_detectionProgress > detectionDifficulty * 0.25f && AngleToPlayer < alertDetectionAngle))
             {
+                if (DebugToggle.doLog)
+                    print("Detection Angle = " + AngleToPlayer);
                 //If the player is within the detection angle, set player visibility relative to distance, plus a bonus based on how close the angle is to the Obvious angle
                 float playerDist = Vector3.Distance(PlayerMovement.ThePlayer.transform.position, head.position);
                 if (playerDist < maxDetectionDistance)
@@ -230,8 +233,6 @@ public abstract class EnemyFramework : Shootable
         public float minSearchDuration = 5;
         /// <summary> The maximum duration of the search. </summary>
         public float maxSearchDuration = 30;
-        /// <summary> Ammount of damage this enemy does per second of laser contact. </summary>
-        public float DPS = 50;
         /// <summary> Range from which a Bot-to-Bot alarm will alert other AI (Radius). </summary>
         public float alarmRange = 10;
         
@@ -594,9 +595,7 @@ public abstract class EnemyFramework : Shootable
     {
         if (movement.showPathGizmo)
         {
-            if (movement._path == null)
-                return;
-            if (movement._path.corners != null && movement._path.corners.Length > 1)
+            if (movement._path != null && movement._path.corners != null && movement._path.corners.Length > 1)
             {
                 Gizmos.color = Color.gray;
                 Gizmos.DrawSphere(movement._path.corners[0], movement.navPointSize);
@@ -607,6 +606,47 @@ public abstract class EnemyFramework : Shootable
                     Gizmos.DrawSphere(movement._path.corners[i], movement.navPointSize);
                 }
             }
+        }
+
+        if (detection.showDetectionGizmos)
+        {
+            Vector3 defaultVector = detection.head.forward * detection.maxDetectionDistance;
+            Vector3 angledVector;
+
+            //Auto Detection Distance
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(detection.head.position, detection.autoDetectionDistance);
+
+            //Normal Detection Angles
+            Gizmos.color = Color.cyan;
+            angledVector = Quaternion.AngleAxis(detection.detectionAngle, detection.head.up) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+            angledVector = Quaternion.AngleAxis(-detection.detectionAngle, detection.head.up) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+            angledVector = Quaternion.AngleAxis(-detection.detectionAngle, detection.head.right) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+
+            //Obvious Detection Angles
+            Gizmos.color = Color.red;
+            angledVector = Quaternion.AngleAxis(detection.obviousAngle, detection.head.up) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+            angledVector = Quaternion.AngleAxis(-detection.obviousAngle, detection.head.up) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+            //Obvious Detection Angles
+            Gizmos.color = Color.magenta;
+            angledVector = Quaternion.AngleAxis(detection.alertDetectionAngle, detection.head.up) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+            angledVector = Quaternion.AngleAxis(-detection.alertDetectionAngle, detection.head.up) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
+
+            angledVector = Quaternion.AngleAxis(-detection.alertDetectionAngle, detection.head.right) * defaultVector;
+            Gizmos.DrawLine(detection.head.position, detection.head.position + angledVector);
         }
     }
     #endregion

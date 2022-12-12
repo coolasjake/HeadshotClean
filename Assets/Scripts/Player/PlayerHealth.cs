@@ -93,11 +93,11 @@ public class PlayerHealth : Shootable
         }
     }
 
-    public void Hit(float damage, string attackerName)
+    public override void Hit(float damage, string attacker, string areaName)
     {
         if (_doingDeathAnimation)
             return;
-        
+
         while (damage > 0 && currentChunk < healthChunks.Count)
         {
             if (Time.time < invulnerabilityEndTime)
@@ -109,7 +109,7 @@ public class PlayerHealth : Shootable
             {
                 if (currentChunk == healthChunks.Count - 1)
                 {
-                    Kill(attackerName);
+                    Kill(attacker);
                     return;
                 }
                 else
@@ -122,7 +122,6 @@ public class PlayerHealth : Shootable
             }
         }
     }
-
 
     private Coroutine _finishInvulCoR;
     private void ShowInvulnerability()
@@ -168,9 +167,7 @@ public class PlayerHealth : Shootable
         /// <returns> True if the chunk was destroyed. </returns>
         public bool Hit(ref float damage)
         {
-            print("health before = " + Health);
             Health -= damage;
-            print("health after = " + Health);
             UpdateUI();
             if (Health <= 0)
             {
@@ -193,6 +190,7 @@ public class PlayerHealth : Shootable
 
         public void Break()
         {
+            print(name + " broke");
             breakEffects.Invoke();
         }
     }

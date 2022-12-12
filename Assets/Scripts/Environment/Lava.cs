@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class Lava : MonoBehaviour
 {
-    void OnCollisionEnter(Collision col)
+    void OnCollisionStay(Collision col)//Enter(Collision col)
     {
         if (col.gameObject.CompareTag("Player"))
         {
-            PlayerHealth P = col.rigidbody.GetComponent<PlayerHealth>();
+            PlayerHealth P = col.gameObject.GetComponentInParent<PlayerHealth>();
             if (P)
                 P.Kill("Lava");
         }

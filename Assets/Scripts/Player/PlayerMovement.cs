@@ -150,6 +150,7 @@ public class PlayerMovement : MonoBehaviour {
         //GameObject GameUI = UIManager.stat.LoadOrGetUI("Shooter");
         Menu = MenuUI.GetComponentInChildren<Menu>().gameObject;
 		Menu.SetActive (false);
+        PauseManager.pauseMenu = Menu;
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 		Time.timeScale = 1;
@@ -192,9 +193,9 @@ public class PlayerMovement : MonoBehaviour {
 
         //PAUSING + CURSOR LOCK
         if (Input.GetKeyDown(KeyCode.BackQuote) || Input.GetKeyDown(KeyCode.Escape))
-            Pause();
+            PauseManager.TogglePause();
 
-        if (_paused || _movementEnabled == false)
+        if (PauseManager.Paused || _movementEnabled == false)
             return;
 
         UpdCamera();
@@ -421,27 +422,6 @@ public class PlayerMovement : MonoBehaviour {
 
             //Move the player the chosen direction (could move to fixed update to regulate speed).
             RB.velocity += FinalVelocityChange;// * Time.deltaTime;
-        }
-    }
-
-    public void Pause() {
-        _paused = !_paused;
-        if (_paused)
-        {
-            if (!Input.GetKeyDown(KeyCode.BackQuote))
-            {
-                Menu.SetActive(true);
-            }
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            Time.timeScale = 0;
-        }
-        else
-        {
-            Menu.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            Time.timeScale = 1;
         }
     }
 

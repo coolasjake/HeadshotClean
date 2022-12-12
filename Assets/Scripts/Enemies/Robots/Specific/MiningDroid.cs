@@ -77,30 +77,28 @@ public class MiningDroid : EnemyFramework
             float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
             TurnByAngle(angleToPoint);
             MoveTowardsTarget(movement.NextPoint);
-
-            /*
-            if (movement._nextPathPoint == 0)
-                movement._nextPathPoint += 1;
-
-            if (movement.ReachedPoint(transform.position, movement.NextPoint))
-            {
-                if (movement.RB.velocity.sqrMagnitude < 0.1f)
-                {
-                    _stabilise = false;
-                    movement._nextPathPoint += 1;
-                }
-                else
-                    _stabilise = true;
-            }
-            else
-            {
-                float angleToPoint = movement.SignedHorAngleToTarget(movement.NextPoint);
-                TurnByAngle(angleToPoint);
-                if (Utility.UnsignedDifference(angleToPoint, 0f) < movement.turnAccuracy)
-                    MoveTowardsTarget(movement.NextPoint);
-            }
-            */
         }
+    }
+
+    /// <summary> Overridden to enable y-axis movement. </summary>
+    protected override void MoveTowardsTarget(Vector3 targetPos)
+    {
+        Vector3 targetDir = targetPos - transform.position;
+        Vector3 targetVel = targetDir.normalized * movement.moveSpeed;
+        AccelerateToVelocity(targetVel);
+    }
+
+    /// <summary> Overridden to enable y-axis forces. </summary>
+    protected override void AccelerateToVelocity(Vector3 targetVel)
+    {
+        Vector3 difference = targetVel - movement.RB.velocity;
+        float force = movement.acceleration * movement.RB.mass * Time.deltaTime;
+        if (targetVel.sqrMagnitude < movement.RB.velocity.sqrMagnitude)
+            force = force * movement.brakingMultiplier;
+        else if (movement.turningEffectiveness > 0)
+            force += force * (1 - Mathf.Cos(Vector3.Angle(targetVel.FixedY(0), movement.RB.velocity.FixedY(0)))) * movement.turningEffectiveness;
+        force = Mathf.Min(force, difference.magnitude * movement.RB.mass / Time.fixedDeltaTime);
+        movement.RB.AddForce(difference.normalized * force);
     }
     #endregion
 
@@ -267,7 +265,7 @@ public class MiningDroid : EnemyFramework
 
     private void SpawnBurnDecal(RaycastHit Hit)
     {
-        Quaternion DecalRotation = Quaternion.LookRotation(Hit.normal);
+        Quaternion DecalRotation = Quaternion.LookRotation(-Hit.normal);
         GameObject LaserBurn;
         _lastDecalPoint = Hit.point + (Hit.normal * 0.001f);
         LaserBurn = Instantiate(Resources.Load<GameObject>("Prefabs/LaserBurn"), _lastDecalPoint, DecalRotation);
@@ -306,8 +304,8 @@ public class MiningDroid : EnemyFramework
         {
             _lookAroundStarted = Time.time;
             _lookAroundDirection = body.forward;
-            _lookAroundDirection += body.right * (Random.value - 0.5f) * 5;
-            _lookAroundDirection += body.up * (Random.value - 0.5f) * 3;
+            _lookAroundDirection += body.right * (Random.value - 0.5f) * 5f;
+            _lookAroundDirection += body.up * (Random.value - 0.5f) * 0.2f;
         }
         detection.head.rotation = Quaternion.RotateTowards(detection.head.rotation, Quaternion.LookRotation(_lookAroundDirection), (90 * Time.deltaTime));
     }
