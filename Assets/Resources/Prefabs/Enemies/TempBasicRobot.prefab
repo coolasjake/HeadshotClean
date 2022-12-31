@@ -105,7 +105,6 @@ GameObject:
   - component: {fileID: 2025946757977638040}
   - component: {fileID: 7035205829554857372}
   - component: {fileID: 3971431395572865451}
-  - component: {fileID: 7144818390525657111}
   m_Layer: 12
   m_Name: HeadGeometry
   m_TagString: Untagged
@@ -153,7 +152,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -876546973899608171, guid: 57278ba6ccd347d45b46b8ee98d43559, type: 3}
+  - {fileID: 2100000, guid: 6cc0e93d5692af042b52cb9c3da9f3e4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -174,20 +173,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!136 &7144818390525657111
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 951595058809329116}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.31
-  m_Height: 0.93
-  m_Direction: 2
-  m_Center: {x: 0.000007897615, y: 0.016615672, z: 0.0167969}
 --- !u!1 &1051908124731394104
 GameObject:
   m_ObjectHideFlags: 0
@@ -1184,6 +1169,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4356523374580882782}
+  - component: {fileID: 763811075}
   m_Layer: 12
   m_Name: LaserBox
   m_TagString: Untagged
@@ -1209,6 +1195,19 @@ Transform:
   m_Father: {fileID: 2075937774417329418}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &763811075
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5747729819113542778}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.6550646, y: 0.4979687, z: 0.4979687}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5767216687268404022
 GameObject:
   m_ObjectHideFlags: 0
@@ -1648,7 +1647,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6325585302078346975}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.172, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4356523374580882782}
@@ -1863,7 +1862,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8760132207788225627}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.295, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4356523374580882782}
@@ -1882,7 +1881,7 @@ GameObject:
   - component: {fileID: 1115265900892880722}
   m_Layer: 12
   m_Name: TempBasicRobot
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1934,7 +1933,66 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e0d637e152496f4c843263595a1ad1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hitAreas:
+  - name: Head
+    maxHealth: 1
+    OnHit:
+      m_PersistentCalls:
+        m_Calls: []
+    OnDestroy:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1115265900892880722}
+          m_MethodName: DestroyHead
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - name: Torso
+    maxHealth: 20
+    OnHit:
+      m_PersistentCalls:
+        m_Calls: []
+    OnDestroy:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1115265900892880722}
+          m_MethodName: DestroyMiningDroid
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - name: LaserBox
+    maxHealth: 1
+    OnHit:
+      m_PersistentCalls:
+        m_Calls: []
+    OnDestroy:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1115265900892880722}
+          m_MethodName: DestroyLaserBox
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   detection:
+    showDetectionGizmos: 0
     raycastLookingMask:
       serializedVersion: 2
       m_Bits: 1281
@@ -1944,14 +2002,16 @@ MonoBehaviour:
     autoDetectionDistance: 5
     canGuessPositionTime: 0.3
     maxDetectionDistance: 300
+    alertDetectionAngle: 60
     detectionDifficulty: 2
     looseIntrestMagnitude: 0.1
+    DI: {fileID: 0}
     _lastPlayerPosition: {x: 0, y: 0, z: 0}
     _lastPlayerGroundedPosition: {x: 0, y: 0, z: 0}
     _startedSearching: 0
     _playerVisibility: 0
     _detectionProgress: 0
-  stateMachine:
+  combatAndStates:
     state: 5
     startChargingDelay: 3
     chargeTime: 3
@@ -1960,7 +2020,6 @@ MonoBehaviour:
     alarmDuration: 2
     minSearchDuration: 5
     maxSearchDuration: 30
-    DPS: 50
     alarmRange: 10
     _firingDelayTimer: 3
     _startedCharging: 0
@@ -1971,12 +2030,14 @@ MonoBehaviour:
     RB: {fileID: 0}
     enemyTransform: {fileID: 0}
     restLocation: {x: 0, y: 0, z: 0}
-    turnSpeed: 30
-    moveSpeed: 2
-    acceleration: 2
-    brakingMultiplier: 1
+    showPathGizmo: 1
+    turnSpeed: 50
+    moveSpeed: 5
+    acceleration: 100
+    brakingMultiplier: 2
+    turningEffectiveness: 0.5
     refreshRate: 0.2
-    navPointSize: 1
+    navPointSize: 2
     turnAccuracy: 1
     _moveTarget: {x: 0, y: 0, z: 0}
     _lastRefresh: 0
@@ -1993,7 +2054,10 @@ MonoBehaviour:
   maxBoxAngle: 75
   minBoxAngle: -75
   boxRotSpeed: 90
-  _laserDPS: 1
+  miningTargets: []
+  miningMaxDistance: 20
+  miningMinDistance: 5
+  _laserDPS: 100
 --- !u!1 &9089467066039648954
 GameObject:
   m_ObjectHideFlags: 0
@@ -2003,6 +2067,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6411044491633595657}
+  - component: {fileID: 1489209003}
   m_Layer: 12
   m_Name: Head
   m_TagString: Untagged
@@ -2025,3 +2090,17 @@ Transform:
   m_Father: {fileID: 8564266930992203291}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &1489209003
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9089467066039648954}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 0.31
+  m_Height: 0.93
+  m_Direction: 1
+  m_Center: {x: 0.000007897615, y: 0.016615672, z: 0.0167969}
