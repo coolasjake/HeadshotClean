@@ -81,6 +81,7 @@ public class Gravity : MonoBehaviour
         GravityReset,
         MoonGravity,
         ForceTransfer,
+        ShiftBoost,
     }
     public enum AbilityStatus
     {
@@ -171,7 +172,7 @@ public class Gravity : MonoBehaviour
         new AbilitySettings((GravityAbility)0), new AbilitySettings((GravityAbility)1), new AbilitySettings((GravityAbility)2),
         new AbilitySettings((GravityAbility)3), new AbilitySettings((GravityAbility)4), new AbilitySettings((GravityAbility)5),
         new AbilitySettings((GravityAbility)6), new AbilitySettings((GravityAbility)7), new AbilitySettings((GravityAbility)8),
-        new AbilitySettings((GravityAbility)9)
+        new AbilitySettings((GravityAbility)9), new AbilitySettings((GravityAbility)9)
     };
 
     private Dictionary<GravityAbility, int> abilitiesDict = new Dictionary<GravityAbility, int>();
@@ -244,6 +245,9 @@ public class Gravity : MonoBehaviour
     /// <summary> The Tag of objects the player is allowed to shift gravity towards (if limitedGravityChanging is on). </summary>
     [Tooltip("If true the player can only GravityShift/FlyingGravity to surfaces with the correct Tag.")]
     public string gravChangeEnabledTag = "CanShiftTo";
+    /// <summary> The graph of temporary speed increase after the player lands on a surface after changing gravity. </summary>
+    [Tooltip("How much faster the player can move after first changing gravity. Normal speed is 1, double speed is 2 etc.")]
+    public AnimationCurve shiftBoostSpeedMultiplier = new AnimationCurve(new Keyframe[2] { new Keyframe(0, 1), new Keyframe(1, 1) });
     #endregion
 
     #region ExperimentalSettings
@@ -514,7 +518,6 @@ public class Gravity : MonoBehaviour
                 {
                     return GravityShift(tempTargetWall);
                 }
-                print("Here");
             }
 
             //If the surface is too far away, call FlyingGravity.
@@ -528,7 +531,7 @@ public class Gravity : MonoBehaviour
         return FlyingGravity(direction, tempTargetWall, false);
     }
 
-    /// <summary> Change gravity to the normal of the target surface. </summary>
+    /// <summary> Change gravity to the normal of the target surface (Type = Aligned). </summary>
     private bool GravityShift(RaycastHit newTargetWall)
     {
         if (!GetAbility(GravityAbility.GravityShift).TryUse())
@@ -542,12 +545,13 @@ public class Gravity : MonoBehaviour
             targetWall = newTargetWall;
             circle.Shift(targetWall.point - CustomGravityDir * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
             gravityType = GravityType.Aligned;
+            _shiftBoostNextCollision = true;
             StartCollisionMoveCameraCoroutine();
         }
         return true;
     }
 
-    /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift. </summary>
+    /// <summary> Change gravity to the direction of the target surface, and cause the next collision to perform a GravityShift (Type = Unaligned). </summary>
     private bool FlyingGravity(Vector3 direction, RaycastHit newTargetWall, bool foundTarget = true)
     {
         if (!GetAbility(GravityAbility.FlyingGravity).TryUse())
@@ -566,6 +570,7 @@ public class Gravity : MonoBehaviour
                 circle.Shift(targetWall.point - CustomGravityDir * 0.01f, Quaternion.LookRotation(transform.forward, transform.up));
 
             gravityType = GravityType.Unaligned;
+            _shiftBoostNextCollision = true;
             StartFallingMoveCameraCoroutine();
             ReduceSenseAndControl();
         }
@@ -574,7 +579,7 @@ public class Gravity : MonoBehaviour
 
     [Min(0)]
     private int currentGravityMultipliers = 0;
-    /// <summary> Multiply the current gravity magnitude by 2, up to the maximum number of multiplications. </summary>
+    /// <summary> Multiply the current gravity magnitude by 2, up to the maximum number of multiplications (Type is maintained). </summary>
     private bool SuperGravity()
     {
         if (!GetAbility(GravityAbility.SuperGravity).TryUse())
@@ -591,6 +596,35 @@ public class Gravity : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    private bool _shiftBoostNextCollision = false;
+    private Coroutine _shiftBoostCoroutine;
+    /// <summary> Give the player a short boost of speed after they change gravity and collide with a wall. </summary>
+    private void ShiftBoost()
+    {
+        _shiftBoostNextCollision = false;
+        if (!GetAbility(GravityAbility.ShiftBoost).TryUse())
+            return;
+
+        if (_shiftBoostCoroutine != null)
+            StopCoroutine(_shiftBoostCoroutine);
+
+        _shiftBoostCoroutine = StartCoroutine(DoShiftBoostOverTime());
+    }
+
+    private IEnumerator DoShiftBoostOverTime()
+    {
+        WaitForEndOfFrame wait = new WaitForEndOfFrame();
+        float startTime = Time.time;
+        while (Time.time - startTime < shiftBoostSpeedMultiplier.Duration())
+        {
+            float newMaxSpeed = shiftBoostSpeedMultiplier.Evaluate(Time.time - startTime);
+            PM.MaxSpeedMultiplier = newMaxSpeed;
+
+            yield return wait;
+        }
+        PM.MaxSpeedMultiplier = 1f;
     }
 
     private bool _slowingTime = false;
@@ -669,7 +703,7 @@ public class Gravity : MonoBehaviour
         }
     }
 
-    /// <summary> Reset gravity to the default physics gravity of the world. </summary>
+    /// <summary> Reset gravity to the default physics gravity of the world (Type = Normal). </summary>
     private void GravityReset()
     {
         if (!GetAbility(GravityAbility.GravityReset).TryUse())
@@ -747,7 +781,7 @@ public class Gravity : MonoBehaviour
         }
     }
 
-    /// <summary> Change gravity to the default for the scene. </summary>
+    /// <summary> Change gravity to the default for the scene (Type = Normal). </summary>
 	public void ResetToWorldGravity()
     {
         gravityType = GravityType.Normal;
@@ -787,6 +821,7 @@ public class Gravity : MonoBehaviour
     #endregion
 
     #region Collision Functions
+    /// <summary> Collision Events for the Gravity script. Is added to the PlayerMovement script and is invoked in its OnCollisionEnter Event. </summary>
     private void GravityCollision(Collision col)
     {
         RestoreSenseAndControl();
@@ -825,12 +860,21 @@ public class Gravity : MonoBehaviour
             float distToTarget = Vector3.Distance(targetWall.point, transform.position);
             if (distToTarget < flyDistance || (distToTarget < Vector3.Distance(shiftPoint, transform.position)))
             {
-                gravityType = GravityType.Aligned;
-                if (ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1))
-                {
-                    StartCollisionMoveCameraCoroutine();
-                }
+                AlignGravityOnCollision();
+                if (_shiftBoostNextCollision)
+                    ShiftBoost();
             }
+        }
+        else if (_shiftBoostNextCollision)
+            ShiftBoost();
+    }
+
+    private void AlignGravityOnCollision()
+    {
+        gravityType = GravityType.Aligned;
+        if (ShiftGravityDirection(CustomGravityMag / defaultGravityMagnitude, targetWall.normal * -1))
+        {
+            StartCollisionMoveCameraCoroutine();
         }
     }
     #endregion

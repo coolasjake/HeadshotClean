@@ -58,9 +58,10 @@ public class PlayerMovement : MonoBehaviour {
     private bool _movementEnabled = true;
 	private bool _crouching = false;
 	private bool _unCrouching = false;
-	private float _alteredMaxSpeed = 3;
+	//private float _alteredMaxSpeed = 3;
     private float _sensitivityMultiplier = 1f;
     private float _airControlMultiplier = 1f;
+    private float _maxSpeedMultiplier = 1f;
 
 
     //--->Messages between Update and FixedUpdate
@@ -68,76 +69,72 @@ public class PlayerMovement : MonoBehaviour {
 	private float _wantToJump = -5;
 	private float _lastJumpTime = -5;
 
-	//--->Messages from or for other scripts:
-	//-->That SHOULD be in the inspector.
-
-	//-->That SHOULDN'T be in the inspector, AKA Public non-serialized values
-	[System.NonSerialized]
-	public bool _Grounded = false;
-    [System.NonSerialized]
-    public float _LastGrounded = -1;
-    /// <summary> Disables player movement for this frame only. </summary>
-    //[System.NonSerialized]
-	//public bool _DisableMovement = false;
-	[System.NonSerialized]
-	public bool _DisableMouseInput = false;  //Disables the movement of the camera, so that the Gravity script can move it smoothly.
-    [System.NonSerialized]
-    public Vector3 _AIFollowPoint;
-	[System.NonSerialized]
-	public float _CameraAngle = 0;
-	[System.NonSerialized]
-	public float _CameraSpin = 0;
-	[System.NonSerialized]
-	public bool _Invisible = false;
-	[System.NonSerialized]
-	public bool _OnSoftWall = false;
-    // <summary> Used by Gravity script. Becomes true when the player collides with a wall. </summary>
-	//[System.NonSerialized]
-	//public bool CheckForWallAlignment = false;
-
-
     //Public values (for adjustment)
     //------------------------------
     [Header("Settings")]
-    public bool disableMusic = false;
-	public bool disableDeath = false;
-	/// <summary> The min and max angles the camera can face when looking up or down. </summary>
-	public float clamp = 89.99f;
-	/// <summary> The number of degrees per second the camera will be rotated so that it is not outside the clamp angle. </summary>
-	public float clampAdjustmentSpeed = 180;
-	/// <summary> The in game sensitivity multiplier (for settings). </summary>
-	public float userSensitivity = 1;
-	/// <summary> The maximum non-vertical speed the player can cause themselves to move at with 'walking' (does not constrain gravity, explosions etc). </summary>
-	[Range(1f, 100f)]
-	public float maxSpeed = 4;
-	/// <summary> How quickly direction is changed. </summary>
-	[Range(0f, 100f)]
-	public float acceleration = 20f;
-	/// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
-	[Range(0f, 500f)]
-	public float stoppingForce = 500f;
-	/// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
-	[Range(0f, 500f)]
-	public float frictionForce = 100f;
-	/// <summary> The multiplier on movement while in the air. Also effects air-ground friction ratio. Cannot result in greater air speed than ground speed. </summary>
-	[Range(0f, 1f)]
-	public float airControlFactor = 0.5f;
-	/// <summary> The jump velocity. </summary>
-	public float jumpVelocity = 4;
-	/// <summary> The jump velocity per tick it is held. </summary>
-	public float jumpVelocityPerSecondHeld = 30;
-	/// <summary> The maximum amount of seconds jump can be held to jump higher. </summary>
-	public float maxJumpTime = 0.2f;
-	/// <summary> The time that a jump request is 'remembered', in case Unity physics doesn't detect a collision on that frame. </summary>
-	public float jumpLeniency = 0.1f;
-	/// <summary> The maximim size of the player (i.e. head to toe). </summary>
-	public float playerSphereSize = 2;
-	/// <summary> The radius of the players capsule collider. </summary>
-	public float playerWaistSize = 0.5f;
+    /// <summary> The maximum non-vertical speed the player can cause themselves to move at with 'walking' (does not constrain gravity, explosions etc). </summary>
+    [SerializeField]
+    [Range(1f, 100f)]
+    private float maxSpeed = 6;
+    /// <summary> How quickly direction is changed. </summary>
+    [SerializeField]
+    [Range(0f, 100f)]
+    private float acceleration = 20f;
+    /// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
+    [SerializeField]
+    [Range(0f, 500f)]
+    private float stoppingForce = 500f;
+    /// <summary> How quickly direction is returned to 0 when the player is not trying to move (no WASD keys down). </summary>
+    [SerializeField]
+    [Range(0f, 500f)]
+    private float frictionForce = 100f;
+    /// <summary> The multiplier on movement while in the air. Also effects air-ground friction ratio. Cannot result in greater air speed than ground speed. </summary>
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float airControlFactor = 0.5f;
+    /// <summary> The jump velocity. </summary>
+    [SerializeField]
+    private float jumpVelocity = 5;
+    /// <summary> The jump velocity per tick it is held. </summary>
+    [SerializeField]
+    private float jumpVelocityPerSecondHeld = 20;
+    /// <summary> The maximum amount of seconds jump can be held to jump higher. </summary>
+    [SerializeField]
+    private float maxJumpTime = 0.1f;
+    /// <summary> The time that a jump request is 'remembered', in case Unity physics doesn't detect a collision on that frame. </summary>
+    [SerializeField]
+    private float jumpLeniency = 0.1f;
+    /// <summary> The in game sensitivity multiplier (for settings). </summary>
+    [SerializeField]
+    private float userSensitivity = 1;
+    /// <summary> The min and max angles the camera can face when looking up or down. </summary>
+    [SerializeField]
+    private float clamp = 89.99f;
+
+
+    //--->Settings acessable by other scripts:
+    /// <summary> The number of degrees per second the camera will be rotated so that it is not outside the clamp angle. </summary>
+    public float clampAdjustmentSpeed = 180;
+    /// <summary> The maximim size of the player (i.e. head to toe). </summary>
+    public float playerSphereSize = 2;
+    /// <summary> The radius of the players capsule collider. </summary>
+    public float playerWaistSize = 0.5f;
+
+    //-->Values that other scripts need to read or change (TODO: change to getters/setters where appropriate)
+    [System.NonSerialized]
+    public bool _Grounded = false;
+    [System.NonSerialized]
+    public float _LastGrounded = -1;
+    [System.NonSerialized]
+    public Vector3 _AIFollowPoint;
+    [System.NonSerialized]
+    public float _CameraAngle = 0;
+    [System.NonSerialized]
+    public bool _OnSoftWall = false;
     #endregion
 
     void Awake () {
-		ThePlayer = this; //Initialize singleton so that AI and (some) abilities can reference this script.
+		ThePlayer = this; //Initialize singleton so that AI etc. can reference this script.
 	}
 
 	void Start () {
@@ -157,7 +154,6 @@ public class PlayerMovement : MonoBehaviour {
 		RB = GetComponent<Rigidbody> ();
 		RB.freezeRotation = true;
 		Body = GetComponentInChildren<CapsuleCollider> ().transform;
-		_alteredMaxSpeed = maxSpeed;
 		SFXPlayer = GetComponent<AudioManager> ();
         if (ImpactEffect == null)
 		    ImpactEffect = GetComponentInChildren<ParticleSystem> ();
@@ -176,11 +172,6 @@ public class PlayerMovement : MonoBehaviour {
 			SC.isTrigger = true;
 			SC.center = new Vector3 (0, 0, 0.8f);
 		}
-
-		//if (DisableMusic)
-		//	MainCamera.GetComponent<AudioSource> ().enabled = false;
-
-		//transform.position = PlayerStartPosition;
 
 		Resources.Load<GameObject> ("Prefabs/Enemies/DeadBody");
 	}
@@ -294,6 +285,16 @@ public class PlayerMovement : MonoBehaviour {
         set { _airControlMultiplier = value; }
     }
 
+    protected float MaxSpeed
+    {
+        get { return maxSpeed * _maxSpeedMultiplier; }
+    }
+
+    public float MaxSpeedMultiplier
+    {
+        set { _maxSpeedMultiplier = value; }
+    }
+
     private void UpdCrouch()
     {
         //CROUCHING
@@ -332,11 +333,11 @@ public class PlayerMovement : MonoBehaviour {
         UpdCrouch();
 
         //Factor crouching and being in the air into the max speed;
-        _alteredMaxSpeed = maxSpeed;
+        float alteredMaxSpeed = MaxSpeed;
         if (_crouching)
-            _alteredMaxSpeed *= 0.8f;
+            alteredMaxSpeed *= 0.8f;
         if (!_Grounded)
-            _alteredMaxSpeed *= 0.5f;
+            alteredMaxSpeed *= 0.5f;
 
         Vector3 newVelocity;
         if (_Grounded && _onSomething)
@@ -352,24 +353,24 @@ public class PlayerMovement : MonoBehaviour {
         //If the local non-vertical (lateral) velocity of the player is above the max speed, do not allow any increases in speed due to input.
         Vector3 LateralVelocityOld = new Vector3(TransformedOldVelocity.x, TransformedOldVelocity.y, 0);
         Vector3 LateralVelocityNew = new Vector3(TransformedNewVelocity.x, TransformedNewVelocity.y, 0);
-        if (LateralVelocityNew.magnitude > _alteredMaxSpeed)
+        if (LateralVelocityNew.magnitude > alteredMaxSpeed)
         {
             //If the new movement would speed up the player.
             if (LateralVelocityNew.magnitude > LateralVelocityOld.magnitude)
             {
                 //If the player was not at max speed yet, set them to the max speed, otherwise revert to the old speed (but with direction changes).
-                if (LateralVelocityOld.magnitude < _alteredMaxSpeed)
-                    LateralVelocityNew = LateralVelocityNew.normalized * _alteredMaxSpeed;
+                if (LateralVelocityOld.magnitude < alteredMaxSpeed)
+                    LateralVelocityNew = LateralVelocityNew.normalized * alteredMaxSpeed;
                 else
                     LateralVelocityNew = LateralVelocityNew.normalized * LateralVelocityOld.magnitude;
             }
 
             //FRICTION
             //If the new lateral velocity is still greater than the max speed, reduce it by the relevant amount until it is AT the max speed.
-            if (LateralVelocityNew.magnitude > maxSpeed)
+            if (LateralVelocityNew.magnitude > MaxSpeed)
             {
                 if (_Grounded)
-                    LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max(maxSpeed, LateralVelocityNew.magnitude - frictionForce);
+                    LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max(MaxSpeed, LateralVelocityNew.magnitude - frictionForce);
                 //else
                 //	LateralVelocityNew = LateralVelocityNew.normalized * Mathf.Max (MaxSpeed, LateralVelocityNew.magnitude - (FrictionForce * AirControlFactor));
             }
@@ -394,7 +395,7 @@ public class PlayerMovement : MonoBehaviour {
             Vector3 NewVelocity = RB.velocity;
 
             //Jump to zero velocity when below max speed and on the ground to give more control and prevent gliding.
-            if (RB.velocity.magnitude < _alteredMaxSpeed)
+            if (RB.velocity.magnitude < alteredMaxSpeed)
                 RB.velocity = new Vector3();
             else
             {

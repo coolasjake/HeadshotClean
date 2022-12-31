@@ -144,6 +144,17 @@ public static class Utility
     {
         return (Vector3.SqrMagnitude(pointA - pointB) < range * range);
     }
+
+    public static float Duration(this AnimationCurve curve)
+    {
+        if (curve == null)
+            return 0;
+
+        if (curve.length == 0)
+            return 0;
+
+        return curve.keys[curve.length - 1].time;
+    }
 }
 
 public class Mean
