@@ -38,6 +38,8 @@ public class MiningDroid : EnemyFramework
 
     private WorkStates workState = WorkStates.moving;
 
+    private bool boxDestroyed = false;
+
     #region EnemyFramework Overrides
     protected override void EFStart()
     {
@@ -180,6 +182,12 @@ public class MiningDroid : EnemyFramework
 
     protected override void StartCharging()
     {
+        if (boxDestroyed)
+        {
+            StartSearching();
+            return;
+        }
+
         base.StartCharging();
 
         firingLight.enabled = true;
@@ -330,6 +338,28 @@ public class MiningDroid : EnemyFramework
             _lookAroundStarted = Time.time - 0.8f;
             _lookAround = true;
         }
+    }
+    #endregion
+
+    #region Damage Functions
+    public void DestroyLaserBox()
+    {
+        box.gameObject.SetActive(false);
+        boxDestroyed = true;
+    }
+
+    public void DestroyHead()
+    {
+        detection.head.gameObject.SetActive(false);
+        DestroyMiningDroid();
+    }
+
+    public void DestroyMiningDroid()
+    {
+        movement.RB.useGravity = true;
+        movement.RB.constraints = RigidbodyConstraints.None;
+        EFDestroy();
+        Destroy(this);
     }
     #endregion
 }

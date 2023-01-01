@@ -92,25 +92,23 @@ public abstract class LookingEnemy : BaseEnemy {
 			}
 		}
 		
-		if (!PlayerMovement.ThePlayer._Invisible) {
-			if (!NoHit) {
-				HaveLOSToPlayer = true;
-				float AngleToPlayer = Vector3.Angle (Head.transform.forward, PlayerMovement.ThePlayer.transform.position - Head.transform.position);
-				if (AngleToPlayer < ObviousAngle) {
-                    //If the player is within the 'Obvious' cone, set player visibility relative to distance plus 0.5f (PlayerDetection of 1 equals instant detection)
+		if (!NoHit) {
+			HaveLOSToPlayer = true;
+			float AngleToPlayer = Vector3.Angle (Head.transform.forward, PlayerMovement.ThePlayer.transform.position - Head.transform.position);
+			if (AngleToPlayer < ObviousAngle) {
+                //If the player is within the 'Obvious' cone, set player visibility relative to distance plus 0.5f (PlayerDetection of 1 equals instant detection)
+				DetectingPlayer = true;
+				PlayerVisibility = 0.5f + (1 - (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
+				//PlayerVisibility = 1;
+			} else if (AngleToPlayer < DetectionAngle || (DetectionProgress > DetectionDifficulty * 0.25f && AngleToPlayer < AlertDetectionAngle)) {
+                //If the player is within the detection cone, or the AI is 'suspicious' (Progress > 0.5) and they are within the Alert cone
+				if (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) > MaxDetectionDistance)
+					PlayerVisibility = 0;
+				else {
+					//The player is within the bots 'vision'.
 					DetectingPlayer = true;
-					PlayerVisibility = 0.5f + (1 - (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
-					//PlayerVisibility = 1;
-				} else if (AngleToPlayer < DetectionAngle || (DetectionProgress > DetectionDifficulty * 0.25f && AngleToPlayer < AlertDetectionAngle)) {
-                    //If the player is within the detection cone, or the AI is 'suspicious' (Progress > 0.5) and they are within the Alert cone
-					if (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) > MaxDetectionDistance)
-						PlayerVisibility = 0;
-					else {
-						//The player is within the bots 'vision'.
-						DetectingPlayer = true;
-						PlayerVisibility = (1 - (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
-						PlayerVisibility += ((AngleToPlayer - ObviousAngle) / (DetectionAngle - ObviousAngle)) / 2;
-					}
+					PlayerVisibility = (1 - (Vector3.Distance (PlayerMovement.ThePlayer.transform.position, transform.position) / MaxDetectionDistance)) / 2;
+					PlayerVisibility += ((AngleToPlayer - ObviousAngle) / (DetectionAngle - ObviousAngle)) / 2;
 				}
 			}
 		}

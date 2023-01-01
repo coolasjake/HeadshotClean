@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 23212060954360754}
   m_Layer: 13
   m_Name: Quad (1)
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -174,7 +174,7 @@ GameObject:
   - component: {fileID: 82275303576898060}
   m_Layer: 8
   m_Name: PhaseSoundManager
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -380,7 +380,7 @@ GameObject:
   - component: {fileID: 114045966392796534}
   m_Layer: 13
   m_Name: Gyroscope (Effective Gravity)
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -427,7 +427,7 @@ GameObject:
   - component: {fileID: 4798424007669216}
   m_Layer: 13
   m_Name: GroundAligner
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -461,7 +461,7 @@ GameObject:
   - component: {fileID: 114406284755812626}
   m_Layer: 13
   m_Name: Gyroscope (Normal Gravity)
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -587,7 +587,7 @@ GameObject:
   - component: {fileID: 623768001}
   m_Layer: 8
   m_Name: GunCamera
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1290,7 +1290,7 @@ GameObject:
   - component: {fileID: 82173488959404554}
   m_Layer: 13
   m_Name: Gun
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1420,7 +1420,7 @@ GameObject:
   - component: {fileID: 33568871313220664}
   m_Layer: 8
   m_Name: Body
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1511,7 +1511,7 @@ GameObject:
   - component: {fileID: 4482876731186464}
   m_Layer: 8
   m_Name: PlayerRotationParent
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1548,7 +1548,7 @@ GameObject:
   - component: {fileID: 199407808232479880}
   m_Layer: 0
   m_Name: ImpactEffect
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6305,6 +6305,7 @@ GameObject:
   - component: {fileID: 114795297263143912}
   - component: {fileID: 891280638}
   - component: {fileID: 891280637}
+  - component: {fileID: 931209565}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -6343,24 +6344,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01883a6951d1283449efef01df710e01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Health: 100
-  MaxHealth: 100
   DebugString: Default
   PlaneVelocity: {x: 0, y: 0}
   VerticalVelocity: 0
   FUVelocityDelta: 0
   FULargestDeltaLastSecond: 0
   LateralVelocityBeforeFriction: 0
-  CameraOrHolder: {fileID: 0}
+  MainCamera: {fileID: 0}
+  CameraTransform: {fileID: 0}
   RotationBody: {fileID: 4482876731186464}
   DeathCamera: {fileID: 0}
   SFXPlayer: {fileID: 0}
   ImpactEffect: {fileID: 0}
-  disableMusic: 0
-  disableDeath: 1
-  clamp: 89.99
-  clampAdjustmentSpeed: 180
-  userSensitivity: 1
   maxSpeed: 6
   acceleration: 20
   stoppingForce: 500
@@ -6370,6 +6365,9 @@ MonoBehaviour:
   jumpVelocityPerSecondHeld: 20
   maxJumpTime: 0.1
   jumpLeniency: 0.1
+  userSensitivity: 1
+  clamp: 89.99
+  clampAdjustmentSpeed: 180
   playerSphereSize: 2
   playerWaistSize: 0.5
 --- !u!114 &114819942403559452
@@ -6430,6 +6428,10 @@ MonoBehaviour:
     ability: 9
     status: 0
     settingOne: 0
+  - name: ShiftBoost
+    ability: 10
+    status: 0
+    settingOne: 0
   flyDistance: 3
   superGravityWindow: 0.2
   maxGravityMultipliers: 3
@@ -6437,8 +6439,41 @@ MonoBehaviour:
   gravityJumpRegenTime: 3
   gravJumpRegenDelay: 0.5
   impactVelocity: 10
-  limitedGravityChanging: 1
+  limitedGravityChanging: 0
   gravChangeEnabledTag: CanShiftTo
+  shiftBoostSpeedMultiplier:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 3
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 4
+      value: 0
+      inSlope: -0.2991747
+      outSlope: -0.2991747
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 5
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   holdTimeToReset: 0.5
   reduceSenseWhileFlying: 1
   flyingSenseMultiplier: 0.3
@@ -11425,6 +11460,88 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!114 &931209565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456636474970118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67bf0bf12ec761d4c901974f264d9cd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitAreas: []
+  healthChunks:
+  - name: Main
+    maxHealth: 50
+    UIBar: {fileID: 0}
+    overflowDamage: 0
+    invulnerabilityDuration: 1
+    breakEffects:
+      m_PersistentCalls:
+        m_Calls: []
+  - name: Arm
+    maxHealth: 1
+    UIBar: {fileID: 0}
+    overflowDamage: 1
+    invulnerabilityDuration: 0
+    breakEffects:
+      m_PersistentCalls:
+        m_Calls: []
+  - name: Core
+    maxHealth: 100
+    UIBar: {fileID: 0}
+    overflowDamage: 0
+    invulnerabilityDuration: 0
+    breakEffects:
+      m_PersistentCalls:
+        m_Calls: []
+  outcome: 0
+  spawnPoint: {fileID: 0}
+  gameOverScene: GameOver
+  restartScene: Restart
+  OnDeath:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 114819942403559452}
+        m_MethodName: ResetToWorldGravity
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 114100980628957524}
+        m_MethodName: DisableMovement
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnRespawn:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 114100980628957524}
+        m_MethodName: EnableMovement
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  deathAnimationTime: 1
 --- !u!1 &1640356843870520
 GameObject:
   m_ObjectHideFlags: 0
@@ -11437,7 +11554,7 @@ GameObject:
   - component: {fileID: 212720437920728524}
   m_Layer: 13
   m_Name: UpClampArrow
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11518,7 +11635,7 @@ GameObject:
   - component: {fileID: 212873339044949534}
   m_Layer: 13
   m_Name: DownClampArrow
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11761,7 +11878,7 @@ GameObject:
   - component: {fileID: 1234195477}
   m_Layer: 8
   m_Name: PhaseCamera
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11955,7 +12072,7 @@ GameObject:
   - component: {fileID: 23109147161565712}
   m_Layer: 13
   m_Name: Quad (2)
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -12033,7 +12150,7 @@ GameObject:
   - component: {fileID: 82042478808660308}
   m_Layer: 8
   m_Name: GravitySoundManager
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -12160,7 +12277,7 @@ GameObject:
   - component: {fileID: 82373276182072216}
   m_Layer: 8
   m_Name: MusicSoundManager
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -12288,7 +12405,7 @@ GameObject:
   - component: {fileID: 23151608057151628}
   m_Layer: 13
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -12432,6 +12549,6 @@ SpriteRenderer:
   m_Size: {x: 0.2, y: 0.2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0

@@ -29,10 +29,15 @@ public abstract class EnemyFramework : Shootable
 
     protected virtual void EFStart() { }
 
+    protected void EFDestroy()
+    {
+        Destroy(detection.DI.gameObject);
+    }
+
     protected virtual void CreateDetectionIndicator()
     {
-        GameObject DI = Instantiate(Resources.Load<GameObject>("Prefabs/Enemies/EFDetectionIndicator"), FindObjectOfType<Canvas>().transform);
-        DI.GetComponent<EFDetectionIndicator>().Target = transform;
+        detection.DI = Instantiate(Resources.Load<GameObject>("Prefabs/Enemies/EFDetectionIndicator"), FindObjectOfType<Canvas>().transform).GetComponent<EFDetectionIndicator>();
+        detection.DI.Target = transform;
     }
 
     // Update is called once per frame
@@ -87,6 +92,8 @@ public abstract class EnemyFramework : Shootable
         /// <summary> How quickly the AI will lose 'suspision' (DetectionProgress), relative to the normal gain (default = 1/s). </summary>
         public float looseIntrestMagnitude = 0.1f;
 
+        [HideInInspector]
+        public EFDetectionIndicator DI;
 
         /// <summary> The last time the player was in LOS, so that the duration of searches can be checked. </summary>
         protected float _lastSawPlayer = -1000;

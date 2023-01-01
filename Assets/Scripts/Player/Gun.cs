@@ -89,16 +89,6 @@ public class Gun : MonoBehaviour {
 				GameObject LineObject;
 				Vector3 LinePoint;
 
-				/*
-				LineObject = Instantiate (Resources.Load<GameObject> ("Prefabs/Line"), GunModel);
-				LineObject.transform.localPosition = new Vector3 (0.0023f, 0.3197f, 0.606f);
-				LineObject.transform.SetParent (null);
-				LineObject.transform.position = Vector3.MoveTowards (Hit.point, LineObject.transform.position, 5f);
-				LinePoint = LineObject.transform.InverseTransformPoint (Hit.point);
-				LineObject.GetComponent<LineRenderer>().SetPosition (1, LinePoint);
-				LineObject.GetComponent<BulletTrail> ().DestroyTime = RecoilTime * 2f;
-				*/
-
 				LineObject = Instantiate (Resources.Load<GameObject> ("Prefabs/Line"), GunModel);
 				LineObject.name = "Line";
 				LineObject.transform.localPosition = new Vector3 (0.0023f, 0.3197f, 0.606f);
@@ -108,23 +98,29 @@ public class Gun : MonoBehaviour {
 				LineObject.GetComponent<LineRenderer>().SetPosition (1, LinePoint);
 				LineObject.GetComponent<BulletTrail> ().DestroyTime = RecoilTime;
 
-				Shootable SH = Hit.collider.GetComponentInParent<Shootable> ();
-				if (SH) {
-					SH.Hit (35f);
-				} else {
-					SpawnBurnDecal (Hit);
-					GameObject HitAlarm = new GameObject ();
-					HitAlarm.layer = 15;
-					HitAlarm.transform.position = transform.position;
-					HitAlarm.name = "Gunshot Alarm";
-					Alarm Al2 = HitAlarm.AddComponent<Alarm> ();
-					Al2.Radius = 30;
-				}
+                //Play sound
+                SFXPlayer.PlaySound("Gunshot");
 
-				//Play sound
-				SFXPlayer.PlaySound ("Gunshot");
-				//GunModel.GetComponent<AudioSource>().Play();
-			}
+                if (Hit.rigidbody != null)
+                {
+                    print(Hit.rigidbody.name);
+                    Shootable SH = Hit.rigidbody.GetComponent<Shootable>();
+                    if (SH)
+                    {
+                        SH.Hit(5f, "Player", Hit.collider.name);
+                    }
+                }
+                else
+                {
+                    SpawnBurnDecal(Hit);
+                    GameObject HitAlarm = new GameObject();
+                    HitAlarm.layer = 15;
+                    HitAlarm.transform.position = transform.position;
+                    HitAlarm.name = "Gunshot Alarm";
+                    Alarm Al2 = HitAlarm.AddComponent<Alarm>();
+                    Al2.Radius = 30;
+                }
+            }
 		}
 		WannaShoot = false;
 	}
