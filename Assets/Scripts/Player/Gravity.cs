@@ -217,6 +217,9 @@ public class Gravity : MonoBehaviour
 
     #region Settings
     [Header("Gravity Ability Settings")]
+    /// <summary> The Layermask for the raycasts that check which surface to shift gravity to. </summary>
+    [Tooltip("The layers which the players raycasts will hit when trying to change gravity. Trigger colliders should be in excluded layers.")]
+    public LayerMask raycastLayermask = new LayerMask();
     /// <summary> Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction. </summary>
     [Tooltip("Aiming at a wall closer than this distance will align gravity to the normal of the hit, further will align gravity to the aim direction.")]
     public float flyDistance = 2f;
@@ -500,7 +503,7 @@ public class Gravity : MonoBehaviour
     private bool DoShiftFromContext(Vector3 direction)
     {
         RaycastHit tempTargetWall;
-        if (Physics.Raycast(PM.MainCamera.transform.position, direction, out tempTargetWall))
+        if (Physics.Raycast(PM.MainCamera.transform.position, direction, out tempTargetWall, float.PositiveInfinity, raycastLayermask))
         {
             if (limitedGravityChanging && tempTargetWall.transform.CompareTag(gravChangeEnabledTag) == false)
                 return false;
@@ -508,7 +511,7 @@ public class Gravity : MonoBehaviour
             RaycastHit Hit;
             //If the raycast hits a surface less than double the flyDistance away, do a second raycast to see if there is a matching surface
             //less than the fly distance away in the direction gravity would be changed to. If so, align gravity with the surface.
-            if (tempTargetWall.distance < flyDistance * 2f && Physics.Raycast(transform.position, tempTargetWall.normal * -1, out Hit, flyDistance))
+            if (tempTargetWall.distance < flyDistance * 2f && Physics.Raycast(transform.position, tempTargetWall.normal * -1, out Hit, flyDistance, raycastLayermask))
             {
                 if (Hit.distance < flyDistance && VectorsAreSimilar(Hit.normal, tempTargetWall.normal))
                 {
