@@ -603,7 +603,8 @@ public class Gravity : MonoBehaviour
 
     private bool _shiftBoostNextCollision = false;
     private Coroutine _shiftBoostCoroutine;
-    /// <summary> Give the player a short boost of speed after they change gravity and collide with a wall. </summary>
+    /// <summary> Give the player a short boost of speed after they change gravity and collide with a wall.
+    /// Triggers any time </summary>
     private void ShiftBoost()
     {
         _shiftBoostNextCollision = false;
@@ -748,7 +749,8 @@ public class Gravity : MonoBehaviour
         }
     }
 
-    /// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force.</summary>
+    /// <summary> Shift gravity in the given direction, and apply the given GravityMultiplier to the force.
+    /// Returns FALSE when the new direction and magnitude are the same (or very similar), and the ability was therefore cancelled. </summary>
     private bool ShiftGravityDirection(float GravityMultiplier, Vector3 Direction)
     {
         Vector3 NewGravity = Direction * defaultGravityMagnitude * GravityMultiplier;
@@ -864,11 +866,10 @@ public class Gravity : MonoBehaviour
             if (distToTarget < flyDistance || (distToTarget < Vector3.Distance(shiftPoint, transform.position)))
             {
                 AlignGravityOnCollision();
-                if (_shiftBoostNextCollision)
-                    ShiftBoost();
             }
         }
-        else if (_shiftBoostNextCollision)
+
+        if (_shiftBoostNextCollision)
             ShiftBoost();
     }
 
@@ -879,6 +880,7 @@ public class Gravity : MonoBehaviour
         {
             StartCollisionMoveCameraCoroutine();
         }
+        ShiftBoost();
     }
     #endregion
 
